@@ -220,7 +220,16 @@ Use HTML entities for special characters:
 9. **The Bottom Line** — Concise summary. The thesis restated with all the evidence behind it.
 10. **Key Verses** — Organized cross-reference boxes by category
 11. **Complete Word Study Summary Table** — Every word studied, language, meaning, occurrences, Strong's
-12. **Continue the Journey** — Links to related studies (built ones linked, unbuilt ones at 0.5 opacity)
+12. **Go Study It Yourself** — Resources section so readers can verify EVERYTHING themselves. Include:
+    - Blue Letter Bible, Bible Hub Interlinear, STEP Bible, Strong's Concordance Online
+    - Bible Gateway, Bible Hub Parallel, Scripture4All (compare translations)
+    - New Advent Church Fathers, CCEL (read the fathers)
+    - World History Encyclopedia, JSTOR (verify historical claims)
+    - Bill Mounce Greek, Aleph with Beth Hebrew, Unfoldingword Hebrew Grammar (learn the languages)
+    - End with Acts 17:11 ("searched the Scriptures daily")
+    - Customize the Strong's number examples to match the study's key words
+    - Tone: "Don't take our word for it. Open the Greek. Open the Hebrew."
+13. **Continue the Journey** — Links to related studies (built ones linked, unbuilt ones at 0.5 opacity)
 
 ### File Naming
 - Lowercase, hyphens: `the-study-title-here.html`
