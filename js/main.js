@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '<div class="cover-front">' +
         '<div class="cover-clasp">' +
           '<img class="cover-clasp-icon" src="images/ornaments/celtic-cross.svg" alt="" loading="lazy">' +
-          '<div class="cover-clasp-text">The Living Word</div>' +
+          '<div class="cover-clasp-text">The Unveiled Word</div>' +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
