@@ -108,12 +108,17 @@ body {
     /* Page edge shadow (right side) */
     6px 0 20px rgba(0,0,0,0.2),
     2px 0 6px rgba(0,0,0,0.1),
-    /* Depth layers — stacked pages underneath */
+    /* Depth layers — stacked pages underneath (both sides) */
     7px 2px 0 var(--vellum-deep),
     8px 3px 0 var(--vellum-shadow),
     9px 4px 0 var(--vellum-deep),
     10px 5px 0 var(--vellum-shadow),
-    11px 6px 12px rgba(0,0,0,0.3);
+    11px 6px 12px rgba(0,0,0,0.3),
+    -7px 2px 0 var(--vellum-deep),
+    -8px 3px 0 var(--vellum-shadow),
+    -9px 4px 0 var(--vellum-deep),
+    -10px 5px 0 var(--vellum-shadow),
+    -11px 6px 12px rgba(0,0,0,0.3);
 }
 
 /* Parchment texture on the page */
@@ -1406,14 +1411,22 @@ figcaption {
   padding: var(--spacing-2xl) var(--spacing-lg);
 }
 
-/* Leather grain */
+/* Leather grain + texture overlay */
 .bible-cover::before {
   content: '';
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.04) 1px, rgba(0,0,0,0.04) 3px),
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 5px);
+    /* Leather grain lines */
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 3px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 5px),
+    /* Leather pore texture via noise */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"),
+    /* Worn spots */
+    radial-gradient(ellipse at 30% 40%, rgba(90, 60, 30, 0.12) 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 60%, rgba(90, 60, 30, 0.08) 0%, transparent 35%),
+    radial-gradient(ellipse at 50% 20%, rgba(60, 40, 20, 0.06) 0%, transparent 30%);
+  background-size: auto, auto, 200px 200px, auto, auto, auto;
   pointer-events: none;
 }
 
@@ -1456,17 +1469,28 @@ figcaption {
   text-shadow:
     0 0 30px rgba(197, 150, 12, 0.2),
     0 2px 4px rgba(0,0,0,0.4);
-  /* Gold leaf gradient */
+  /* Animated gold leaf shimmer — light moves across like candlelight */
   background: linear-gradient(135deg,
     var(--gold-antique) 0%,
-    var(--gold-foil) 25%,
+    var(--gold-foil) 20%,
+    var(--gold-bright) 35%,
+    #fff5cc 42%,
     var(--gold-bright) 50%,
-    var(--gold-foil) 75%,
-    var(--gold-antique) 100%
+    var(--gold-foil) 65%,
+    var(--gold-antique) 80%,
+    var(--gold-dim) 100%
   );
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: goldShimmer 8s ease-in-out infinite;
+}
+
+@keyframes goldShimmer {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .cover-subtitle {
@@ -1496,24 +1520,45 @@ figcaption {
 }
 
 .cover-nav a {
-  font-family: var(--font-heading);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
+  font-family: var(--font-uncial);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
   color: var(--gold-foil);
-  border: 1px solid rgba(197, 150, 12, 0.35);
-  padding: 14px 32px;
-  border-radius: 2px;
-  transition: all 0.3s;
+  border: none;
+  border-top: 1px solid rgba(197, 150, 12, 0.2);
+  border-bottom: 1px solid rgba(197, 150, 12, 0.2);
+  padding: 16px 36px;
+  transition: all 0.4s;
   text-decoration: none;
   position: relative;
 }
 
+/* Ornamental dots flanking nav items */
+.cover-nav a::before {
+  content: '\2726';
+  margin-right: 0.6em;
+  font-size: 0.6em;
+  opacity: 0.5;
+  vertical-align: middle;
+}
+
+.cover-nav a::after {
+  content: '\2726';
+  margin-left: 0.6em;
+  font-size: 0.6em;
+  opacity: 0.5;
+  vertical-align: middle;
+}
+
 .cover-nav a:hover {
-  background: rgba(197, 150, 12, 0.12);
-  border-color: var(--gold-antique);
   color: var(--gold-bright);
-  box-shadow: 0 0 25px rgba(197, 150, 12, 0.1);
+  border-color: rgba(197, 150, 12, 0.5);
+  text-shadow: 0 0 15px rgba(197, 150, 12, 0.3);
+}
+
+.cover-nav a:hover::before,
+.cover-nav a:hover::after {
+  opacity: 0.8;
 }
 
 /* ============================================================
