@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greek Lexicon G201&amp;ndash;G300 &mdash; The Living Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .interlinear-verse {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin: 16px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(197,150,12,0.12);
+    }
+    .interlinear-word {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 50px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .interlinear-word:hover {
+      background: rgba(197,150,12,0.1);
+    }
+    .word-original {
+      font-size: 1.2rem;
+      color: var(--leather-dark, #2c1810);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .word-original.hebrew {
+      font-family: 'SBL Hebrew', 'Ezra SIL', 'Times New Roman', serif;
+      direction: rtl;
+      font-size: 1.35rem;
+    }
+    .word-original.greek {
+      font-family: 'SBL Greek', 'Gentium Plus', 'Times New Roman', serif;
+    }
+    .word-translit {
+      font-size: 0.7rem;
+      font-style: italic;
+      color: var(--ink-light, #6b5b4a);
+      margin-top: 2px;
+    }
+    .word-english {
+      font-size: 0.8rem;
+      color: var(--ink, #3c2f2f);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .word-strongs {
+      font-size: 0.6rem;
+      color: var(--ultramarine, #1e3a6e);
+      margin-top: 2px;
+    }
+    .word-strongs a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+    }
+    .word-strongs a:hover {
+      text-decoration: underline;
+    }
+    .verse-num {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.75rem;
+      color: var(--vermillion, #c41e3a);
+      font-weight: 700;
+      min-width: 28px;
+      align-self: flex-start;
+      padding-top: 8px;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      margin: 16px 0;
+      border-top: 1px solid rgba(197,150,12,0.2);
+      border-bottom: 1px solid rgba(197,150,12,0.2);
+    }
+    .chapter-nav a {
+      color: var(--gold, #c59612);
+      text-decoration: none;
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.85rem;
+    }
+    .chapter-nav a:hover { text-decoration: underline; }
+    .book-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .book-nav a {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(197,150,12,0.08);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      border: 1px solid rgba(197,150,12,0.15);
+    }
+    .book-nav a:hover, .book-nav a.active {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .chapter-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+    }
+    .chapter-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(197,150,12,0.06);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(197,150,12,0.12);
+      border-radius: 3px;
+    }
+    .chapter-links a:hover {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .testament-section {
+      margin: 24px 0;
+    }
+    .testament-section h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      color: var(--vermillion, #c41e3a);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hebrew-verse {
+      direction: rtl;
+    }
+    .lexicon-entry {
+      padding: 20px 0;
+    }
+    .lex-word {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .lex-word.hebrew { direction: rtl; font-family: 'SBL Hebrew', 'Ezra SIL', serif; }
+    .lex-word.greek { font-family: 'SBL Greek', 'Gentium Plus', serif; }
+    .lex-meta {
+      color: var(--ink-light, #6b5b4a);
+      font-size: 0.9rem;
+      margin: 4px 0;
+    }
+    .lex-def {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    .lex-verses {
+      margin-top: 20px;
+    }
+    .lex-verses h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.9rem;
+      color: var(--vermillion, #c41e3a);
+      margin-bottom: 8px;
+    }
+    .lex-verse-list {
+      column-count: 3;
+      column-gap: 16px;
+      font-size: 0.8rem;
+    }
+    .lex-verse-list a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+      display: block;
+      padding: 2px 0;
+    }
+    .lex-verse-list a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .lex-verse-list { column-count: 2; }
+      .interlinear-word { min-width: 40px; padding: 3px 4px; }
+      .word-original { font-size: 1.05rem; }
+      .word-original.hebrew { font-size: 1.15rem; }
+    }
+    @media (max-width: 480px) {
+      .lex-verse-list { column-count: 1; }
+    }
+    
+    .lex-card{display:block;padding:10px 12px;margin-bottom:6px;background:rgba(197,150,12,0.04);border:1px solid rgba(197,150,12,0.12);border-radius:4px;text-decoration:none;color:inherit;line-height:1.5;}
+    .lex-card:hover{background:rgba(197,150,12,0.1);}
+    .lex-c-w{font-size:1.25rem;}
+    .lex-c-t{font-size:0.8rem;color:#6b5b4a;}
+    .lex-c-v{font-size:0.7rem;color:#6b5b4a;float:right;}
+    .lex-c-d{font-size:0.82rem;color:#3c2f2f;}
+    
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Living Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../words/">Word Studies</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+      </ul>
+    </div>
+  </header>
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div>
+      <div class="border-right"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+  <main class="page-container">
+
+    <article class="study-article">
+      <header class="study-header">
+        <h1 class="study-title">Greek Lexicon</h1>
+        <p class="study-subtitle">G201 &ndash; G300</p>
+      </header>
+      <hr class="divider">
+      <section class="study-body">
+        <a href="g201.html" class="lex-card">
+<span class="strongs-number">G201</span> <span class="lex-c-w">ἀκροατήριον</span> <em class="lex-c-t">akroatḗrion</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> an audience-room</span></a><a href="g202.html" class="lex-card">
+<span class="strongs-number">G202</span> <span class="lex-c-w">ἀκροατής</span> <em class="lex-c-t">akroatḗs</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> apparently an intensive of G191 (ἀκούω)); a hearer (merely)</span></a><a href="g203.html" class="lex-card">
+<span class="strongs-number">G203</span> <span class="lex-c-w">ἀκροβυστία</span> <em class="lex-c-t">akrobystía</em> <small class="lex-c-v">17x</small><br>
+<span class="lex-c-d"> the prepuce; by implication, an uncircumcised (i.e. gentile, figuratively, unregenerate) state or person</span></a><a href="g204.html" class="lex-card">
+<span class="strongs-number">G204</span> <span class="lex-c-w">ἀκρογωνιαῖος</span> <em class="lex-c-t">akrogōniaîos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> belonging to the extreme corner</span></a><a href="g205.html" class="lex-card">
+<span class="strongs-number">G205</span> <span class="lex-c-w">ἀκροθίνιον</span> <em class="lex-c-t">akrothínion</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> properly (in the plural) the top of the heap, i.e. (by implication) best of the booty</span></a><a href="g206.html" class="lex-card">
+<span class="strongs-number">G206</span> <span class="lex-c-w">ἄκρον</span> <em class="lex-c-t">ákron</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> the extremity</span></a><a href="g207.html" class="lex-card">
+<span class="strongs-number">G207</span> <span class="lex-c-w">Ἀκύλας</span> <em class="lex-c-t">Akýlas</em> <small class="lex-c-v">6x</small><br>
+<span class="lex-c-d"> Akulas, an Israelite</span></a><a href="g208.html" class="lex-card">
+<span class="strongs-number">G208</span> <span class="lex-c-w">ἀκυρόω</span> <em class="lex-c-t">akyróō</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to invalidate</span></a><a href="g209.html" class="lex-card">
+<span class="strongs-number">G209</span> <span class="lex-c-w">ἀκωλύτως</span> <em class="lex-c-t">akōlýtōs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> in an unhindered manner, i.e. freely</span></a><a href="g210.html" class="lex-card">
+<span class="strongs-number">G210</span> <span class="lex-c-w">ἄκων</span> <em class="lex-c-t">ákōn</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unwilling</span></a><a href="g211.html" class="lex-card">
+<span class="strongs-number">G211</span> <span class="lex-c-w">ἀλάβαστρον</span> <em class="lex-c-t">alábastron</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> properly, an \</span></a><a href="g212.html" class="lex-card">
+<span class="strongs-number">G212</span> <span class="lex-c-w">ἀλαζονεία</span> <em class="lex-c-t">alazoneía</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> braggadocio, i.e. (by implication) self-confidence</span></a><a href="g213.html" class="lex-card">
+<span class="strongs-number">G213</span> <span class="lex-c-w">ἀλαζών</span> <em class="lex-c-t">alazṓn</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> braggart</span></a><a href="g214.html" class="lex-card">
+<span class="strongs-number">G214</span> <span class="lex-c-w">ἀλαλάζω</span> <em class="lex-c-t">alalázō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to vociferate, i.e. (by implication) to wail; figuratively, to clang</span></a><a href="g215.html" class="lex-card">
+<span class="strongs-number">G215</span> <span class="lex-c-w">ἀλάλητος</span> <em class="lex-c-t">alálētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unspeakable</span></a><a href="g216.html" class="lex-card">
+<span class="strongs-number">G216</span> <span class="lex-c-w">ἄλαλος</span> <em class="lex-c-t">álalos</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> mute</span></a><a href="g217.html" class="lex-card">
+<span class="strongs-number">G217</span> <span class="lex-c-w">ἅλας</span> <em class="lex-c-t">hálas</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> salt; figuratively, prudence</span></a><a href="g218.html" class="lex-card">
+<span class="strongs-number">G218</span> <span class="lex-c-w">ἀλείφω</span> <em class="lex-c-t">aleíphō</em> <small class="lex-c-v">8x</small><br>
+<span class="lex-c-d"> to oil (with perfume)</span></a><a href="g219.html" class="lex-card">
+<span class="strongs-number">G219</span> <span class="lex-c-w">ἀλεκτοροφωνία</span> <em class="lex-c-t">alektorophōnía</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> cock-crow, i.e. the third night-watch</span></a><a href="g220.html" class="lex-card">
+<span class="strongs-number">G220</span> <span class="lex-c-w">ἀλέκτωρ</span> <em class="lex-c-t">aléktōr</em> <small class="lex-c-v">11x</small><br>
+<span class="lex-c-d"> a cock or male fowl</span></a><a href="g221.html" class="lex-card">
+<span class="strongs-number">G221</span> <span class="lex-c-w">Ἀλεξανδρεύς</span> <em class="lex-c-t">Alexandreús</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> an Alexandreian or inhabitant of Alexandria</span></a><a href="g222.html" class="lex-card">
+<span class="strongs-number">G222</span> <span class="lex-c-w">Ἀλεξανδρῖνος</span> <em class="lex-c-t">Alexandrînos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> Alexandrine, or belonging to Alexandria</span></a><a href="g223.html" class="lex-card">
+<span class="strongs-number">G223</span> <span class="lex-c-w">Ἀλέξανδρος</span> <em class="lex-c-t">Aléxandros</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> man-defender; Alexander, the name of three Israelites and one other man</span></a><a href="g224.html" class="lex-card">
+<span class="strongs-number">G224</span> <span class="lex-c-w">ἄλευρον</span> <em class="lex-c-t">áleuron</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> flour</span></a><a href="g225.html" class="lex-card">
+<span class="strongs-number">G225</span> <span class="lex-c-w">ἀλήθεια</span> <em class="lex-c-t">alḗtheia</em> <small class="lex-c-v">99x</small><br>
+<span class="lex-c-d"> truth</span></a><a href="g226.html" class="lex-card">
+<span class="strongs-number">G226</span> <span class="lex-c-w">ἀληθεύω</span> <em class="lex-c-t">alētheúō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to be true (in doctrine and profession)</span></a><a href="g227.html" class="lex-card">
+<span class="strongs-number">G227</span> <span class="lex-c-w">ἀληθής</span> <em class="lex-c-t">alēthḗs</em> <small class="lex-c-v">25x</small><br>
+<span class="lex-c-d"> true (as not concealing)</span></a><a href="g228.html" class="lex-card">
+<span class="strongs-number">G228</span> <span class="lex-c-w">ἀληθινός</span> <em class="lex-c-t">alēthinós</em> <small class="lex-c-v">26x</small><br>
+<span class="lex-c-d"> truthful</span></a><a href="g229.html" class="lex-card">
+<span class="strongs-number">G229</span> <span class="lex-c-w">ἀλήθω</span> <em class="lex-c-t">alḗthō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to grind</span></a><a href="g230.html" class="lex-card">
+<span class="strongs-number">G230</span> <span class="lex-c-w">ἀληθῶς</span> <em class="lex-c-t">alēthōs</em> <small class="lex-c-v">18x</small><br>
+<span class="lex-c-d"> truly</span></a><a href="g231.html" class="lex-card">
+<span class="strongs-number">G231</span> <span class="lex-c-w">ἁλιεύς</span> <em class="lex-c-t">halieús</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> a sailor (as engaged on the salt water), i.e. (by implication) a fisher</span></a><a href="g232.html" class="lex-card">
+<span class="strongs-number">G232</span> <span class="lex-c-w">ἁλιεύω</span> <em class="lex-c-t">halieúō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to be a fisher, i.e. (by implication) to fish</span></a><a href="g233.html" class="lex-card">
+<span class="strongs-number">G233</span> <span class="lex-c-w">ἁλίζω</span> <em class="lex-c-t">halízō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to salt</span></a><a href="g234.html" class="lex-card">
+<span class="strongs-number">G234</span> <span class="lex-c-w">ἀλίσγεμα</span> <em class="lex-c-t">alísgema</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> (ceremonially) defilement</span></a><a href="g235.html" class="lex-card">
+<span class="strongs-number">G235</span> <span class="lex-c-w">ἀλλά</span> <em class="lex-c-t">allá</em> <small class="lex-c-v">609x</small><br>
+<span class="lex-c-d"> properly, other things, i.e. (adverbially) contrariwise (in many relations)</span></a><a href="g236.html" class="lex-card">
+<span class="strongs-number">G236</span> <span class="lex-c-w">ἀλλάσσω</span> <em class="lex-c-t">allássō</em> <small class="lex-c-v">6x</small><br>
+<span class="lex-c-d"> to make different</span></a><a href="g237.html" class="lex-card">
+<span class="strongs-number">G237</span> <span class="lex-c-w">ἀλλαχόθεν</span> <em class="lex-c-t">allachóthen</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> from elsewhere</span></a><a href="g238.html" class="lex-card">
+<span class="strongs-number">G238</span> <span class="lex-c-w">ἀλληγορέω</span> <em class="lex-c-t">allēgoréō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to allegorize</span></a><a href="g239.html" class="lex-card">
+<span class="strongs-number">G239</span> <span class="lex-c-w">ἀλληλουϊα</span> <em class="lex-c-t">allēlouïa</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> praise ye Jah!, an adoring exclamation</span></a><a href="g240.html" class="lex-card">
+<span class="strongs-number">G240</span> <span class="lex-c-w">ἀλλήλων</span> <em class="lex-c-t">allḗlōn</em> <small class="lex-c-v">95x</small><br>
+<span class="lex-c-d"> one another</span></a><a href="g241.html" class="lex-card">
+<span class="strongs-number">G241</span> <span class="lex-c-w">ἀλλογενής</span> <em class="lex-c-t">allogenḗs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> foreign, i.e. not a Jew</span></a><a href="g242.html" class="lex-card">
+<span class="strongs-number">G242</span> <span class="lex-c-w">ἅλλομαι</span> <em class="lex-c-t">hállomai</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to jump; figuratively, to gush</span></a><a href="g243.html" class="lex-card">
+<span class="strongs-number">G243</span> <span class="lex-c-w">ἄλλος</span> <em class="lex-c-t">állos</em> <small class="lex-c-v">143x</small><br>
+<span class="lex-c-d"> \</span></a><a href="g244.html" class="lex-card">
+<span class="strongs-number">G244</span> <span class="lex-c-w">ἀλλοτριεπίσκοπος</span> <em class="lex-c-t">allotriepískopos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> overseeing others&#x27; affairs, i.e. a meddler (specially, in Gentile customs)</span></a><a href="g245.html" class="lex-card">
+<span class="strongs-number">G245</span> <span class="lex-c-w">ἀλλότριος</span> <em class="lex-c-t">allótrios</em> <small class="lex-c-v">13x</small><br>
+<span class="lex-c-d"> another&#x27;s, i.e. not one&#x27;s own; by extension foreign, not akin, hostile</span></a><a href="g246.html" class="lex-card">
+<span class="strongs-number">G246</span> <span class="lex-c-w">ἀλλόφυλος</span> <em class="lex-c-t">allóphylos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> foreign, i.e. (specially) Gentile</span></a><a href="g247.html" class="lex-card">
+<span class="strongs-number">G247</span> <span class="lex-c-w">ἄλλως</span> <em class="lex-c-t">állōs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> differently</span></a><a href="g248.html" class="lex-card">
+<span class="strongs-number">G248</span> <span class="lex-c-w">ἀλοάω</span> <em class="lex-c-t">aloáō</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to tread out grain</span></a><a href="g249.html" class="lex-card">
+<span class="strongs-number">G249</span> <span class="lex-c-w">ἄλογος</span> <em class="lex-c-t">álogos</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> irrational</span></a><a href="g250.html" class="lex-card">
+<span class="strongs-number">G250</span> <span class="lex-c-w">ἀλόη</span> <em class="lex-c-t">alóē</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> aloes (the gum)</span></a><a href="g251.html" class="lex-card">
+<span class="strongs-number">G251</span> <span class="lex-c-w">ἅλς</span> <em class="lex-c-t">háls</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> \</span></a><a href="g252.html" class="lex-card">
+<span class="strongs-number">G252</span> <span class="lex-c-w">ἁλυκός</span> <em class="lex-c-t">halykós</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> briny</span></a><a href="g253.html" class="lex-card">
+<span class="strongs-number">G253</span> <span class="lex-c-w">ἀλυπότερος</span> <em class="lex-c-t">alypóteros</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> more without grief</span></a><a href="g254.html" class="lex-card">
+<span class="strongs-number">G254</span> <span class="lex-c-w">ἅλυσις</span> <em class="lex-c-t">hálysis</em> <small class="lex-c-v">10x</small><br>
+<span class="lex-c-d"> a fetter or manacle</span></a><a href="g255.html" class="lex-card">
+<span class="strongs-number">G255</span> <span class="lex-c-w">ἀλυσιτελής</span> <em class="lex-c-t">alysitelḗs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> gainless, i.e. (by implication) pernicious</span></a><a href="g256.html" class="lex-card">
+<span class="strongs-number">G256</span> <span class="lex-c-w">Ἀλφαῖος</span> <em class="lex-c-t">Alphaîos</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> Alphæus, an Israelite</span></a><a href="g257.html" class="lex-card">
+<span class="strongs-number">G257</span> <span class="lex-c-w">ἅλων</span> <em class="lex-c-t">hálōn</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> a threshing-floor (as rolled hard), i.e. (figuratively) the grain (and chaff, as just threshed)</span></a><a href="g258.html" class="lex-card">
+<span class="strongs-number">G258</span> <span class="lex-c-w">ἀλώπηξ</span> <em class="lex-c-t">alṓpēx</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> a fox, i.e. (figuratively) a cunning person</span></a><a href="g259.html" class="lex-card">
+<span class="strongs-number">G259</span> <span class="lex-c-w">ἅλωσις</span> <em class="lex-c-t">hálōsis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> capture, be taken. </span></a><a href="g260.html" class="lex-card">
+<span class="strongs-number">G260</span> <span class="lex-c-w">ἅμα</span> <em class="lex-c-t">háma</em> <small class="lex-c-v">10x</small><br>
+<span class="lex-c-d"> properly, at the \</span></a><a href="g261.html" class="lex-card">
+<span class="strongs-number">G261</span> <span class="lex-c-w">ἀμαθής</span> <em class="lex-c-t">amathḗs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> ignorant</span></a><a href="g262.html" class="lex-card">
+<span class="strongs-number">G262</span> <span class="lex-c-w">ἀμαράντινος</span> <em class="lex-c-t">amarántinos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> \</span></a><a href="g263.html" class="lex-card">
+<span class="strongs-number">G263</span> <span class="lex-c-w">ἀμάραντος</span> <em class="lex-c-t">amárantos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unfading, i.e. (by implication) perpetual</span></a><a href="g264.html" class="lex-card">
+<span class="strongs-number">G264</span> <span class="lex-c-w">ἁμαρτάνω</span> <em class="lex-c-t">hamartánō</em> <small class="lex-c-v">37x</small><br>
+<span class="lex-c-d"> properly, to miss the mark (and so not share in the prize), i.e. (figuratively) to err, especially (morally) to sin</span></a><a href="g265.html" class="lex-card">
+<span class="strongs-number">G265</span> <span class="lex-c-w">ἁμάρτημα</span> <em class="lex-c-t">hamártēma</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> a sin (properly concrete)</span></a><a href="g266.html" class="lex-card">
+<span class="strongs-number">G266</span> <span class="lex-c-w">ἁμαρτία</span> <em class="lex-c-t">hamartía</em> <small class="lex-c-v">151x</small><br>
+<span class="lex-c-d"> a sin (properly abstract)</span></a><a href="g267.html" class="lex-card">
+<span class="strongs-number">G267</span> <span class="lex-c-w">ἀμάρτυρος</span> <em class="lex-c-t">amártyros</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unattested</span></a><a href="g268.html" class="lex-card">
+<span class="strongs-number">G268</span> <span class="lex-c-w">ἁμαρτωλός</span> <em class="lex-c-t">hamartōlós</em> <small class="lex-c-v">46x</small><br>
+<span class="lex-c-d"> sinful, i.e. a sinner</span></a><a href="g269.html" class="lex-card">
+<span class="strongs-number">G269</span> <span class="lex-c-w">ἄμαχος</span> <em class="lex-c-t">ámachos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> peaceable</span></a><a href="g270.html" class="lex-card">
+<span class="strongs-number">G270</span> <span class="lex-c-w">ἀμάω</span> <em class="lex-c-t">amáō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> properly, to collect, i.e. (by implication) reap</span></a><a href="g271.html" class="lex-card">
+<span class="strongs-number">G271</span> <span class="lex-c-w">ἀμέθυστος</span> <em class="lex-c-t">améthystos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> the \</span></a><a href="g272.html" class="lex-card">
+<span class="strongs-number">G272</span> <span class="lex-c-w">ἀμελέω</span> <em class="lex-c-t">ameléō</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> to be careless of</span></a><a href="g273.html" class="lex-card">
+<span class="strongs-number">G273</span> <span class="lex-c-w">ἄμεμπτος</span> <em class="lex-c-t">ámemptos</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> irreproachable</span></a><a href="g274.html" class="lex-card">
+<span class="strongs-number">G274</span> <span class="lex-c-w">ἀμέμπτως</span> <em class="lex-c-t">amémptōs</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> faultlessly</span></a><a href="g275.html" class="lex-card">
+<span class="strongs-number">G275</span> <span class="lex-c-w">ἀμέριμνος</span> <em class="lex-c-t">amérimnos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> not anxious</span></a><a href="g276.html" class="lex-card">
+<span class="strongs-number">G276</span> <span class="lex-c-w">ἀμετάθετος</span> <em class="lex-c-t">ametáthetos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> unchangeable, or (neuter as abstract) unchangeability</span></a><a href="g277.html" class="lex-card">
+<span class="strongs-number">G277</span> <span class="lex-c-w">ἀμετακίνητος</span> <em class="lex-c-t">ametakínētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> immovable</span></a><a href="g278.html" class="lex-card">
+<span class="strongs-number">G278</span> <span class="lex-c-w">ἀμεταμέλητος</span> <em class="lex-c-t">ametamélētos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> irrevocable</span></a><a href="g279.html" class="lex-card">
+<span class="strongs-number">G279</span> <span class="lex-c-w">ἀμετανόητος</span> <em class="lex-c-t">ametanóētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unrepentant</span></a><a href="g280.html" class="lex-card">
+<span class="strongs-number">G280</span> <span class="lex-c-w">ἄμετρος</span> <em class="lex-c-t">ámetros</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> immoderate</span></a><a href="g281.html" class="lex-card">
+<span class="strongs-number">G281</span> <span class="lex-c-w">ἀμήν</span> <em class="lex-c-t">amḗn</em> <small class="lex-c-v">129x</small><br>
+<span class="lex-c-d"> properly, firm, i.e. (figuratively) trustworthy; adverbially, surely (often as interjection, so be it)</span></a><a href="g282.html" class="lex-card">
+<span class="strongs-number">G282</span> <span class="lex-c-w">ἀμήτωρ</span> <em class="lex-c-t">amḗtōr</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> motherless, i.e. of unknown maternity</span></a><a href="g283.html" class="lex-card">
+<span class="strongs-number">G283</span> <span class="lex-c-w">ἀμίαντος</span> <em class="lex-c-t">amíantos</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> unsoiled, i.e. (figuratively) pure</span></a><a href="g284.html" class="lex-card">
+<span class="strongs-number">G284</span> <span class="lex-c-w">Ἀμιναδάβ</span> <em class="lex-c-t">Aminadáb</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> Aminadab, an Israelite</span></a><a href="g285.html" class="lex-card">
+<span class="strongs-number">G285</span> <span class="lex-c-w">ἄμμος</span> <em class="lex-c-t">ámmos</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> sand (as heaped on the beach)</span></a><a href="g286.html" class="lex-card">
+<span class="strongs-number">G286</span> <span class="lex-c-w">ἀμνός</span> <em class="lex-c-t">amnós</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> a lamb</span></a><a href="g287.html" class="lex-card">
+<span class="strongs-number">G287</span> <span class="lex-c-w">ἀμοιβή</span> <em class="lex-c-t">amoibḗ</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> requital</span></a><a href="g288.html" class="lex-card">
+<span class="strongs-number">G288</span> <span class="lex-c-w">ἄμπελος</span> <em class="lex-c-t">ámpelos</em> <small class="lex-c-v">9x</small><br>
+<span class="lex-c-d"> a vine (as coiling about a support)</span></a><a href="g289.html" class="lex-card">
+<span class="strongs-number">G289</span> <span class="lex-c-w">ἀμπελουργός</span> <em class="lex-c-t">ampelourgós</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> a vine-worker, i.e. pruner</span></a><a href="g290.html" class="lex-card">
+<span class="strongs-number">G290</span> <span class="lex-c-w">ἀμπελών</span> <em class="lex-c-t">ampelṓn</em> <small class="lex-c-v">21x</small><br>
+<span class="lex-c-d"> a vineyard</span></a><a href="g291.html" class="lex-card">
+<span class="strongs-number">G291</span> <span class="lex-c-w">Ἀμπλίας</span> <em class="lex-c-t">Amplías</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> Amplias, a Roman Christian</span></a><a href="g292.html" class="lex-card">
+<span class="strongs-number">G292</span> <span class="lex-c-w">ἀμύνομαι</span> <em class="lex-c-t">amýnomai</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to ward off (for oneself), i.e. protect</span></a><a href="g293.html" class="lex-card">
+<span class="strongs-number">G293</span> <span class="lex-c-w">ἀμφίβληστρον</span> <em class="lex-c-t">amphíblēstron</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> a (fishing) net (as thrown about the fish)</span></a><a href="g294.html" class="lex-card">
+<span class="strongs-number">G294</span> <span class="lex-c-w">ἀμφιέννυμι</span> <em class="lex-c-t">amphiénnymi</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to enrobe</span></a><a href="g295.html" class="lex-card">
+<span class="strongs-number">G295</span> <span class="lex-c-w">Ἀμφίπολις</span> <em class="lex-c-t">Amphípolis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> a city surrounded by a river; Amphipolis, a place in Macedonia</span></a><a href="g296.html" class="lex-card">
+<span class="strongs-number">G296</span> <span class="lex-c-w">ἄμφοδον</span> <em class="lex-c-t">ámphodon</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> a fork in the road</span></a><a href="g297.html" class="lex-card">
+<span class="strongs-number">G297</span> <span class="lex-c-w">ἀμφότερος</span> <em class="lex-c-t">amphóteros</em> <small class="lex-c-v">15x</small><br>
+<span class="lex-c-d"> (in plural) both</span></a><a href="g298.html" class="lex-card">
+<span class="strongs-number">G298</span> <span class="lex-c-w">ἀμώμητος</span> <em class="lex-c-t">amṓmētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unblamable</span></a><a href="g299.html" class="lex-card">
+<span class="strongs-number">G299</span> <span class="lex-c-w">ἄμωμος</span> <em class="lex-c-t">ámōmos</em> <small class="lex-c-v">8x</small><br>
+<span class="lex-c-d"> unblemished (literally or figuratively)</span></a><a href="g300.html" class="lex-card">
+<span class="strongs-number">G300</span> <span class="lex-c-w">Ἀμών</span> <em class="lex-c-t">Amṓn</em> <small class="lex-c-v">0x</small><br>
+<span class="lex-c-d"> Amon, an Israelite</span></a>
+        <div class="chapter-nav" style="margin-top:20px;">
+<a href="greek-101.html">&larr; G101&ndash;G200</a>
+<a href="index.html">Lexicon Index</a>
+<a href="greek-301.html">G301&ndash;G400 &rarr;</a>
+        </div>
+      </section>
+    </article>
+
+  </main>
+    </div>
+  </div>
+  <div class="book-spine" aria-hidden="true"></div>
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;The words of the LORD are pure words, like silver tried in a furnace of earth, purified seven times.&rdquo;</p>
+    <p class="footer-ref">PSALM 12:6</p>
+    <p class="footer-copy">The Living Word &mdash; Soli Deo Gloria</p>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greek Lexicon G401&amp;ndash;G500 &mdash; The Living Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .interlinear-verse {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin: 16px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(197,150,12,0.12);
+    }
+    .interlinear-word {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 50px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .interlinear-word:hover {
+      background: rgba(197,150,12,0.1);
+    }
+    .word-original {
+      font-size: 1.2rem;
+      color: var(--leather-dark, #2c1810);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .word-original.hebrew {
+      font-family: 'SBL Hebrew', 'Ezra SIL', 'Times New Roman', serif;
+      direction: rtl;
+      font-size: 1.35rem;
+    }
+    .word-original.greek {
+      font-family: 'SBL Greek', 'Gentium Plus', 'Times New Roman', serif;
+    }
+    .word-translit {
+      font-size: 0.7rem;
+      font-style: italic;
+      color: var(--ink-light, #6b5b4a);
+      margin-top: 2px;
+    }
+    .word-english {
+      font-size: 0.8rem;
+      color: var(--ink, #3c2f2f);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .word-strongs {
+      font-size: 0.6rem;
+      color: var(--ultramarine, #1e3a6e);
+      margin-top: 2px;
+    }
+    .word-strongs a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+    }
+    .word-strongs a:hover {
+      text-decoration: underline;
+    }
+    .verse-num {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.75rem;
+      color: var(--vermillion, #c41e3a);
+      font-weight: 700;
+      min-width: 28px;
+      align-self: flex-start;
+      padding-top: 8px;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      margin: 16px 0;
+      border-top: 1px solid rgba(197,150,12,0.2);
+      border-bottom: 1px solid rgba(197,150,12,0.2);
+    }
+    .chapter-nav a {
+      color: var(--gold, #c59612);
+      text-decoration: none;
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.85rem;
+    }
+    .chapter-nav a:hover { text-decoration: underline; }
+    .book-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .book-nav a {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(197,150,12,0.08);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      border: 1px solid rgba(197,150,12,0.15);
+    }
+    .book-nav a:hover, .book-nav a.active {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .chapter-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+    }
+    .chapter-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(197,150,12,0.06);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(197,150,12,0.12);
+      border-radius: 3px;
+    }
+    .chapter-links a:hover {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .testament-section {
+      margin: 24px 0;
+    }
+    .testament-section h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      color: var(--vermillion, #c41e3a);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hebrew-verse {
+      direction: rtl;
+    }
+    .lexicon-entry {
+      padding: 20px 0;
+    }
+    .lex-word {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .lex-word.hebrew { direction: rtl; font-family: 'SBL Hebrew', 'Ezra SIL', serif; }
+    .lex-word.greek { font-family: 'SBL Greek', 'Gentium Plus', serif; }
+    .lex-meta {
+      color: var(--ink-light, #6b5b4a);
+      font-size: 0.9rem;
+      margin: 4px 0;
+    }
+    .lex-def {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    .lex-verses {
+      margin-top: 20px;
+    }
+    .lex-verses h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.9rem;
+      color: var(--vermillion, #c41e3a);
+      margin-bottom: 8px;
+    }
+    .lex-verse-list {
+      column-count: 3;
+      column-gap: 16px;
+      font-size: 0.8rem;
+    }
+    .lex-verse-list a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+      display: block;
+      padding: 2px 0;
+    }
+    .lex-verse-list a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .lex-verse-list { column-count: 2; }
+      .interlinear-word { min-width: 40px; padding: 3px 4px; }
+      .word-original { font-size: 1.05rem; }
+      .word-original.hebrew { font-size: 1.15rem; }
+    }
+    @media (max-width: 480px) {
+      .lex-verse-list { column-count: 1; }
+    }
+    
+    .lex-card{display:block;padding:10px 12px;margin-bottom:6px;background:rgba(197,150,12,0.04);border:1px solid rgba(197,150,12,0.12);border-radius:4px;text-decoration:none;color:inherit;line-height:1.5;}
+    .lex-card:hover{background:rgba(197,150,12,0.1);}
+    .lex-c-w{font-size:1.25rem;}
+    .lex-c-t{font-size:0.8rem;color:#6b5b4a;}
+    .lex-c-v{font-size:0.7rem;color:#6b5b4a;float:right;}
+    .lex-c-d{font-size:0.82rem;color:#3c2f2f;}
+    
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Living Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../words/">Word Studies</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+      </ul>
+    </div>
+  </header>
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div>
+      <div class="border-right"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+  <main class="page-container">
+
+    <article class="study-article">
+      <header class="study-header">
+        <h1 class="study-title">Greek Lexicon</h1>
+        <p class="study-subtitle">G401 &ndash; G500</p>
+      </header>
+      <hr class="divider">
+      <section class="study-body">
+        <a href="g401.html" class="lex-card">
+<span class="strongs-number">G401</span> <span class="lex-c-w">ἀνάχυσις</span> <em class="lex-c-t">anáchysis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> properly, effusion, i.e. (figuratively) license</span></a><a href="g402.html" class="lex-card">
+<span class="strongs-number">G402</span> <span class="lex-c-w">ἀναχωρέω</span> <em class="lex-c-t">anachōréō</em> <small class="lex-c-v">14x</small><br>
+<span class="lex-c-d"> to retire</span></a><a href="g403.html" class="lex-card">
+<span class="strongs-number">G403</span> <span class="lex-c-w">ἀνάψυξις</span> <em class="lex-c-t">anápsyxis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> properly, a recovery of breath, i.e. (figuratively) revival</span></a><a href="g404.html" class="lex-card">
+<span class="strongs-number">G404</span> <span class="lex-c-w">ἀναψύχω</span> <em class="lex-c-t">anapsýchō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> properly, to cool off, i.e. (figuratively) relieve</span></a><a href="g405.html" class="lex-card">
+<span class="strongs-number">G405</span> <span class="lex-c-w">ἀνδραποδιστής</span> <em class="lex-c-t">andrapodistḗs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> an enslaver (as bringing men to his feet)</span></a><a href="g406.html" class="lex-card">
+<span class="strongs-number">G406</span> <span class="lex-c-w">Ἀνδρέας</span> <em class="lex-c-t">Andréas</em> <small class="lex-c-v">12x</small><br>
+<span class="lex-c-d"> manly; Andreas, an Israelite</span></a><a href="g407.html" class="lex-card">
+<span class="strongs-number">G407</span> <span class="lex-c-w">ἀνδρίζομαι</span> <em class="lex-c-t">andrízomai</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to act manly</span></a><a href="g408.html" class="lex-card">
+<span class="strongs-number">G408</span> <span class="lex-c-w">Ἀνδρόνικος</span> <em class="lex-c-t">Andrónikos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> man of victory; Andronicos, an Israelite</span></a><a href="g409.html" class="lex-card">
+<span class="strongs-number">G409</span> <span class="lex-c-w">ἀνδροφόνος</span> <em class="lex-c-t">androphónos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> a murderer</span></a><a href="g410.html" class="lex-card">
+<span class="strongs-number">G410</span> <span class="lex-c-w">ἀνέγκλητος</span> <em class="lex-c-t">anénklētos</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> unaccused, i.e. (by implication) irreproachable</span></a><a href="g411.html" class="lex-card">
+<span class="strongs-number">G411</span> <span class="lex-c-w">ἀνεκδιήγητος</span> <em class="lex-c-t">anekdiḗgētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> not expounded in full, i.e. indescribable</span></a><a href="g412.html" class="lex-card">
+<span class="strongs-number">G412</span> <span class="lex-c-w">ἀνεκλάλητος</span> <em class="lex-c-t">aneklálētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> not spoken out, i.e. (by implication) unutterable</span></a><a href="g413.html" class="lex-card">
+<span class="strongs-number">G413</span> <span class="lex-c-w">ἀνέκλειπτος</span> <em class="lex-c-t">anékleiptos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> not left out, i.e. (by implication) inexhaustible</span></a><a href="g414.html" class="lex-card">
+<span class="strongs-number">G414</span> <span class="lex-c-w">ἀνεκτότερος</span> <em class="lex-c-t">anektóteros</em> <small class="lex-c-v">6x</small><br>
+<span class="lex-c-d"> more endurable</span></a><a href="g415.html" class="lex-card">
+<span class="strongs-number">G415</span> <span class="lex-c-w">ἀνελεήμων</span> <em class="lex-c-t">aneleḗmōn</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> merciless</span></a><a href="g416.html" class="lex-card">
+<span class="strongs-number">G416</span> <span class="lex-c-w">ἀνεμίζω</span> <em class="lex-c-t">anemízō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to toss with the wind</span></a><a href="g417.html" class="lex-card">
+<span class="strongs-number">G417</span> <span class="lex-c-w">ἄνεμος</span> <em class="lex-c-t">ánemos</em> <small class="lex-c-v">29x</small><br>
+<span class="lex-c-d"> wind; (plural) by implication, (the four) quarters (of the earth)</span></a><a href="g418.html" class="lex-card">
+<span class="strongs-number">G418</span> <span class="lex-c-w">ἀνένδεκτος</span> <em class="lex-c-t">anéndektos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> unadmitted, i.e. (by implication) not supposable</span></a><a href="g419.html" class="lex-card">
+<span class="strongs-number">G419</span> <span class="lex-c-w">ἀνεξερεύνητος</span> <em class="lex-c-t">anexereúnētos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> not searched out, i.e. (by implication) inscrutable</span></a><a href="g420.html" class="lex-card">
+<span class="strongs-number">G420</span> <span class="lex-c-w">ἀνεξίκακος</span> <em class="lex-c-t">anexíkakos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> enduring of ill, i.e. forbearing</span></a><a href="g421.html" class="lex-card">
+<span class="strongs-number">G421</span> <span class="lex-c-w">ἀνεξιχνίαστος</span> <em class="lex-c-t">anexichníastos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> not tracked out, i.e. (by implication) untraceable</span></a><a href="g422.html" class="lex-card">
+<span class="strongs-number">G422</span> <span class="lex-c-w">ἀνεπαίσχυντος</span> <em class="lex-c-t">anepaíschyntos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> not ashamed, i.e. irreprehensible: </span></a><a href="g423.html" class="lex-card">
+<span class="strongs-number">G423</span> <span class="lex-c-w">ἀνεπίληπτος</span> <em class="lex-c-t">anepílēptos</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> not arrested, i.e. (by implication) inculpable</span></a><a href="g424.html" class="lex-card">
+<span class="strongs-number">G424</span> <span class="lex-c-w">ἀνέρχομαι</span> <em class="lex-c-t">anérchomai</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to ascend</span></a><a href="g425.html" class="lex-card">
+<span class="strongs-number">G425</span> <span class="lex-c-w">ἄνεσις</span> <em class="lex-c-t">ánesis</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> relaxation or (figuratively) relief</span></a><a href="g426.html" class="lex-card">
+<span class="strongs-number">G426</span> <span class="lex-c-w">ἀνετάζω</span> <em class="lex-c-t">anetázō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to investigate (judicially)</span></a><a href="g427.html" class="lex-card">
+<span class="strongs-number">G427</span> <span class="lex-c-w">ἄνευ</span> <em class="lex-c-t">áneu</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> without</span></a><a href="g428.html" class="lex-card">
+<span class="strongs-number">G428</span> <span class="lex-c-w">ἀνεύθετος</span> <em class="lex-c-t">aneúthetos</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> not well set, i.e. inconvenient</span></a><a href="g429.html" class="lex-card">
+<span class="strongs-number">G429</span> <span class="lex-c-w">ἀνευρίσκω</span> <em class="lex-c-t">aneurískō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to find out</span></a><a href="g430.html" class="lex-card">
+<span class="strongs-number">G430</span> <span class="lex-c-w">ἀνέχομαι</span> <em class="lex-c-t">anéchomai</em> <small class="lex-c-v">14x</small><br>
+<span class="lex-c-d"> to hold oneself up against, i.e. (figuratively) put up with</span></a><a href="g431.html" class="lex-card">
+<span class="strongs-number">G431</span> <span class="lex-c-w">ἀνεψιός</span> <em class="lex-c-t">anepsiós</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> properly, akin, i.e. (specially) a cousin</span></a><a href="g432.html" class="lex-card">
+<span class="strongs-number">G432</span> <span class="lex-c-w">ἄνηθον</span> <em class="lex-c-t">ánēthon</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> dill</span></a><a href="g433.html" class="lex-card">
+<span class="strongs-number">G433</span> <span class="lex-c-w">ἀνήκω</span> <em class="lex-c-t">anḗkō</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to attain to, i.e. (figuratively) be proper</span></a><a href="g434.html" class="lex-card">
+<span class="strongs-number">G434</span> <span class="lex-c-w">ἀνήμερος</span> <em class="lex-c-t">anḗmeros</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> savage</span></a><a href="g435.html" class="lex-card">
+<span class="strongs-number">G435</span> <span class="lex-c-w">ἀνήρ</span> <em class="lex-c-t">anḗr</em> <small class="lex-c-v">195x</small><br>
+<span class="lex-c-d"> a man (properly as an individual male)</span></a><a href="g436.html" class="lex-card">
+<span class="strongs-number">G436</span> <span class="lex-c-w">ἀνθίστημι</span> <em class="lex-c-t">anthístēmi</em> <small class="lex-c-v">12x</small><br>
+<span class="lex-c-d"> to stand against, i.e. oppose</span></a><a href="g437.html" class="lex-card">
+<span class="strongs-number">G437</span> <span class="lex-c-w">ἀνθομολογέομαι</span> <em class="lex-c-t">anthomologéomai</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to confess in turn, i.e. respond in praise</span></a><a href="g438.html" class="lex-card">
+<span class="strongs-number">G438</span> <span class="lex-c-w">ἄνθος</span> <em class="lex-c-t">ánthos</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> a blossom</span></a><a href="g439.html" class="lex-card">
+<span class="strongs-number">G439</span> <span class="lex-c-w">ἀνθρακιά</span> <em class="lex-c-t">anthrakiá</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> a bed of burning coals</span></a><a href="g440.html" class="lex-card">
+<span class="strongs-number">G440</span> <span class="lex-c-w">ἄνθραξ</span> <em class="lex-c-t">ánthrax</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> a live coal</span></a><a href="g441.html" class="lex-card">
+<span class="strongs-number">G441</span> <span class="lex-c-w">ἀνθρωπάρεσκος</span> <em class="lex-c-t">anthrōpáreskos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> man-courting, i.e. fawning</span></a><a href="g442.html" class="lex-card">
+<span class="strongs-number">G442</span> <span class="lex-c-w">ἀνθρώπινος</span> <em class="lex-c-t">anthrṓpinos</em> <small class="lex-c-v">8x</small><br>
+<span class="lex-c-d"> human</span></a><a href="g443.html" class="lex-card">
+<span class="strongs-number">G443</span> <span class="lex-c-w">ἀνθρωποκτόνος</span> <em class="lex-c-t">anthrōpoktónos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> a manslayer</span></a><a href="g444.html" class="lex-card">
+<span class="strongs-number">G444</span> <span class="lex-c-w">ἄνθρωπος</span> <em class="lex-c-t">ánthrōpos</em> <small class="lex-c-v">502x</small><br>
+<span class="lex-c-d"> from G3700 (ὀπτάνομαι)); man-faced, i.e. a human being</span></a><a href="g445.html" class="lex-card">
+<span class="strongs-number">G445</span> <span class="lex-c-w">ἀνθυπατεύω</span> <em class="lex-c-t">anthypateúō</em> <small class="lex-c-v">0x</small><br>
+<span class="lex-c-d"> to act as proconsul</span></a><a href="g446.html" class="lex-card">
+<span class="strongs-number">G446</span> <span class="lex-c-w">ἀνθύπατος</span> <em class="lex-c-t">anthýpatos</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> instead of the highest officer, i.e. (specially) a Roman proconsul</span></a><a href="g447.html" class="lex-card">
+<span class="strongs-number">G447</span> <span class="lex-c-w">ἀνίημι</span> <em class="lex-c-t">aníēmi</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> to let up, i.e. (literally) slacken or (figuratively) desert, desist from</span></a><a href="g448.html" class="lex-card">
+<span class="strongs-number">G448</span> <span class="lex-c-w">ἀνίλεως</span> <em class="lex-c-t">aníleōs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> inexorable</span></a><a href="g449.html" class="lex-card">
+<span class="strongs-number">G449</span> <span class="lex-c-w">ἄνιπτος</span> <em class="lex-c-t">ániptos</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> without ablution</span></a><a href="g450.html" class="lex-card">
+<span class="strongs-number">G450</span> <span class="lex-c-w">ἀνίστημι</span> <em class="lex-c-t">anístēmi</em> <small class="lex-c-v">109x</small><br>
+<span class="lex-c-d"> to stand up (literal or figurative, transitive or intransitive)</span></a><a href="g451.html" class="lex-card">
+<span class="strongs-number">G451</span> <span class="lex-c-w">Ἄννα</span> <em class="lex-c-t">Ánna</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> Anna, an Israelitess</span></a><a href="g452.html" class="lex-card">
+<span class="strongs-number">G452</span> <span class="lex-c-w">Ἄννας</span> <em class="lex-c-t">Ánnas</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> Annas (i.e. G367 (Ἀνανίας)), an Israelite</span></a><a href="g453.html" class="lex-card">
+<span class="strongs-number">G453</span> <span class="lex-c-w">ἀνόητος</span> <em class="lex-c-t">anóētos</em> <small class="lex-c-v">6x</small><br>
+<span class="lex-c-d"> unintelligent; by implication, sensual</span></a><a href="g454.html" class="lex-card">
+<span class="strongs-number">G454</span> <span class="lex-c-w">ἄνοια</span> <em class="lex-c-t">ánoia</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> stupidity; by implication, rage</span></a><a href="g455.html" class="lex-card">
+<span class="strongs-number">G455</span> <span class="lex-c-w">ἀνοίγω</span> <em class="lex-c-t">anoígō</em> <small class="lex-c-v">75x</small><br>
+<span class="lex-c-d"> to open up (literally or figuratively, in various applications)</span></a><a href="g456.html" class="lex-card">
+<span class="strongs-number">G456</span> <span class="lex-c-w">ἀνοικοδομέω</span> <em class="lex-c-t">anoikodoméō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to rebuild</span></a><a href="g457.html" class="lex-card">
+<span class="strongs-number">G457</span> <span class="lex-c-w">ἄνοιξις</span> <em class="lex-c-t">ánoixis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> opening (throat)</span></a><a href="g458.html" class="lex-card">
+<span class="strongs-number">G458</span> <span class="lex-c-w">ἀνομία</span> <em class="lex-c-t">anomía</em> <small class="lex-c-v">14x</small><br>
+<span class="lex-c-d"> illegality, i.e. violation of law or (genitive case) wickedness</span></a><a href="g459.html" class="lex-card">
+<span class="strongs-number">G459</span> <span class="lex-c-w">ἄνομος</span> <em class="lex-c-t">ánomos</em> <small class="lex-c-v">7x</small><br>
+<span class="lex-c-d"> lawless, i.e. (negatively) not subject to (the Jewish) law; (by implication, a Gentile), or (positively) wicked</span></a><a href="g460.html" class="lex-card">
+<span class="strongs-number">G460</span> <span class="lex-c-w">ἀνόμως</span> <em class="lex-c-t">anómōs</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> lawlessly, i.e. (specially) not amenable to (the Jewish) law</span></a><a href="g461.html" class="lex-card">
+<span class="strongs-number">G461</span> <span class="lex-c-w">ἀνορθόω</span> <em class="lex-c-t">anorthóō</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to straighten up</span></a><a href="g462.html" class="lex-card">
+<span class="strongs-number">G462</span> <span class="lex-c-w">ἀνόσιος</span> <em class="lex-c-t">anósios</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> wicked</span></a><a href="g463.html" class="lex-card">
+<span class="strongs-number">G463</span> <span class="lex-c-w">ἀνοχή</span> <em class="lex-c-t">anochḗ</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> self-restraint, i.e. tolerance</span></a><a href="g464.html" class="lex-card">
+<span class="strongs-number">G464</span> <span class="lex-c-w">ἀνταγωνίζομαι</span> <em class="lex-c-t">antagōnízomai</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to struggle against (figuratively) (\</span></a><a href="g465.html" class="lex-card">
+<span class="strongs-number">G465</span> <span class="lex-c-w">ἀντάλλαγμα</span> <em class="lex-c-t">antállagma</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> an equivalent or ransom</span></a><a href="g466.html" class="lex-card">
+<span class="strongs-number">G466</span> <span class="lex-c-w">ἀνταναπληρόω</span> <em class="lex-c-t">antanaplēróō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to supplement</span></a><a href="g467.html" class="lex-card">
+<span class="strongs-number">G467</span> <span class="lex-c-w">ἀνταποδίδωμι</span> <em class="lex-c-t">antapodídōmi</em> <small class="lex-c-v">6x</small><br>
+<span class="lex-c-d"> to requite (good or evil)</span></a><a href="g468.html" class="lex-card">
+<span class="strongs-number">G468</span> <span class="lex-c-w">ἀνταπόδομα</span> <em class="lex-c-t">antapódoma</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> a requital (properly, the thing)</span></a><a href="g469.html" class="lex-card">
+<span class="strongs-number">G469</span> <span class="lex-c-w">ἀνταπόδοσις</span> <em class="lex-c-t">antapódosis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> requital (properly, the act)</span></a><a href="g470.html" class="lex-card">
+<span class="strongs-number">G470</span> <span class="lex-c-w">ἀνταποκρίνομαι</span> <em class="lex-c-t">antapokrínomai</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to contradict or dispute</span></a><a href="g471.html" class="lex-card">
+<span class="strongs-number">G471</span> <span class="lex-c-w">ἀντέπω</span> <em class="lex-c-t">antépō</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to refute or deny</span></a><a href="g472.html" class="lex-card">
+<span class="strongs-number">G472</span> <span class="lex-c-w">ἀντέχομαι</span> <em class="lex-c-t">antéchomai</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> to hold oneself opposite to, i.e. (by implication) adhere to; by extension to care for</span></a><a href="g473.html" class="lex-card">
+<span class="strongs-number">G473</span> <span class="lex-c-w">ἀντί</span> <em class="lex-c-t">antí</em> <small class="lex-c-v">20x</small><br>
+<span class="lex-c-d"> opposite, i.e. instead or because of (rarely in addition to)</span></a><a href="g474.html" class="lex-card">
+<span class="strongs-number">G474</span> <span class="lex-c-w">ἀντιβάλλω</span> <em class="lex-c-t">antibállō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to bandy</span></a><a href="g475.html" class="lex-card">
+<span class="strongs-number">G475</span> <span class="lex-c-w">ἀντιδιατίθεμαι</span> <em class="lex-c-t">antidiatíthemai</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to set oneself opposite, i.e. be disputatious</span></a><a href="g476.html" class="lex-card">
+<span class="strongs-number">G476</span> <span class="lex-c-w">ἀντίδικος</span> <em class="lex-c-t">antídikos</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> an opponent (in a lawsuit); specially, Satan (as the arch-enemy)</span></a><a href="g477.html" class="lex-card">
+<span class="strongs-number">G477</span> <span class="lex-c-w">ἀντίθεσις</span> <em class="lex-c-t">antíthesis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> opposition, i.e. a conflict (of theories)</span></a><a href="g478.html" class="lex-card">
+<span class="strongs-number">G478</span> <span class="lex-c-w">ἀντικαθίστημι</span> <em class="lex-c-t">antikathístēmi</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to set down (troops) against, i.e. withstand</span></a><a href="g479.html" class="lex-card">
+<span class="strongs-number">G479</span> <span class="lex-c-w">ἀντικαλέω</span> <em class="lex-c-t">antikaléō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to invite in return</span></a><a href="g480.html" class="lex-card">
+<span class="strongs-number">G480</span> <span class="lex-c-w">ἀντίκειμαι</span> <em class="lex-c-t">antíkeimai</em> <small class="lex-c-v">8x</small><br>
+<span class="lex-c-d"> to lie opposite, i.e. be adverse (figuratively, repugnant) to</span></a><a href="g481.html" class="lex-card">
+<span class="strongs-number">G481</span> <span class="lex-c-w">ἀντικρύ</span> <em class="lex-c-t">antikrý</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> opposite</span></a><a href="g482.html" class="lex-card">
+<span class="strongs-number">G482</span> <span class="lex-c-w">ἀντιλαμβάνομαι</span> <em class="lex-c-t">antilambánomai</em> <small class="lex-c-v">3x</small><br>
+<span class="lex-c-d"> to take hold of in turn, i.e. succor; also to participate</span></a><a href="g483.html" class="lex-card">
+<span class="strongs-number">G483</span> <span class="lex-c-w">ἀντιλέγω</span> <em class="lex-c-t">antilégō</em> <small class="lex-c-v">9x</small><br>
+<span class="lex-c-d"> to dispute, refuse</span></a><a href="g484.html" class="lex-card">
+<span class="strongs-number">G484</span> <span class="lex-c-w">ἀντίληψις</span> <em class="lex-c-t">antílēpsis</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> relief</span></a><a href="g485.html" class="lex-card">
+<span class="strongs-number">G485</span> <span class="lex-c-w">ἀντιλογία</span> <em class="lex-c-t">antilogía</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> dispute, disobedience</span></a><a href="g486.html" class="lex-card">
+<span class="strongs-number">G486</span> <span class="lex-c-w">ἀντιλοιδορέω</span> <em class="lex-c-t">antiloidoréō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to rail in reply</span></a><a href="g487.html" class="lex-card">
+<span class="strongs-number">G487</span> <span class="lex-c-w">ἀντίλυτρον</span> <em class="lex-c-t">antílytron</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> a redemption-price</span></a><a href="g488.html" class="lex-card">
+<span class="strongs-number">G488</span> <span class="lex-c-w">ἀντιμετρέω</span> <em class="lex-c-t">antimetréō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to mete in return</span></a><a href="g489.html" class="lex-card">
+<span class="strongs-number">G489</span> <span class="lex-c-w">ἀντιμισθία</span> <em class="lex-c-t">antimisthía</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> requital, correspondence</span></a><a href="g490.html" class="lex-card">
+<span class="strongs-number">G490</span> <span class="lex-c-w">Ἀντιόχεια</span> <em class="lex-c-t">Antiócheia</em> <small class="lex-c-v">17x</small><br>
+<span class="lex-c-d"> Antiochia, a place in Syria</span></a><a href="g491.html" class="lex-card">
+<span class="strongs-number">G491</span> <span class="lex-c-w">Ἀντιοχεύς</span> <em class="lex-c-t">Antiocheús</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> an Antiochian or inhabitant of Antiochia</span></a><a href="g492.html" class="lex-card">
+<span class="strongs-number">G492</span> <span class="lex-c-w">ἀντιπαρέρχομαι</span> <em class="lex-c-t">antiparérchomai</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> to go along opposite</span></a><a href="g493.html" class="lex-card">
+<span class="strongs-number">G493</span> <span class="lex-c-w">Ἀντίπας</span> <em class="lex-c-t">Antípas</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> Antipas, a Christian</span></a><a href="g494.html" class="lex-card">
+<span class="strongs-number">G494</span> <span class="lex-c-w">Ἀντιπατρίς</span> <em class="lex-c-t">Antipatrís</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> Antipatris, a place in Palestine</span></a><a href="g495.html" class="lex-card">
+<span class="strongs-number">G495</span> <span class="lex-c-w">ἀντιπέραν</span> <em class="lex-c-t">antipéran</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> on the opposite side</span></a><a href="g496.html" class="lex-card">
+<span class="strongs-number">G496</span> <span class="lex-c-w">ἀντιπίπτω</span> <em class="lex-c-t">antipíptō</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> to oppose</span></a><a href="g497.html" class="lex-card">
+<span class="strongs-number">G497</span> <span class="lex-c-w">ἀντιστρατεύομαι</span> <em class="lex-c-t">antistrateúomai</em> <small class="lex-c-v">1x</small><br>
+<span class="lex-c-d"> (figuratively) to attack, i.e. (by implication) destroy</span></a><a href="g498.html" class="lex-card">
+<span class="strongs-number">G498</span> <span class="lex-c-w">ἀντιτάσσομαι</span> <em class="lex-c-t">antitássomai</em> <small class="lex-c-v">5x</small><br>
+<span class="lex-c-d"> to range oneself against, i.e. oppose</span></a><a href="g499.html" class="lex-card">
+<span class="strongs-number">G499</span> <span class="lex-c-w">ἀντίτυπον</span> <em class="lex-c-t">antítypon</em> <small class="lex-c-v">2x</small><br>
+<span class="lex-c-d"> corresponding (\</span></a><a href="g500.html" class="lex-card">
+<span class="strongs-number">G500</span> <span class="lex-c-w">ἀντίχριστος</span> <em class="lex-c-t">antíchristos</em> <small class="lex-c-v">4x</small><br>
+<span class="lex-c-d"> an opponent of the Messiah</span></a>
+        <div class="chapter-nav" style="margin-top:20px;">
+<a href="greek-301.html">&larr; G301&ndash;G400</a>
+<a href="index.html">Lexicon Index</a>
+<a href="greek-501.html">G501&ndash;G600 &rarr;</a>
+        </div>
+      </section>
+    </article>
+
+  </main>
+    </div>
+  </div>
+  <div class="book-spine" aria-hidden="true"></div>
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;The words of the LORD are pure words, like silver tried in a furnace of earth, purified seven times.&rdquo;</p>
+    <p class="footer-ref">PSALM 12:6</p>
+    <p class="footer-copy">The Living Word &mdash; Soli Deo Gloria</p>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>
