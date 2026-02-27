@@ -282,6 +282,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `how-were-truly-saved-the-narrow-road.html` — Sōzō/pisteuō eis/anōthen/ginōskō, 24 words, 70+ refs, ~80 min
 - `how-to-actually-pray-and-be-intimate-with-god.html` — Proseuchē/deēsis/enteuxis/raphah/koinōnia, 20 words, 60+ refs, ~75 min
 - `how-to-actually-operate-from-your-spirit.html` — Pneumatikos/psychikos/brabeuō/phronēma/peripateo, 21 words, 65+ refs, ~75 min
+- `what-heaven-is-actually-like.html` — Shamayim/ouranos/paradeisos/kainos/sōma pneumatikon, 23 words, 75+ refs, ~80 min
 
 ## Studies Remaining (source .md files exist in root)
 - Things Twisted In The Bible — Full Breakdown
