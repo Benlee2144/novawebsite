@@ -280,10 +280,10 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `what-the-bible-actually-says-about-satan.html` — Ha-satan/diabolos/helel, 20 words, 55+ refs, ~85 min
 - `authority-vs-power-why-your-prayers-dont-work.html` — Exousia/dynamis/tetelestai, 22 words, 65+ refs, ~70 min
 - `how-were-truly-saved-the-narrow-road.html` — Sōzō/pisteuō eis/anōthen/ginōskō, 24 words, 70+ refs, ~80 min
+- `how-to-actually-pray-and-be-intimate-with-god.html` — Proseuchē/deēsis/enteuxis/raphah/koinōnia, 20 words, 60+ refs, ~75 min
 
 ## Studies Remaining (source .md files exist in root)
 - How To Actually Operate From Your Spirit
-- How To Actually Pray and Be Intimate With God
 - Things Twisted In The Bible — Full Breakdown
 - When Bills Are Behind — Faith Meets Real Life
 - Where Do People Actually End Up — The Three Views
