@@ -37,45 +37,184 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================================================
-     PARALLAX PARCHMENT TEXTURE — mouse moves the grain subtly
+     FEATURE 1: LEATHER COVER OPENING ANIMATION
+     Only on homepage. Shows a leather cover that swings open.
+     Uses sessionStorage so it only plays once per session.
      ============================================================ */
-  const bookPage = document.querySelector('.book-page');
+  const bibleCover = document.getElementById('bibleCover');
+  if (bibleCover && !sessionStorage.getItem('coverOpened')) {
+    // Create the opening cover overlay
+    var overlay = document.createElement('div');
+    overlay.className = 'cover-opening';
+    overlay.innerHTML =
+      '<div class="cover-front">' +
+        '<div class="cover-clasp">' +
+          '<img class="cover-clasp-icon" src="images/ornaments/celtic-cross.svg" alt="">' +
+          '<div class="cover-clasp-text">The Living Word</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    // Prevent scrolling during animation
+    document.body.style.overflow = 'hidden';
+
+    // Clean up after animation
+    setTimeout(function () {
+      overlay.classList.add('opened');
+      document.body.style.overflow = '';
+      sessionStorage.setItem('coverOpened', '1');
+    }, 3200);
+  }
+
+  /* ============================================================
+     FEATURE 2: FLOATING GOLD DUST PARTICLES
+     Canvas-based gold flecks that drift across the cover section.
+     Subtle, warm, like candlelight catching gold leaf.
+     ============================================================ */
+  if (bibleCover) {
+    var canvas = document.createElement('canvas');
+    canvas.id = 'goldParticles';
+    bibleCover.appendChild(canvas);
+
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var particleCount = 40;
+    var animationId;
+
+    function resizeCanvas() {
+      canvas.width = bibleCover.offsetWidth;
+      canvas.height = bibleCover.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Gold color palette
+    var goldColors = [
+      'rgba(232, 195, 74, ',   // bright gold
+      'rgba(218, 165, 32, ',   // goldenrod
+      'rgba(197, 150, 12, ',   // antique gold
+      'rgba(166, 124, 0, ',    // dark gold
+      'rgba(255, 245, 204, ',  // pale gold highlight
+    ];
+
+    // Create particles
+    for (var i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2.5 + 0.5,
+        speedX: (Math.random() - 0.5) * 0.3,
+        speedY: Math.random() * -0.4 - 0.1,
+        opacity: Math.random() * 0.5 + 0.1,
+        opacityDir: (Math.random() - 0.5) * 0.008,
+        color: goldColors[Math.floor(Math.random() * goldColors.length)],
+        twinkleSpeed: Math.random() * 0.02 + 0.005,
+        angle: Math.random() * Math.PI * 2,
+        drift: Math.random() * 0.5 + 0.2,
+      });
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+
+        // Update position
+        p.angle += p.twinkleSpeed;
+        p.x += p.speedX + Math.sin(p.angle) * p.drift * 0.3;
+        p.y += p.speedY;
+
+        // Twinkle opacity
+        p.opacity += p.opacityDir;
+        if (p.opacity > 0.6 || p.opacity < 0.05) {
+          p.opacityDir *= -1;
+        }
+
+        // Wrap around
+        if (p.y < -10) {
+          p.y = canvas.height + 10;
+          p.x = Math.random() * canvas.width;
+        }
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+
+        // Draw the particle — small glowing dot
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + p.opacity + ')';
+        ctx.fill();
+
+        // Add a glow halo on larger particles
+        if (p.size > 1.5) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+          ctx.fillStyle = p.color + (p.opacity * 0.15) + ')';
+          ctx.fill();
+        }
+      }
+
+      animationId = requestAnimationFrame(drawParticles);
+    }
+
+    // Only animate when cover is visible
+    var coverObserver = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        drawParticles();
+      } else {
+        cancelAnimationFrame(animationId);
+      }
+    }, { threshold: 0.1 });
+    coverObserver.observe(bibleCover);
+  }
+
+  /* ============================================================
+     FEATURE 3: SILK RIBBON BOOKMARK
+     Injected into book-page on study pages (pages with .study-body)
+     ============================================================ */
+  var studyBody = document.querySelector('.study-body');
+  var bookPage = document.querySelector('.book-page');
+  if (studyBody && bookPage) {
+    var ribbon = document.createElement('div');
+    ribbon.className = 'ribbon-bookmark';
+    ribbon.setAttribute('aria-hidden', 'true');
+    ribbon.innerHTML =
+      '<div class="ribbon-body"></div>' +
+      '<div class="ribbon-tail"></div>';
+    bookPage.appendChild(ribbon);
+  }
+
+  /* ============================================================
+     PARALLAX PARCHMENT TEXTURE
+     ============================================================ */
   if (bookPage && window.innerWidth > 768) {
     document.addEventListener('mousemove', function (e) {
-      const x = (e.clientX / window.innerWidth - 0.5) * 8;
-      const y = (e.clientY / window.innerHeight - 0.5) * 8;
-      bookPage.style.setProperty('--parallax-x', x + 'px');
-      bookPage.style.setProperty('--parallax-y', y + 'px');
-      
-      // Subtle light shift on the parchment
-      const lightX = (e.clientX / window.innerWidth) * 100;
-      const lightY = (e.clientY / window.innerHeight) * 100;
-      bookPage.style.background = 
+      var lightX = (e.clientX / window.innerWidth) * 100;
+      var lightY = (e.clientY / window.innerHeight) * 100;
+      bookPage.style.background =
         'radial-gradient(ellipse at ' + lightX + '% ' + lightY + '%, rgba(255,248,230,0.3) 0%, transparent 50%), ' +
-        'var(--vellum)';
+        '#f0e4c8';
     });
   }
 
   /* ============================================================
      CATEGORY FILTERS (Studies Page)
      ============================================================ */
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  const studyGrid = document.getElementById('studyGrid');
+  var filterButtons = document.querySelectorAll('.filter-btn');
+  var studyGrid = document.getElementById('studyGrid');
 
   if (filterButtons.length > 0 && studyGrid) {
     filterButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         filterButtons.forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
-
-        const filter = btn.getAttribute('data-filter');
-        const cards = studyGrid.querySelectorAll('.study-card');
-
+        var filter = btn.getAttribute('data-filter');
+        var cards = studyGrid.querySelectorAll('.study-card');
         cards.forEach(function (card) {
           if (filter === 'all') {
             card.style.display = '';
           } else {
-            const category = card.getAttribute('data-category') || '';
+            var category = card.getAttribute('data-category') || '';
             card.style.display = category.includes(filter) ? '' : 'none';
           }
         });
@@ -86,20 +225,17 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      SEARCH (Studies Page)
      ============================================================ */
-  const studySearch = document.getElementById('studySearch');
+  var studySearch = document.getElementById('studySearch');
   if (studySearch && studyGrid) {
     studySearch.addEventListener('input', function () {
-      const query = this.value.toLowerCase().trim();
-      const cards = studyGrid.querySelectorAll('.study-card');
-
+      var query = this.value.toLowerCase().trim();
+      var cards = studyGrid.querySelectorAll('.study-card');
       cards.forEach(function (card) {
         if (!query) { card.style.display = ''; return; }
-
-        const searchData = (card.getAttribute('data-search') || '').toLowerCase();
-        const title = (card.querySelector('.card-title') || {}).textContent || '';
-        const excerpt = (card.querySelector('.card-excerpt') || {}).textContent || '';
-        const combined = searchData + ' ' + title.toLowerCase() + ' ' + excerpt.toLowerCase();
-
+        var searchData = (card.getAttribute('data-search') || '').toLowerCase();
+        var title = (card.querySelector('.card-title') || {}).textContent || '';
+        var excerpt = (card.querySelector('.card-excerpt') || {}).textContent || '';
+        var combined = searchData + ' ' + title.toLowerCase() + ' ' + excerpt.toLowerCase();
         card.style.display = combined.includes(query) ? '' : 'none';
       });
     });
@@ -108,29 +244,27 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      SEARCH (Word Studies Page)
      ============================================================ */
-  const wordSearch = document.getElementById('wordSearch');
+  var wordSearch = document.getElementById('wordSearch');
   if (wordSearch) {
     wordSearch.addEventListener('input', function () {
-      const query = this.value.toLowerCase().trim();
-      const items = document.querySelectorAll('.word-index-item');
-      const letters = document.querySelectorAll('.word-index-letter');
-
+      var query = this.value.toLowerCase().trim();
+      var items = document.querySelectorAll('.word-index-item');
+      var letters = document.querySelectorAll('.word-index-letter');
       items.forEach(function (item) {
         if (!query) { item.style.display = ''; return; }
-        const searchData = (item.getAttribute('data-search') || '').toLowerCase();
-        const translit = (item.querySelector('.wi-translit') || {}).textContent || '';
-        const meaning = (item.querySelector('.wi-meaning') || {}).textContent || '';
-        const combined = searchData + ' ' + translit.toLowerCase() + ' ' + meaning.toLowerCase();
+        var searchData = (item.getAttribute('data-search') || '').toLowerCase();
+        var translit = (item.querySelector('.wi-translit') || {}).textContent || '';
+        var meaning = (item.querySelector('.wi-meaning') || {}).textContent || '';
+        var combined = searchData + ' ' + translit.toLowerCase() + ' ' + meaning.toLowerCase();
         item.style.display = combined.includes(query) ? '' : 'none';
       });
-
       letters.forEach(function (letter) {
         if (!query) { letter.style.display = ''; return; }
-        let nextEl = letter.nextElementSibling;
-        let hasVisible = false;
+        var nextEl = letter.nextElementSibling;
+        var hasVisible = false;
         while (nextEl && !nextEl.classList.contains('word-index-letter')) {
           if (nextEl.classList.contains('word-index-list')) {
-            const visibleItems = nextEl.querySelectorAll('.word-index-item:not([style*="display: none"])');
+            var visibleItems = nextEl.querySelectorAll('.word-index-item:not([style*="display: none"])');
             if (visibleItems.length > 0) hasVisible = true;
           }
           nextEl = nextEl.nextElementSibling;
@@ -143,19 +277,18 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      LANGUAGE FILTER (Word Studies Page)
      ============================================================ */
-  const langFilters = document.querySelectorAll('.filter-btn[data-filter="hebrew"], .filter-btn[data-filter="greek"]');
+  var langFilters = document.querySelectorAll('.filter-btn[data-filter="hebrew"], .filter-btn[data-filter="greek"]');
   if (langFilters.length > 0) {
-    const allFilterBtns = document.querySelectorAll('.filter-btn');
-    const wordSections = document.querySelectorAll('.word-index-section');
-
+    var allFilterBtns = document.querySelectorAll('.filter-btn');
+    var wordSections = document.querySelectorAll('.word-index-section');
     allFilterBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         if (!btn.closest('.filter-bar') || wordSections.length === 0) return;
         allFilterBtns.forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
-        const filter = btn.getAttribute('data-filter');
+        var filter = btn.getAttribute('data-filter');
         wordSections.forEach(function (section) {
-          const lang = section.getAttribute('data-lang');
+          var lang = section.getAttribute('data-lang');
           section.style.display = (filter === 'all' || lang === filter) ? '' : 'none';
         });
       });
@@ -165,14 +298,13 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      CROSS-REFERENCE VERSE POPUPS
      ============================================================ */
-  const verseRefs = document.querySelectorAll('.verse-ref');
-  verseRefs.forEach(function (ref) {
+  document.querySelectorAll('.verse-ref').forEach(function (ref) {
     ref.addEventListener('click', function (e) {
       e.preventDefault();
       document.querySelectorAll('.verse-popup.active').forEach(function (popup) {
         popup.classList.remove('active');
       });
-      let popup = ref.querySelector('.verse-popup');
+      var popup = ref.querySelector('.verse-popup');
       if (popup) popup.classList.toggle('active');
     });
   });
@@ -190,12 +322,12 @@ document.addEventListener('DOMContentLoaded', function () {
      ============================================================ */
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener('click', function (e) {
-      const targetId = this.getAttribute('href');
+      var targetId = this.getAttribute('href');
       if (targetId === '#') return;
-      const target = document.querySelector(targetId);
+      var target = document.querySelector(targetId);
       if (target) {
         e.preventDefault();
-        const headerHeight = document.querySelector('.site-header')
+        var headerHeight = document.querySelector('.site-header')
           ? document.querySelector('.site-header').offsetHeight : 0;
         window.scrollTo({
           top: target.offsetTop - headerHeight - 20,
@@ -208,18 +340,18 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      ACTIVE NAV HIGHLIGHTING
      ============================================================ */
-  const currentPath = window.location.pathname;
+  var currentPath = window.location.pathname;
   document.querySelectorAll('.nav-links a').forEach(function (link) {
-    const href = link.getAttribute('href');
+    var href = link.getAttribute('href');
     if (href && currentPath.includes(href.replace('../', '').replace('./', ''))) {
       link.classList.add('active');
     }
   });
 
   /* ============================================================
-     SCROLL REVEAL — Fade in elements as you scroll past them
+     SCROLL REVEAL
      ============================================================ */
-  const revealElements = document.querySelectorAll(
+  var revealElements = document.querySelectorAll(
     '.hebrew-block, .greek-block, .cross-ref-box, .scripture-quote, blockquote, figure, .timeline, .study-table'
   );
 
@@ -230,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
       el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
     });
 
-    const observer = new IntersectionObserver(function (entries) {
+    var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
           entry.target.style.opacity = '1';
@@ -246,20 +378,19 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      READING PROGRESS BAR (study pages)
      ============================================================ */
-  const studyBody = document.querySelector('.study-body');
   if (studyBody) {
-    const progressBar = document.createElement('div');
-    progressBar.style.cssText = 
+    var progressBar = document.createElement('div');
+    progressBar.style.cssText =
       'position: fixed; top: 70px; left: 0; width: 0%; height: 3px; ' +
-      'background: linear-gradient(90deg, var(--gold-antique), var(--gold-foil), var(--gold-antique)); ' +
+      'background: linear-gradient(90deg, #a67c00, #e8c34a, #a67c00); ' +
       'z-index: 999; transition: width 0.1s linear; box-shadow: 0 0 6px rgba(197,150,12,0.3);';
     document.body.appendChild(progressBar);
 
     window.addEventListener('scroll', function () {
-      const rect = studyBody.getBoundingClientRect();
-      const total = studyBody.scrollHeight;
-      const scrolled = Math.max(0, -rect.top);
-      const pct = Math.min(100, (scrolled / (total - window.innerHeight)) * 100);
+      var rect = studyBody.getBoundingClientRect();
+      var total = studyBody.scrollHeight;
+      var scrolled = Math.max(0, -rect.top);
+      var pct = Math.min(100, (scrolled / (total - window.innerHeight)) * 100);
       progressBar.style.width = pct + '%';
     });
   }
