@@ -15,10 +15,23 @@ A deep, scholarly Bible study website at https://benlee2144.github.io/novawebsit
 ├── studies/
 │   ├── index.html          # Studies listing page
 │   └── *.html              # Individual study pages
-├── words/
-│   └── index.html          # Word studies listing
-├── topics/
-│   └── index.html          # Topics listing
+├── interlinear/
+│   ├── index.html          # Bible book/chapter navigator
+│   └── *.html              # 1,189 chapter pages (Hebrew OT + Greek NT)
+├── lexicon/
+│   ├── index.html          # Strong's Concordance browser
+│   ├── greek-*.html        # Range pages (100 entries each)
+│   ├── hebrew-*.html       # Range pages (100 entries each)
+│   └── [hg]*.html          # 14,197 individual entry pages
+├── reference/
+│   ├── index.html          # Reference library index
+│   ├── easton-*.html       # Easton's Bible Dictionary (25 A-Z pages)
+│   ├── isbe-*.html         # ISBE Encyclopedia (26 A-Z pages)
+│   └── josephus/           # 380 Josephus chapter pages + 2 index pages
+├── search.html             # Client-side search (34,194 entries)
+├── search-index.json       # Search data (~6.6MB)
+├── sitemap.xml             # SEO sitemap (1,357 URLs)
+├── robots.txt              # Search engine directives
 └── *.md                    # Source markdown files (conversation transcripts)
 ```
 
@@ -81,8 +94,10 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
       </button>
       <ul class="nav-links">
         <li><a href="./">Studies</a></li>
-        <li><a href="../words/">Word Studies</a></li>
-        <li><a href="../topics/">Topics</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+        <li><a href="../reference/">Reference</a></li>
+        <li><a href="../search.html">Search</a></li>
       </ul>
     </div>
   </header>
