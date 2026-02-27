@@ -6,42 +6,23 @@
   <title>Search &mdash; The Living Word</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    #searchInput {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 1.1rem;
-      border: 2px solid rgba(197,150,12,0.3);
-      border-radius: 4px;
-      background: var(--vellum-light, #faf5e8);
-      color: var(--ink, #3c2f2f);
-      font-family: var(--font-body, 'EB Garamond', serif);
-      margin-bottom: 20px;
-    }
-    #searchInput:focus {
-      outline: none;
-      border-color: var(--gold, #c59612);
-    }
-    .search-result {
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(197,150,12,0.1);
-    }
-    .search-result a {
-      color: var(--ultramarine, #1e3a6e);
-      text-decoration: none;
-      font-size: 1.05rem;
-      font-weight: 600;
-    }
-    .search-result a:hover { text-decoration: underline; }
-    .search-result p {
-      font-size: 0.85rem;
-      color: var(--ink-light, #6b5b4a);
-      margin: 4px 0 0;
-    }
-    #resultCount {
-      font-size: 0.85rem;
-      color: var(--ink-light, #6b5b4a);
-      margin-bottom: 12px;
-    }
+    .search-wrap{max-width:700px;margin:0 auto;}
+    #q{width:100%;padding:14px 18px;font-size:1.15rem;border:2px solid rgba(197,150,12,0.3);border-radius:6px;background:var(--vellum-light,#faf5e8);color:var(--ink,#3c2f2f);font-family:var(--font-body,'EB Garamond',serif);}
+    #q:focus{outline:none;border-color:var(--gold,#c59612);box-shadow:0 0 0 3px rgba(197,150,12,0.15);}
+    #info{font-size:0.8rem;color:var(--ink-light,#6b5b4a);margin:8px 0 16px;}
+    .sr{display:block;padding:12px 14px;margin-bottom:8px;border:1px solid rgba(197,150,12,0.1);border-radius:5px;text-decoration:none;color:inherit;transition:background 0.15s;}
+    .sr:hover{background:rgba(197,150,12,0.08);}
+    .sr-t{font-size:1.05rem;font-weight:600;color:var(--ultramarine,#1e3a6e);display:block;}
+    .sr-x{font-size:0.82rem;color:var(--ink-light,#6b5b4a);margin-top:3px;display:block;}
+    .sr-c{display:inline-block;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;padding:2px 6px;border-radius:3px;margin-right:6px;font-weight:600;}
+    .sr-c.lexicon{background:#1e3a6e;color:#faf5e8;}
+    .sr-c.study{background:#c41e3a;color:#faf5e8;}
+    .sr-c.book,.sr-c.chapter{background:#c59612;color:#faf5e8;}
+    .sr-c.verse{background:#2c6e3f;color:#faf5e8;}
+    .sr-c.topic{background:#6b3a8a;color:#faf5e8;}
+    .filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;}
+    .fbtn{padding:4px 10px;font-size:0.75rem;border:1px solid rgba(197,150,12,0.2);border-radius:3px;cursor:pointer;background:transparent;color:var(--ink,#3c2f2f);font-family:inherit;}
+    .fbtn.active{background:var(--gold,#c59612);color:#faf5e8;border-color:var(--gold,#c59612);}
   </style>
 </head>
 <body>
@@ -54,6 +35,7 @@
         <li><a href="interlinear/">Interlinear</a></li>
         <li><a href="lexicon/">Lexicon</a></li>
         <li><a href="lxx/">LXX</a></li>
+        <li><a href="search.html" class="active">Search</a></li>
       </ul>
     </div>
   </header>
@@ -65,13 +47,23 @@
     <article class="study-article">
       <header class="study-header">
         <h1 class="study-title">Search</h1>
-        <p class="study-subtitle">Search the Lexicon &mdash; 14,197 entries</p>
+        <p class="study-subtitle">Search Everything &mdash; 15,530 entries across studies, lexicon, interlinear &amp; more</p>
       </header>
       <hr class="divider">
       <section class="study-body">
-        <input type="text" id="searchInput" placeholder="Search by word, Strong&rsquo;s number, or definition..." autofocus>
-        <div id="resultCount"></div>
-        <div id="results"></div>
+        <div class="search-wrap">
+          <input type="text" id="q" placeholder="Try: faith, G4102, ekklesia, John 3, salvation, hell..." autofocus>
+          <div class="filter-bar">
+            <button class="fbtn active" data-f="all">All</button>
+            <button class="fbtn" data-f="study">Studies</button>
+            <button class="fbtn" data-f="lexicon">Lexicon</button>
+            <button class="fbtn" data-f="book">Books</button>
+            <button class="fbtn" data-f="topic">Topics</button>
+            <button class="fbtn" data-f="verse">Verses</button>
+          </div>
+          <div id="info">Tap the search box to load...</div>
+          <div id="R"></div>
+        </div>
       </section>
     </article>
   </main>
@@ -84,30 +76,41 @@
   </footer>
   <script src="js/main.js"></script>
   <script>
-    var IDX=null;
-    var inp=document.getElementById('searchInput');
-    var res=document.getElementById('results');
-    var cnt=document.getElementById('resultCount');
-    // Load index on first keystroke
-    inp.addEventListener('focus',function load(){
-      if(IDX)return;
-      cnt.textContent='Loading index...';
+  (function(){
+    var D=null,F='all',q=document.getElementById('q'),R=document.getElementById('R'),info=document.getElementById('info');
+    // Load index
+    q.addEventListener('focus',function load(){
+      if(D)return;
+      info.textContent='Loading 15,530 entries...';
       fetch('search-index.json').then(function(r){return r.json();}).then(function(d){
-        IDX=d;cnt.textContent='Ready &mdash; '+IDX.length.toLocaleString()+' entries';
-      });
-      inp.removeEventListener('focus',load);
+        D=d;info.textContent='Ready — '+D.length.toLocaleString()+' entries. Start typing.';
+      }).catch(function(){info.textContent='Failed to load index.';});
+      q.removeEventListener('focus',load);
     });
-    inp.addEventListener('input',function(){
-      if(!IDX)return;
-      var q=this.value.toLowerCase().trim();
-      if(q.length<2){res.innerHTML='';cnt.textContent=IDX.length.toLocaleString()+' entries';return;}
-      var hits=IDX.filter(function(e){
-        return e.i.indexOf(q)>-1||e.t.toLowerCase().indexOf(q)>-1||e.x.toLowerCase().indexOf(q)>-1;
-      }).slice(0,50);
-      cnt.textContent=hits.length+(hits.length===50?'+':'')+' results';
-      res.innerHTML=hits.map(function(e){
-        return '<div class="search-result"><a href="'+e.u+'">'+e.t+'</a><p>'+e.x+'</p></div>';
+    // Filter buttons
+    document.querySelectorAll('.fbtn').forEach(function(b){
+      b.addEventListener('click',function(){
+        document.querySelectorAll('.fbtn').forEach(function(x){x.classList.remove('active');});
+        b.classList.add('active');
+        F=b.dataset.f;
+        q.dispatchEvent(new Event('input'));
+      });
+    });
+    // Search
+    q.addEventListener('input',function(){
+      if(!D)return;
+      var s=this.value.toLowerCase().trim();
+      if(s.length<1){R.innerHTML='';info.textContent=D.length.toLocaleString()+' entries';return;}
+      var hits=D.filter(function(e){
+        if(F!=='all'&&e.c!==F)return false;
+        return e.i.indexOf(s)>-1||e.t.toLowerCase().indexOf(s)>-1||e.x.toLowerCase().indexOf(s)>-1;
+      }).slice(0,60);
+      info.textContent=hits.length+(hits.length>=60?'+':'')+' results';
+      R.innerHTML=hits.map(function(e){
+        var cat=e.c||'';
+        return '<a href="'+e.u+'" class="sr"><span class="sr-c '+cat+'">'+cat+'</span><span class="sr-t">'+e.t+'</span><span class="sr-x">'+e.x+'</span></a>';
       }).join('');
     });
+  })();
   </script>
 </body></html>
