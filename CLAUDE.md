@@ -343,6 +343,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `how-to-actually-operate-from-your-spirit.html` — Pneumatikos/psychikos/brabeuō/phronēma/peripateo, 21 words, 65+ refs, ~75 min
 - `what-heaven-is-actually-like.html` — Shamayim/ouranos/paradeisos/kainos/sōma pneumatikon, 23 words, 75+ refs, ~80 min
 - `baptism-what-the-word-actually-means.html` — Baptizo/bapto/baptisma, 12 words, 45+ refs, ~85 min, includes "Is Baptism Required for Salvation?" controversy section
+- `the-trinity-is-it-biblical.html` — Echad/Elohim/theos/logos/pneuma/homoousios, 22 words, 65+ refs, ~90 min, includes "Is the Trinity Biblical?" three-position analysis + full Nicaea/Constantinople political history
 
 ## Studies Remaining (source .md files exist in root)
 - Things Twisted In The Bible — Full Breakdown
