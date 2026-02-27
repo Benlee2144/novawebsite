@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Job 35 Interlinear &mdash; The Living Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .interlinear-verse {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin: 16px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(197,150,12,0.12);
+    }
+    .interlinear-word {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 50px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .interlinear-word:hover {
+      background: rgba(197,150,12,0.1);
+    }
+    .word-original {
+      font-size: 1.2rem;
+      color: var(--leather-dark, #2c1810);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .word-original.hebrew {
+      font-family: 'SBL Hebrew', 'Ezra SIL', 'Times New Roman', serif;
+      direction: rtl;
+      font-size: 1.35rem;
+    }
+    .word-original.greek {
+      font-family: 'SBL Greek', 'Gentium Plus', 'Times New Roman', serif;
+    }
+    .word-translit {
+      font-size: 0.7rem;
+      font-style: italic;
+      color: var(--ink-light, #6b5b4a);
+      margin-top: 2px;
+    }
+    .word-english {
+      font-size: 0.8rem;
+      color: var(--ink, #3c2f2f);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .word-strongs {
+      font-size: 0.6rem;
+      color: var(--ultramarine, #1e3a6e);
+      margin-top: 2px;
+    }
+    .word-strongs a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+    }
+    .word-strongs a:hover {
+      text-decoration: underline;
+    }
+    .verse-num {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.75rem;
+      color: var(--vermillion, #c41e3a);
+      font-weight: 700;
+      min-width: 28px;
+      align-self: flex-start;
+      padding-top: 8px;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      margin: 16px 0;
+      border-top: 1px solid rgba(197,150,12,0.2);
+      border-bottom: 1px solid rgba(197,150,12,0.2);
+    }
+    .chapter-nav a {
+      color: var(--gold, #c59612);
+      text-decoration: none;
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.85rem;
+    }
+    .chapter-nav a:hover { text-decoration: underline; }
+    .book-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .book-nav a {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(197,150,12,0.08);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      border: 1px solid rgba(197,150,12,0.15);
+    }
+    .book-nav a:hover, .book-nav a.active {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .chapter-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+    }
+    .chapter-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(197,150,12,0.06);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(197,150,12,0.12);
+      border-radius: 3px;
+    }
+    .chapter-links a:hover {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .testament-section {
+      margin: 24px 0;
+    }
+    .testament-section h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      color: var(--vermillion, #c41e3a);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hebrew-verse {
+      direction: rtl;
+    }
+    .lexicon-entry {
+      padding: 20px 0;
+    }
+    .lex-word {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .lex-word.hebrew { direction: rtl; font-family: 'SBL Hebrew', 'Ezra SIL', serif; }
+    .lex-word.greek { font-family: 'SBL Greek', 'Gentium Plus', serif; }
+    .lex-meta {
+      color: var(--ink-light, #6b5b4a);
+      font-size: 0.9rem;
+      margin: 4px 0;
+    }
+    .lex-def {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    .lex-verses {
+      margin-top: 20px;
+    }
+    .lex-verses h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.9rem;
+      color: var(--vermillion, #c41e3a);
+      margin-bottom: 8px;
+    }
+    .lex-verse-list {
+      column-count: 3;
+      column-gap: 16px;
+      font-size: 0.8rem;
+    }
+    .lex-verse-list a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+      display: block;
+      padding: 2px 0;
+    }
+    .lex-verse-list a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .lex-verse-list { column-count: 2; }
+      .interlinear-word { min-width: 40px; padding: 3px 4px; }
+      .word-original { font-size: 1.05rem; }
+      .word-original.hebrew { font-size: 1.15rem; }
+    }
+    @media (max-width: 480px) {
+      .lex-verse-list { column-count: 1; }
+    }
+    
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Living Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../words/">Word Studies</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+      </ul>
+    </div>
+  </header>
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div>
+      <div class="border-right"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+  <main class="page-container">
+
+    <article class="study-article">
+      <header class="study-header">
+        <div class="study-category">Interlinear &bull; Old Testament &bull; Hebrew</div>
+        <h1 class="study-title">Job 35</h1>
+        <p class="study-subtitle">Word-by-Word Hebrew-English Interlinear</p>
+      </header>
+      
+      <div class="chapter-nav">
+        <span><a href="job-34.html">&larr; Chapter 34</a></span>
+        <a href="index.html">Job</a>
+        <span><a href="job-36.html">Chapter 36 &rarr;</a></span>
+      </div>
+      
+      <div class="chapter-links"><a href="job-1.html">1</a><a href="job-2.html">2</a><a href="job-3.html">3</a><a href="job-4.html">4</a><a href="job-5.html">5</a><a href="job-6.html">6</a><a href="job-7.html">7</a><a href="job-8.html">8</a><a href="job-9.html">9</a><a href="job-10.html">10</a><a href="job-11.html">11</a><a href="job-12.html">12</a><a href="job-13.html">13</a><a href="job-14.html">14</a><a href="job-15.html">15</a><a href="job-16.html">16</a><a href="job-17.html">17</a><a href="job-18.html">18</a><a href="job-19.html">19</a><a href="job-20.html">20</a><a href="job-21.html">21</a><a href="job-22.html">22</a><a href="job-23.html">23</a><a href="job-24.html">24</a><a href="job-25.html">25</a><a href="job-26.html">26</a><a href="job-27.html">27</a><a href="job-28.html">28</a><a href="job-29.html">29</a><a href="job-30.html">30</a><a href="job-31.html">31</a><a href="job-32.html">32</a><a href="job-33.html">33</a><a href="job-34.html">34</a><a href="job-35.html" class="active">35</a><a href="job-36.html">36</a><a href="job-37.html">37</a><a href="job-38.html">38</a><a href="job-39.html">39</a><a href="job-40.html">40</a><a href="job-41.html">41</a><a href="job-42.html">42</a></div>
+      
+      <hr class="divider">
+      
+      <section class="study-body">
+        <div class="interlinear-verse hebrew-verse"><span class="verse-num">1</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וַ/יַּ֥עַן</span>
+  <span class="word-translit">va/iYa&#x27;an</span>
+  <span class="word-english">and/ he answered</span>
+  <span class="word-strongs"><a href="../lexicon/h9001.html">H9001</a></span>
+</span><span class="interlinear-word" data-strongs="H453">
+  <span class="word-original hebrew">אֱלִיה֗וּ</span>
+  <span class="word-translit">&#x27;eliHu</span>
+  <span class="word-english">Elihu</span>
+  <span class="word-strongs"><a href="../lexicon/h453.html">H453</a></span>
+</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וַ/יֹּאמַֽר\׃</span>
+  <span class="word-translit">va/iyoMar</span>
+  <span class="word-english">and/ he said</span>
+  <span class="word-strongs"><a href="../lexicon/h9001.html">H9001</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">2</span><span class="interlinear-word" data-strongs="H9008">
+  <span class="word-original hebrew">הֲ֭/זֹאת</span>
+  <span class="word-translit">Ha/zot</span>
+  <span class="word-english">¿/ this</span>
+  <span class="word-strongs"><a href="../lexicon/h9008.html">H9008</a></span>
+</span><span class="interlinear-word" data-strongs="H2803">
+  <span class="word-original hebrew">חָשַׁ֣בְתָּ</span>
+  <span class="word-translit">chaShavta</span>
+  <span class="word-english">do you consider</span>
+  <span class="word-strongs"><a href="../lexicon/h2803.html">H2803</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לְ/מִשְׁפָּ֑ט</span>
+  <span class="word-translit">le/mishPat</span>
+  <span class="word-english">to/ justice</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span><span class="interlinear-word" data-strongs="H559">
+  <span class="word-original hebrew">אָ֝מַ֗רְתָּ</span>
+  <span class="word-translit">&#x27;aMarta</span>
+  <span class="word-english">you have said</span>
+  <span class="word-strongs"><a href="../lexicon/h559.html">H559</a></span>
+</span><span class="interlinear-word" data-strongs="H6664">
+  <span class="word-original hebrew">צִדְקִ֥/י</span>
+  <span class="word-translit">tzidK/i</span>
+  <span class="word-english">righteousness/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h6664.html">H6664</a></span>
+</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מֵ/אֵֽל\׃</span>
+  <span class="word-translit">me/&#x27;El</span>
+  <span class="word-english">is more than/ God</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">3</span><span class="interlinear-word" data-strongs="H3588">
+  <span class="word-original hebrew">כִּֽי\־</span>
+  <span class="word-translit">ki-</span>
+  <span class="word-english">for</span>
+  <span class="word-strongs"><a href="../lexicon/h3588.html">H3588</a></span>
+</span><span class="interlinear-word" data-strongs="H559">
+  <span class="word-original hebrew">תֹ֭אמַר</span>
+  <span class="word-translit">Tomar</span>
+  <span class="word-english">you say</span>
+  <span class="word-strongs"><a href="../lexicon/h559.html">H559</a></span>
+</span><span class="interlinear-word" data-strongs="H4100">
+  <span class="word-original hebrew">מַה\־</span>
+  <span class="word-translit">mah-</span>
+  <span class="word-english">what?</span>
+  <span class="word-strongs"><a href="../lexicon/h4100.html">H4100</a></span>
+</span><span class="interlinear-word" data-strongs="H5532">
+  <span class="word-original hebrew">יִּסְכָּן\־</span>
+  <span class="word-translit">yiskon-</span>
+  <span class="word-english">will it be of use</span>
+  <span class="word-strongs"><a href="../lexicon/h5532.html">H5532</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לָ֑/ךְ</span>
+  <span class="word-translit">La/kh</span>
+  <span class="word-english">to/ you</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span><span class="interlinear-word" data-strongs="H4100">
+  <span class="word-original hebrew">מָֽה\־</span>
+  <span class="word-translit">mah-</span>
+  <span class="word-english">what?</span>
+  <span class="word-strongs"><a href="../lexicon/h4100.html">H4100</a></span>
+</span><span class="interlinear-word" data-strongs="H3276">
+  <span class="word-original hebrew">אֹ֝עִ֗יל</span>
+  <span class="word-translit">&#x27;o&#x27;Il</span>
+  <span class="word-english">will I profit</span>
+  <span class="word-strongs"><a href="../lexicon/h3276.html">H3276</a></span>
+</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מֵֽ/חַטָּאתִֽ/י\׃</span>
+  <span class="word-translit">Me/chataT/i</span>
+  <span class="word-english">from/ sin/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">4</span><span class="interlinear-word" data-strongs="H589">
+  <span class="word-original hebrew">אֲ֭נִי</span>
+  <span class="word-translit">&#x27;Ani</span>
+  <span class="word-english">I</span>
+  <span class="word-strongs"><a href="../lexicon/h589.html">H589</a></span>
+</span><span class="interlinear-word" data-strongs="H7725">
+  <span class="word-original hebrew">אֲשִֽׁיבְ/ךָ֣</span>
+  <span class="word-translit">&#x27;ashive/Kha</span>
+  <span class="word-english">I will respond to/ you</span>
+  <span class="word-strongs"><a href="../lexicon/h7725.html">H7725</a></span>
+</span><span class="interlinear-word" data-strongs="H4405">
+  <span class="word-original hebrew">מִלִּ֑ין</span>
+  <span class="word-translit">miLin</span>
+  <span class="word-english">words</span>
+  <span class="word-strongs"><a href="../lexicon/h4405.html">H4405</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְֽ/אֶת\־</span>
+  <span class="word-translit">ve/&#x27;Et</span>
+  <span class="word-english">and/ obj.</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H7453">
+  <span class="word-original hebrew">רֵעֶ֥י/ךָ</span>
+  <span class="word-translit">re&#x27;Ei/kha</span>
+  <span class="word-english">friends/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h7453.html">H7453</a></span>
+</span><span class="interlinear-word" data-strongs="H5973">
+  <span class="word-original hebrew">עִמָּֽ/ךְ\׃</span>
+  <span class="word-translit">&#x27;iMa/kh</span>
+  <span class="word-english">with/ you</span>
+  <span class="word-strongs"><a href="../lexicon/h5973.html">H5973</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">5</span><span class="interlinear-word" data-strongs="H5027">
+  <span class="word-original hebrew">הַבֵּ֣ט</span>
+  <span class="word-translit">haBet</span>
+  <span class="word-english">look at</span>
+  <span class="word-strongs"><a href="../lexicon/h5027.html">H5027</a></span>
+</span><span class="interlinear-word" data-strongs="H8064">
+  <span class="word-original hebrew">שָׁמַ֣יִם</span>
+  <span class="word-translit">shaMayim</span>
+  <span class="word-english">the heavens</span>
+  <span class="word-strongs"><a href="../lexicon/h8064.html">H8064</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/רְאֵ֑ה</span>
+  <span class="word-translit">u/re&#x27;Eh</span>
+  <span class="word-english">and/ see</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/שׁ֥וּר</span>
+  <span class="word-translit">ve/Shur</span>
+  <span class="word-english">and/ observe</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H7834">
+  <span class="word-original hebrew">שְׁ֝חָקִ֗ים</span>
+  <span class="word-translit">ShechaKim</span>
+  <span class="word-english">the clouds</span>
+  <span class="word-strongs"><a href="../lexicon/h7834.html">H7834</a></span>
+</span><span class="interlinear-word" data-strongs="H1361">
+  <span class="word-original hebrew">גָּבְה֥וּ</span>
+  <span class="word-translit">gaveHu</span>
+  <span class="word-english">they are high</span>
+  <span class="word-strongs"><a href="../lexicon/h1361.html">H1361</a></span>
+</span><span class="interlinear-word" data-strongs="H4480">
+  <span class="word-original hebrew">מִמֶּֽ/ךָּ\׃</span>
+  <span class="word-translit">miMe/ka</span>
+  <span class="word-english">more than/ you</span>
+  <span class="word-strongs"><a href="../lexicon/h4480.html">H4480</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">6</span><span class="interlinear-word" data-strongs="H518">
+  <span class="word-original hebrew">אִם\־</span>
+  <span class="word-translit">&#x27;im-</span>
+  <span class="word-english">if</span>
+  <span class="word-strongs"><a href="../lexicon/h518.html">H518</a></span>
+</span><span class="interlinear-word" data-strongs="H2398">
+  <span class="word-original hebrew">חָ֭טָאתָ</span>
+  <span class="word-translit">Chatata</span>
+  <span class="word-english">you have sinned</span>
+  <span class="word-strongs"><a href="../lexicon/h2398.html">H2398</a></span>
+</span><span class="interlinear-word" data-strongs="H4100">
+  <span class="word-original hebrew">מַה\־</span>
+  <span class="word-translit">mah-</span>
+  <span class="word-english">what?</span>
+  <span class="word-strongs"><a href="../lexicon/h4100.html">H4100</a></span>
+</span><span class="interlinear-word" data-strongs="H6466">
+  <span class="word-original hebrew">תִּפְעָל\־</span>
+  <span class="word-translit">tif&#x27;ol-</span>
+  <span class="word-english">do you do</span>
+  <span class="word-strongs"><a href="../lexicon/h6466.html">H6466</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בּ֑/וֹ</span>
+  <span class="word-translit">b/o</span>
+  <span class="word-english">in/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h9003.html">H9003</a></span>
+</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וְ/רַבּ֥וּ</span>
+  <span class="word-translit">ve/raBu</span>
+  <span class="word-english">and/ they have been many</span>
+  <span class="word-strongs"><a href="../lexicon/h9001.html">H9001</a></span>
+</span><span class="interlinear-word" data-strongs="H6588">
+  <span class="word-original hebrew">פְ֝שָׁעֶ֗י/ךָ</span>
+  <span class="word-translit">fesha&#x27;Ei/kha</span>
+  <span class="word-english">transgressions/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h6588.html">H6588</a></span>
+</span><span class="interlinear-word" data-strongs="H4100">
+  <span class="word-original hebrew">מַה\־</span>
+  <span class="word-translit">mah-</span>
+  <span class="word-english">what?</span>
+  <span class="word-strongs"><a href="../lexicon/h4100.html">H4100</a></span>
+</span><span class="interlinear-word" data-strongs="H6213">
+  <span class="word-original hebrew">תַּעֲשֶׂה\־</span>
+  <span class="word-translit">ta&#x27;aseh-</span>
+  <span class="word-english">do you do</span>
+  <span class="word-strongs"><a href="../lexicon/h6213.html">H6213</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לּֽ/וֹ\׃</span>
+  <span class="word-translit">l/o</span>
+  <span class="word-english">to/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">7</span><span class="interlinear-word" data-strongs="H518">
+  <span class="word-original hebrew">אִם\־</span>
+  <span class="word-translit">&#x27;im-</span>
+  <span class="word-english">if</span>
+  <span class="word-strongs"><a href="../lexicon/h518.html">H518</a></span>
+</span><span class="interlinear-word" data-strongs="H6663">
+  <span class="word-original hebrew">צָ֭דַקְתָּ</span>
+  <span class="word-translit">Tzadakta</span>
+  <span class="word-english">you have been righteous</span>
+  <span class="word-strongs"><a href="../lexicon/h6663.html">H6663</a></span>
+</span><span class="interlinear-word" data-strongs="H4100">
+  <span class="word-original hebrew">מַה\־</span>
+  <span class="word-translit">mah-</span>
+  <span class="word-english">what?</span>
+  <span class="word-strongs"><a href="../lexicon/h4100.html">H4100</a></span>
+</span><span class="interlinear-word" data-strongs="H5414">
+  <span class="word-original hebrew">תִּתֶּן\־</span>
+  <span class="word-translit">titen-</span>
+  <span class="word-english">do you give</span>
+  <span class="word-strongs"><a href="../lexicon/h5414.html">H5414</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">ל֑/וֹ</span>
+  <span class="word-translit">l/o</span>
+  <span class="word-english">to/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span><span class="interlinear-word" data-strongs="H176">
+  <span class="word-original hebrew">א֥וֹ</span>
+  <span class="word-translit">&#x27;o</span>
+  <span class="word-english">or</span>
+  <span class="word-strongs"><a href="../lexicon/h176.html">H176</a></span>
+</span><span class="interlinear-word" data-strongs="H4100">
+  <span class="word-original hebrew">מַה\־</span>
+  <span class="word-translit">mah-</span>
+  <span class="word-english">what?</span>
+  <span class="word-strongs"><a href="../lexicon/h4100.html">H4100</a></span>
+</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מִ/יָּדְ/ךָ֥</span>
+  <span class="word-translit">mi/yade/Kha</span>
+  <span class="word-english">from/ hand/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span><span class="interlinear-word" data-strongs="H3947">
+  <span class="word-original hebrew">יִקָּֽח\׃</span>
+  <span class="word-translit">yiKach</span>
+  <span class="word-english">does he receive</span>
+  <span class="word-strongs"><a href="../lexicon/h3947.html">H3947</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">8</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לְ/אִישׁ\־</span>
+  <span class="word-translit">le/&#x27;ish-</span>
+  <span class="word-english">is for/ a person</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span><span class="interlinear-word" data-strongs="H3644">
+  <span class="word-original hebrew">כָּמ֥וֹ/ךָ</span>
+  <span class="word-translit">kaMo/kha</span>
+  <span class="word-english">like/ yourself</span>
+  <span class="word-strongs"><a href="../lexicon/h3644.html">H3644</a></span>
+</span><span class="interlinear-word" data-strongs="H7562">
+  <span class="word-original hebrew">רִשְׁעֶ֑/ךָ</span>
+  <span class="word-translit">rish&#x27;E/kha</span>
+  <span class="word-english">wickedness/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h7562.html">H7562</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/לְ/בֶן\־</span>
+  <span class="word-translit">u/le/ven-</span>
+  <span class="word-english">and/ is for/ a child of</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H120">
+  <span class="word-original hebrew">אָ֝דָ֗ם</span>
+  <span class="word-translit">&#x27;aDam</span>
+  <span class="word-english">humankind</span>
+  <span class="word-strongs"><a href="../lexicon/h120.html">H120</a></span>
+</span><span class="interlinear-word" data-strongs="H6666">
+  <span class="word-original hebrew">צִדְקָתֶֽ/ךָ\׃</span>
+  <span class="word-translit">tzidkaTe/cha</span>
+  <span class="word-english">righteousness/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h6666.html">H6666</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">9</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מֵ֭/רֹב</span>
+  <span class="word-translit">me/ro</span>
+  <span class="word-english">from/ a multitude of</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span><span class="interlinear-word" data-strongs="H6217">
+  <span class="word-original hebrew">עֲשׁוּקִ֣ים</span>
+  <span class="word-translit">&#x27;ashuKim</span>
+  <span class="word-english">oppressions</span>
+  <span class="word-strongs"><a href="../lexicon/h6217.html">H6217</a></span>
+</span><span class="interlinear-word" data-strongs="H2199">
+  <span class="word-original hebrew">יַזְעִ֑יקוּ</span>
+  <span class="word-translit">yaz&#x27;Iku</span>
+  <span class="word-english">people cry out</span>
+  <span class="word-strongs"><a href="../lexicon/h2199.html">H2199</a></span>
+</span><span class="interlinear-word" data-strongs="H7768">
+  <span class="word-original hebrew">יְשַׁוְּע֖וּ</span>
+  <span class="word-translit">yeshave&#x27;U</span>
+  <span class="word-english">they cry for help</span>
+  <span class="word-strongs"><a href="../lexicon/h7768.html">H7768</a></span>
+</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מִ/זְּר֣וֹעַ</span>
+  <span class="word-translit">mi/zeRoa&#x27;</span>
+  <span class="word-english">from/ the arm of</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span><span class="interlinear-word" data-strongs="H7227">
+  <span class="word-original hebrew">רַבִּֽים\׃</span>
+  <span class="word-translit">raBim</span>
+  <span class="word-english">great people</span>
+  <span class="word-strongs"><a href="../lexicon/h7227.html">H7227</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">10</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְֽ/לֹא\־</span>
+  <span class="word-translit">ve/lo&#x27;-</span>
+  <span class="word-english">and/ not</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H559">
+  <span class="word-original hebrew">אָמַ֗ר</span>
+  <span class="word-translit">&#x27;aMar</span>
+  <span class="word-english">anyone has said</span>
+  <span class="word-strongs"><a href="../lexicon/h559.html">H559</a></span>
+</span><span class="interlinear-word" data-strongs="H346">
+  <span class="word-original hebrew">אַ֭יֵּה</span>
+  <span class="word-translit">&#x27;Aiyeh</span>
+  <span class="word-english">where?</span>
+  <span class="word-strongs"><a href="../lexicon/h346.html">H346</a></span>
+</span><span class="interlinear-word" data-strongs="H433">
+  <span class="word-original hebrew">אֱל֣וֹהַּ</span>
+  <span class="word-translit">&#x27;eLoah</span>
+  <span class="word-english">is God</span>
+  <span class="word-strongs"><a href="../lexicon/h433.html">H433</a></span>
+</span><span class="interlinear-word" data-strongs="H6213">
+  <span class="word-original hebrew">עֹשָׂ֑/י</span>
+  <span class="word-translit">&#x27;oSa/i</span>
+  <span class="word-english">makers/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h6213.html">H6213</a></span>
+</span><span class="interlinear-word" data-strongs="H5414">
+  <span class="word-original hebrew">נֹתֵ֖ן</span>
+  <span class="word-translit">noTen</span>
+  <span class="word-english">who gives</span>
+  <span class="word-strongs"><a href="../lexicon/h5414.html">H5414</a></span>
+</span><span class="interlinear-word" data-strongs="H2158">
+  <span class="word-original hebrew">זְמִר֣וֹת</span>
+  <span class="word-translit">zemiRot</span>
+  <span class="word-english">songs</span>
+  <span class="word-strongs"><a href="../lexicon/h2158.html">H2158</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בַּ/לָּֽיְלָה\׃</span>
+  <span class="word-translit">ba/Layelah</span>
+  <span class="word-english">in the/ night</span>
+  <span class="word-strongs"><a href="../lexicon/h9003.html">H9003</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">11</span><span class="interlinear-word" data-strongs="H502">
+  <span class="word-original hebrew">מַ֭לְּפֵ/נוּ</span>
+  <span class="word-translit">Malefe/nu</span>
+  <span class="word-english">who teaches/ us</span>
+  <span class="word-strongs"><a href="../lexicon/h502.html">H502</a></span>
+</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מִ/בַּהֲמ֣וֹת</span>
+  <span class="word-translit">mi/bahaMot</span>
+  <span class="word-english">more than/ the animals of</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span><span class="interlinear-word" data-strongs="H776">
+  <span class="word-original hebrew">אָ֑רֶץ</span>
+  <span class="word-translit">&#x27;Aretz</span>
+  <span class="word-english">the earth</span>
+  <span class="word-strongs"><a href="../lexicon/h776.html">H776</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/מֵ/ע֖וֹף</span>
+  <span class="word-translit">u/me/&#x27;of</span>
+  <span class="word-english">and/ more than/ the birds of</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H9009">
+  <span class="word-original hebrew">הַ/שָּׁמַ֣יִם</span>
+  <span class="word-translit">ha/shaMayim</span>
+  <span class="word-english">the/ heavens</span>
+  <span class="word-strongs"><a href="../lexicon/h9009.html">H9009</a></span>
+</span><span class="interlinear-word" data-strongs="H2449">
+  <span class="word-original hebrew">יְחַכְּמֵֽ/נוּ\׃</span>
+  <span class="word-translit">yechakeMe/nu</span>
+  <span class="word-english">he makes wise/ us</span>
+  <span class="word-strongs"><a href="../lexicon/h2449.html">H2449</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">12</span><span class="interlinear-word" data-strongs="H8033">
+  <span class="word-original hebrew">שָׁ֣ם</span>
+  <span class="word-translit">sham</span>
+  <span class="word-english">there</span>
+  <span class="word-strongs"><a href="../lexicon/h8033.html">H8033</a></span>
+</span><span class="interlinear-word" data-strongs="H6817">
+  <span class="word-original hebrew">יִ֭צְעֲקוּ</span>
+  <span class="word-translit">Yitz&#x27;aku</span>
+  <span class="word-english">they cry out</span>
+  <span class="word-strongs"><a href="../lexicon/h6817.html">H6817</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/לֹ֣א</span>
+  <span class="word-translit">ve/Lo&#x27;</span>
+  <span class="word-english">and/ not</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H6030">
+  <span class="word-original hebrew">יַעֲנֶ֑ה</span>
+  <span class="word-translit">ya&#x27;aNeh</span>
+  <span class="word-english">he answers</span>
+  <span class="word-strongs"><a href="../lexicon/h6030.html">H6030</a></span>
+</span><span class="interlinear-word" data-strongs="H9006">
+  <span class="word-original hebrew">מִ֝/פְּנֵ֗י</span>
+  <span class="word-translit">mi/peNei</span>
+  <span class="word-english">from/ because of</span>
+  <span class="word-strongs"><a href="../lexicon/h9006.html">H9006</a></span>
+</span><span class="interlinear-word" data-strongs="H1347">
+  <span class="word-original hebrew">גְּא֣וֹן</span>
+  <span class="word-translit">ge&#x27;on</span>
+  <span class="word-english">the pride of</span>
+  <span class="word-strongs"><a href="../lexicon/h1347.html">H1347</a></span>
+</span><span class="interlinear-word" data-strongs="H7451">
+  <span class="word-original hebrew">רָעִֽים\׃</span>
+  <span class="word-translit">ra&#x27;Im</span>
+  <span class="word-english">wicked people</span>
+  <span class="word-strongs"><a href="../lexicon/h7451.html">H7451</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">13</span><span class="interlinear-word" data-strongs="H389">
+  <span class="word-original hebrew">אַךְ\־</span>
+  <span class="word-translit">&#x27;akhoSha-</span>
+  <span class="word-english">surely</span>
+  <span class="word-strongs"><a href="../lexicon/h389.html">H389</a></span>
+</span><span class="interlinear-word" data-strongs="H7723">
+  <span class="word-original hebrew">שָׁ֭וְא</span>
+  <span class="word-translit">Shav&#x27;</span>
+  <span class="word-english">emptiness</span>
+  <span class="word-strongs"><a href="../lexicon/h7723.html">H7723</a></span>
+</span><span class="interlinear-word" data-strongs="H3808">
+  <span class="word-original hebrew">לֹא\־</span>
+  <span class="word-translit">lo&#x27;-</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h3808.html">H3808</a></span>
+</span><span class="interlinear-word" data-strongs="H8085">
+  <span class="word-original hebrew">יִשְׁמַ֥ע\׀</span>
+  <span class="word-translit">yishMa&#x27;</span>
+  <span class="word-english">he hears</span>
+  <span class="word-strongs"><a href="../lexicon/h8085.html">H8085</a></span>
+</span><span class="interlinear-word" data-strongs="H410">
+  <span class="word-original hebrew">אֵ֑ל</span>
+  <span class="word-translit">&#x27;El</span>
+  <span class="word-english">God</span>
+  <span class="word-strongs"><a href="../lexicon/h410.html">H410</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ֝/שַׁדַּ֗י</span>
+  <span class="word-translit">ve/shaDai</span>
+  <span class="word-english">and/ the Almighty</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H3808">
+  <span class="word-original hebrew">לֹ֣א</span>
+  <span class="word-translit">lo&#x27;</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h3808.html">H3808</a></span>
+</span><span class="interlinear-word" data-strongs="H7789">
+  <span class="word-original hebrew">יְשׁוּרֶֽ/נָּה\׃</span>
+  <span class="word-translit">yeshuRe/nah</span>
+  <span class="word-english">he observes/ it</span>
+  <span class="word-strongs"><a href="../lexicon/h7789.html">H7789</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">14</span><span class="interlinear-word" data-strongs="H637">
+  <span class="word-original hebrew">אַ֣ף</span>
+  <span class="word-translit">&#x27;af</span>
+  <span class="word-english">indeed?</span>
+  <span class="word-strongs"><a href="../lexicon/h637.html">H637</a></span>
+</span><span class="interlinear-word" data-strongs="H3588">
+  <span class="word-original hebrew">כִּֽי\־</span>
+  <span class="word-translit">ki-</span>
+  <span class="word-english">if</span>
+  <span class="word-strongs"><a href="../lexicon/h3588.html">H3588</a></span>
+</span><span class="interlinear-word" data-strongs="H559">
+  <span class="word-original hebrew">תֹ֭אמַר</span>
+  <span class="word-translit">Tomar</span>
+  <span class="word-english">you will say</span>
+  <span class="word-strongs"><a href="../lexicon/h559.html">H559</a></span>
+</span><span class="interlinear-word" data-strongs="H3808">
+  <span class="word-original hebrew">לֹ֣א</span>
+  <span class="word-translit">lo&#x27;</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h3808.html">H3808</a></span>
+</span><span class="interlinear-word" data-strongs="H7789">
+  <span class="word-original hebrew">תְשׁוּרֶ֑/נּוּ</span>
+  <span class="word-translit">teshuRe/nu</span>
+  <span class="word-english">you observe/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h7789.html">H7789</a></span>
+</span><span class="interlinear-word" data-strongs="H1779">
+  <span class="word-original hebrew">דִּ֥ין</span>
+  <span class="word-translit">din</span>
+  <span class="word-english">the case</span>
+  <span class="word-strongs"><a href="../lexicon/h1779.html">H1779</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לְ֝/פָנָ֗י/ו</span>
+  <span class="word-translit">le/faNa/v</span>
+  <span class="word-english">is to/ before/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/תְח֥וֹלֵֽל</span>
+  <span class="word-translit">u/teCholel</span>
+  <span class="word-english">so/ you may wait</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לֽ/וֹ\׃</span>
+  <span class="word-translit">l/o</span>
+  <span class="word-english">for/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h9005.html">H9005</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">15</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/עַתָּ֗ה</span>
+  <span class="word-translit">ve/&#x27;aTah</span>
+  <span class="word-english">and/ now</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H3588">
+  <span class="word-original hebrew">כִּי\־</span>
+  <span class="word-translit">ki-</span>
+  <span class="word-english">that</span>
+  <span class="word-strongs"><a href="../lexicon/h3588.html">H3588</a></span>
+</span><span class="interlinear-word" data-strongs="H369">
+  <span class="word-original hebrew">אַ֭יִן</span>
+  <span class="word-translit">&#x27;Ayin</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h369.html">H369</a></span>
+</span><span class="interlinear-word" data-strongs="H6485">
+  <span class="word-original hebrew">פָּקַ֣ד</span>
+  <span class="word-translit">paKad</span>
+  <span class="word-english">it has punished</span>
+  <span class="word-strongs"><a href="../lexicon/h6485.html">H6485</a></span>
+</span><span class="interlinear-word" data-strongs="H639">
+  <span class="word-original hebrew">אַפּ֑/וֹ</span>
+  <span class="word-translit">&#x27;aP/o</span>
+  <span class="word-english">anger/ his</span>
+  <span class="word-strongs"><a href="../lexicon/h639.html">H639</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/לֹֽא\־</span>
+  <span class="word-translit">ve/lo&#x27;-</span>
+  <span class="word-english">and/ not</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H3045">
+  <span class="word-original hebrew">יָדַ֖ע</span>
+  <span class="word-translit">yaDa&#x27;</span>
+  <span class="word-english">he knows</span>
+  <span class="word-strongs"><a href="../lexicon/h3045.html">H3045</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בַּ/פַּ֣שׁ</span>
+  <span class="word-translit">ba/Pash</span>
+  <span class="word-english">in the/ folly</span>
+  <span class="word-strongs"><a href="../lexicon/h9003.html">H9003</a></span>
+</span><span class="interlinear-word" data-strongs="H3966">
+  <span class="word-original hebrew">מְאֹֽד\׃</span>
+  <span class="word-translit">me&#x27;Od</span>
+  <span class="word-english">exceedingly</span>
+  <span class="word-strongs"><a href="../lexicon/h3966.html">H3966</a></span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">16</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ֭/אִיּוֹב</span>
+  <span class="word-translit">Ve/&#x27;iyov</span>
+  <span class="word-english">and/ Job</span>
+  <span class="word-strongs"><a href="../lexicon/h9002.html">H9002</a></span>
+</span><span class="interlinear-word" data-strongs="H1892">
+  <span class="word-original hebrew">הֶ֣בֶל</span>
+  <span class="word-translit">Hevel</span>
+  <span class="word-english">vanity</span>
+  <span class="word-strongs"><a href="../lexicon/h1892.html">H1892</a></span>
+</span><span class="interlinear-word" data-strongs="H6475">
+  <span class="word-original hebrew">יִפְצֶה\־</span>
+  <span class="word-translit">yiftzeh-</span>
+  <span class="word-english">he opens</span>
+  <span class="word-strongs"><a href="../lexicon/h6475.html">H6475</a></span>
+</span><span class="interlinear-word" data-strongs="H6310">
+  <span class="word-original hebrew">פִּ֑י/הוּ</span>
+  <span class="word-translit">Pi/hu</span>
+  <span class="word-english">mouth/ his</span>
+  <span class="word-strongs"><a href="../lexicon/h6310.html">H6310</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בִּ/בְלִי\־</span>
+  <span class="word-translit">bi/vli-</span>
+  <span class="word-english">with/ not</span>
+  <span class="word-strongs"><a href="../lexicon/h9003.html">H9003</a></span>
+</span><span class="interlinear-word" data-strongs="H1847">
+  <span class="word-original hebrew">דַ֝֗עַת</span>
+  <span class="word-translit">Da&#x27;at</span>
+  <span class="word-english">knowledge</span>
+  <span class="word-strongs"><a href="../lexicon/h1847.html">H1847</a></span>
+</span><span class="interlinear-word" data-strongs="H4405">
+  <span class="word-original hebrew">מִלִּ֥ין</span>
+  <span class="word-translit">miLin</span>
+  <span class="word-english">words</span>
+  <span class="word-strongs"><a href="../lexicon/h4405.html">H4405</a></span>
+</span><span class="interlinear-word" data-strongs="H3527">
+  <span class="word-original hebrew">יַכְבִּֽר\׃\ \פ</span>
+  <span class="word-translit">yakhBir</span>
+  <span class="word-english">he multiplies</span>
+  <span class="word-strongs"><a href="../lexicon/h3527.html">H3527</a></span>
+</span></div>
+      </section>
+      
+      <hr class="divider">
+      
+      <div class="chapter-nav">
+        <span><a href="job-34.html">&larr; Chapter 34</a></span>
+        <a href="index.html">All Books</a>
+        <span><a href="job-36.html">Chapter 36 &rarr;</a></span>
+      </div>
+    </article>
+
+  </main>
+    </div>
+  </div>
+  <div class="book-spine" aria-hidden="true"></div>
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;The words of the LORD are pure words, like silver tried in a furnace of earth, purified seven times.&rdquo;</p>
+    <p class="footer-ref">PSALM 12:6</p>
+    <p class="footer-copy">The Living Word &mdash; Soli Deo Gloria</p>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>
