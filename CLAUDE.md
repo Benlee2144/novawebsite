@@ -344,6 +344,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `what-heaven-is-actually-like.html` — Shamayim/ouranos/paradeisos/kainos/sōma pneumatikon, 23 words, 75+ refs, ~80 min
 - `baptism-what-the-word-actually-means.html` — Baptizo/bapto/baptisma, 12 words, 45+ refs, ~85 min, includes "Is Baptism Required for Salvation?" controversy section
 - `the-trinity-is-it-biblical.html` — Echad/Elohim/theos/logos/pneuma/homoousios, 22 words, 65+ refs, ~90 min, includes "Is the Trinity Biblical?" three-position analysis + full Nicaea/Constantinople political history
+- `the-rapture-a-doctrine-invented-in-the-1830s.html` — Harpazō/apantēsis/parousia/apokalypsis/epiphaneia/thlipsis/keleusma, 24 words, 70+ refs, ~95 min, includes pre/mid/post-trib controversy + Darby→Scofield→Left Behind invention timeline
 
 ## Studies Remaining (source .md files exist in root)
 - Things Twisted In The Bible — Full Breakdown
