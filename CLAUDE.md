@@ -249,6 +249,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 6. **Church history section** — how the doctrine developed, who taught what, when things changed
 7. **Early church fathers** — what did the Greek-speaking fathers actually teach?
 8. **Complete word study summary table** at the end of every study
+9. **MANDATORY CONTROVERSY SECTION** — Address the #1 denominational split/question for this topic (see Major Controversies table). If your topic isn't listed, research what the biggest debate is and address it comprehensively.
 
 ### Accuracy Requirements — DO NOT MAKE THINGS UP
 1. **Strong's numbers must be correct.** Verify every single one. 100% right.
@@ -273,14 +274,57 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 2. **Introduction** — Hook, state the problem, promise what reader will learn
 3. **Primary Word Studies** — Main Hebrew/Greek words, full etymology
 4. **Verse-by-Verse Analysis** — Key passages broken down in original languages
-5. **Historical/Church History Section** — How wrong teaching developed, who introduced it
-6. **Early Church Fathers** — What Greek-speaking fathers actually taught
-7. **Implications / "What This Changes"** — Practical application
-8. **The Bottom Line** — Thesis restated with evidence
-9. **Key Verses** — Organized cross-reference boxes by theme
-10. **Complete Word Study Summary Table** — Every word: characters, language, transliteration, Strong's, meaning
-11. **Go Study It Yourself** — Resources section ending with Acts 17:11. Include Blue Letter Bible, Bible Hub, STEP Bible, Bible Gateway, New Advent Church Fathers, CCEL, Bill Mounce, Aleph with Beth. Tone: "Don't take our word for it."
-12. **Continue the Journey** — Links to related studies (built = linked, unbuilt = 0.5 opacity "Coming Soon")
+5. **THE BIG CONTROVERSY SECTION** — **MANDATORY.** Address the #1 question/debate people have about this topic (see Major Controversies list below)
+6. **Historical/Church History Section** — How wrong teaching developed, who introduced it
+7. **Early Church Fathers** — What Greek-speaking fathers actually taught
+8. **Implications / "What This Changes"** — Practical application
+9. **The Bottom Line** — Thesis restated with evidence
+10. **Key Verses** — Organized cross-reference boxes by theme
+11. **Complete Word Study Summary Table** — Every word: characters, language, transliteration, Strong's, meaning
+12. **Go Study It Yourself** — Resources section ending with Acts 17:11. Include Blue Letter Bible, Bible Hub, STEP Bible, Bible Gateway, New Advent Church Fathers, CCEL, Bill Mounce, Aleph with Beth. Tone: "Don't take our word for it."
+13. **Continue the Journey** — Links to related studies (built = linked, unbuilt = 0.5 opacity "Coming Soon")
+
+### Major Controversies to Address — NEVER SKIP THESE
+
+**Every theological topic has a central controversy that splits denominations. You MUST address it with a dedicated section, or the study is incomplete and useless to readers.**
+
+| Topic | #1 Controversy Section Required |
+|-------|--------------------------------|
+| **Baptism** | "Is Baptism Required for Salvation?" — Mark 16:16, Acts 2:38, 1 Peter 3:21 vs faith alone passages |
+| **Repentance** | "What Exactly Must I Repent Of?" — "Repent of your sins" vs metanoia as mind change |
+| **Hell** | "Is Hell Eternal?" — Aionios as age-lasting vs forever, annihilation vs universalism vs ECT |
+| **Salvation** | "Faith Alone or Faith Plus Works?" — Ephesians 2:8-9 vs James 2:24, Catholic vs Protestant |
+| **Trinity** | "Is the Trinity Biblical?" — John 1:1, John 10:30, modalism vs trinitarianism vs Arianism |
+| **Predestination** | "Does God Choose Who Gets Saved?" — Calvinism vs Arminianism, Romans 9 vs whosoever will |
+| **Speaking in Tongues** | "Is Tongues Required for Salvation?" — Acts 2 vs 1 Cor 12-14, cessationist vs continuationist |
+| **Women in Ministry** | "Can Women Pastor/Preach?" — 1 Tim 2:12 vs Galatians 3:28, complementarian vs egalitarian |
+| **Sabbath** | "Must Christians Keep the Sabbath?" — Saturday vs Sunday, law vs grace |
+| **Tithing** | "Must Christians Tithe 10%?" — Malachi 3:10 vs New Testament giving |
+| **Divorce & Remarriage** | "When Is Divorce/Remarriage Allowed?" — Matthew 19 vs 1 Cor 7, adultery vs abandonment |
+| **End Times** | "Pre-trib, Mid-trib, or Post-trib Rapture?" — Dispensationalism vs covenant theology |
+| **Church Government** | "Pastor vs Elder vs Bishop?" — Episcopal vs Presbyterian vs congregational |
+| **Communion** | "Real Presence or Symbol?" — Transubstantiation vs consubstantiation vs memorial |
+| **Infant vs Adult Baptism** | "Who Should Be Baptized?" — Household baptisms vs believer's baptism |
+| **Once Saved Always Saved** | "Can You Lose Your Salvation?" — Perseverance vs apostasy passages |
+
+**HOW TO WRITE THE CONTROVERSY SECTION:**
+1. **State the positions clearly** — "Some churches teach X, others teach Y"
+2. **Examine key verses from both sides** — Greek/Hebrew analysis of disputed passages
+3. **Show which view Scripture supports** — Based on original languages and context
+4. **Address counterarguments** — "What about [opposing verse]?" with full explanation
+5. **Give the biblical answer** — Clear conclusion backed by linguistic evidence
+6. **Pastoral sensitivity** — "This doesn't mean your faith is invalid if you were taught differently"
+
+**NEVER write a theological study without addressing the central controversy. It's the whole reason people are confused and searching for answers.**
+
+**If your topic isn't in the table above:**
+1. **Google "[topic] controversy" or "[topic] debate"** — See what the major arguments are
+2. **Check denominational differences** — Catholic vs Protestant vs Orthodox positions
+3. **Look at opposing websites** — What are conservatives vs liberals fighting about?
+4. **Ask: "What would make someone leave their church over this topic?"** — That's your controversy
+5. **Seminary student question test** — What would seminary students debate about this in class?
+
+**The controversy section is often 20-30% of the total study. It's not an afterthought — it's the main event.**
 
 ### File Naming
 - Lowercase, hyphens: `the-study-title-here.html`
@@ -298,6 +342,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `how-to-actually-pray-and-be-intimate-with-god.html` — Proseuchē/deēsis/enteuxis/raphah/koinōnia, 20 words, 60+ refs, ~75 min
 - `how-to-actually-operate-from-your-spirit.html` — Pneumatikos/psychikos/brabeuō/phronēma/peripateo, 21 words, 65+ refs, ~75 min
 - `what-heaven-is-actually-like.html` — Shamayim/ouranos/paradeisos/kainos/sōma pneumatikon, 23 words, 75+ refs, ~80 min
+- `baptism-what-the-word-actually-means.html` — Baptizo/bapto/baptisma, 12 words, 45+ refs, ~85 min, includes "Is Baptism Required for Salvation?" controversy section
 
 ## Studies Remaining (source .md files exist in root)
 - Things Twisted In The Bible — Full Breakdown
