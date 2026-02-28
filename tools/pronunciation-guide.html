@@ -111,7 +111,7 @@
           <header class="study-header">
             <div class="study-category">Tools &bull; Languages &bull; Pronunciation</div>
             <h1 class="study-title">Hebrew &amp; Greek Pronunciation Guide</h1>
-            <p class="study-subtitle">Hear the Original Words of Scripture</p>
+            <p class="study-subtitle">All 14,197 Words from the Strong&rsquo;s Lexicon</p>
           </header>
           <hr class="divider">
 
@@ -120,8 +120,10 @@
 
             <input type="text" id="pron-search" placeholder="Search words..." autocomplete="off">
 
+            <div id="lang-tabs"></div>
+
             <div id="pronunciation-content">
-              <p style="color: var(--text-faded);">Loading pronunciation data...</p>
+              <p style="color: var(--text-faded);">Loading 14,197 pronunciation entries...</p>
             </div>
           </section>
         </article>
@@ -136,40 +138,107 @@
   </footer>
 
   <script>
+    let allData = null;
+    let currentLang = 'hebrew';
+    let currentPage = 0;
+    const PAGE_SIZE = 50;
+
     async function init() {
       try {
         const resp = await fetch('../data/biblical_pronunciation.json');
-        const data = await resp.json();
-        renderPronunciation(data);
+        allData = await resp.json();
+        
+        const hebrewCount = Object.keys(allData.hebrew || {}).length;
+        const greekCount = Object.keys(allData.greek || {}).length;
+        document.getElementById('pron-search').placeholder = 
+          `Search ${(hebrewCount + greekCount).toLocaleString()} words...`;
+        
+        renderTabs();
+        renderPage();
       } catch(e) {
         document.getElementById('pronunciation-content').innerHTML = 
-          '<p style="color:red;">Failed to load pronunciation data.</p>';
+          '<p style="color:red;">Failed to load pronunciation data: ' + e.message + '</p>';
       }
     }
 
-    function renderPronunciation(data) {
+    function renderTabs() {
+      const hebrewCount = Object.keys(allData.hebrew || {}).length;
+      const greekCount = Object.keys(allData.greek || {}).length;
+      
+      const tabsHtml = `
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+          <button class="lang-tab ${currentLang==='hebrew'?'active':''}" onclick="switchLang('hebrew')" 
+            style="padding:0.6rem 1.5rem;border:2px solid var(--gold);border-radius:6px;
+            background:${currentLang==='hebrew'?'var(--gold)':'transparent'};
+            color:${currentLang==='hebrew'?'white':'var(--leather)'};
+            font-family:var(--font-heading);cursor:pointer;font-size:0.9rem;">
+            Hebrew (${hebrewCount.toLocaleString()})
+          </button>
+          <button class="lang-tab ${currentLang==='greek'?'active':''}" onclick="switchLang('greek')"
+            style="padding:0.6rem 1.5rem;border:2px solid var(--gold);border-radius:6px;
+            background:${currentLang==='greek'?'var(--gold)':'transparent'};
+            color:${currentLang==='greek'?'white':'var(--leather)'};
+            font-family:var(--font-heading);cursor:pointer;font-size:0.9rem;">
+            Greek (${greekCount.toLocaleString()})
+          </button>
+        </div>`;
+      
+      document.getElementById('lang-tabs').innerHTML = tabsHtml;
+    }
+
+    function switchLang(lang) {
+      currentLang = lang;
+      currentPage = 0;
+      renderTabs();
+      renderPage();
+    }
+
+    function renderPage() {
       const container = document.getElementById('pronunciation-content');
-      let html = '';
-
-      // Data is { hebrew: { word: {ipa, romanization, ...} }, greek: {...} }
-      function renderSection(langData, title, lang) {
-        if (!langData || typeof langData !== 'object') return '';
-        const entries = Object.entries(langData);
-        if (entries.length === 0) return '';
-        
-        let sectionHtml = `<div class="lang-section"><h2>${title}</h2>`;
-        entries.forEach(([word, info]) => {
-          sectionHtml += renderWordCard(word, info, lang);
-        });
-        sectionHtml += '</div>';
-        return sectionHtml;
+      const langData = allData[currentLang] || {};
+      const entries = Object.entries(langData);
+      const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+      const start = currentPage * PAGE_SIZE;
+      const pageEntries = entries.slice(start, start + PAGE_SIZE);
+      
+      let html = `<p style="color:var(--text-faded);margin-bottom:1rem;">
+        Showing ${start + 1}–${Math.min(start + PAGE_SIZE, entries.length)} of ${entries.length.toLocaleString()} ${currentLang} words</p>`;
+      
+      pageEntries.forEach(([word, info]) => {
+        html += renderWordCard(word, info, currentLang);
+      });
+      
+      // Pagination
+      html += `<div style="display:flex;gap:0.5rem;justify-content:center;margin:2rem 0;flex-wrap:wrap;">`;
+      if (currentPage > 0) {
+        html += `<button onclick="goPage(${currentPage-1})" style="padding:0.5rem 1rem;border:1px solid var(--gold);border-radius:4px;background:transparent;cursor:pointer;color:var(--leather);">← Previous</button>`;
       }
+      
+      // Show page numbers
+      const maxButtons = 7;
+      let pageStart = Math.max(0, currentPage - 3);
+      let pageEnd = Math.min(totalPages, pageStart + maxButtons);
+      if (pageEnd - pageStart < maxButtons) pageStart = Math.max(0, pageEnd - maxButtons);
+      
+      for (let i = pageStart; i < pageEnd; i++) {
+        const isActive = i === currentPage;
+        html += `<button onclick="goPage(${i})" style="padding:0.5rem 0.8rem;border:1px solid var(--gold);border-radius:4px;
+          background:${isActive?'var(--gold)':'transparent'};color:${isActive?'white':'var(--leather)'};
+          cursor:pointer;font-weight:${isActive?'bold':'normal'};">${i + 1}</button>`;
+      }
+      
+      if (currentPage < totalPages - 1) {
+        html += `<button onclick="goPage(${currentPage+1})" style="padding:0.5rem 1rem;border:1px solid var(--gold);border-radius:4px;background:transparent;cursor:pointer;color:var(--leather);">Next →</button>`;
+      }
+      html += `</div>`;
+      
+      container.innerHTML = html;
+    }
 
-      html += renderSection(data.hebrew, 'Hebrew (עברית)', 'hebrew');
-      html += renderSection(data.greek, 'Greek (Ελληνικά)', 'greek');
-      html += renderSection(data.aramaic, 'Aramaic (ארמית)', 'aramaic');
-
-      container.innerHTML = html || '<p>No pronunciation data available.</p>';
+    function goPage(page) {
+      currentPage = page;
+      renderPage();
+      window.scrollTo({ top: document.getElementById('pronunciation-content').offsetTop - 100, behavior: 'smooth' });
     }
 
     function renderWordCard(word, info, lang) {
@@ -208,15 +277,50 @@
       }
     }
 
-    // Search
+    // Search with live filtering
     document.addEventListener('DOMContentLoaded', function() {
       init();
+      
+      let searchTimeout;
       document.getElementById('pron-search').addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        document.querySelectorAll('.word-card').forEach(card => {
-          const searchText = card.dataset.search || '';
-          card.style.display = searchText.includes(query) ? '' : 'none';
-        });
+        const query = this.value.toLowerCase().trim();
+        clearTimeout(searchTimeout);
+        
+        if (!query || query.length < 2) {
+          // Reset to normal pagination view
+          renderPage();
+          return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+          // Search across both languages
+          const container = document.getElementById('pronunciation-content');
+          let results = [];
+          
+          for (const lang of ['hebrew', 'greek']) {
+            const langData = allData[lang] || {};
+            for (const [word, info] of Object.entries(langData)) {
+              const searchText = (word + ' ' + (info.transliteration||'') + ' ' + (info.pronunciation||'') + ' ' + (info.definition||'') + ' ' + (info.strongs||'')).toLowerCase();
+              if (searchText.includes(query)) {
+                results.push({ word, info, lang });
+              }
+            }
+          }
+          
+          if (results.length === 0) {
+            container.innerHTML = `<p>No results for "${query}"</p>`;
+            return;
+          }
+          
+          let html = `<p style="color:var(--text-faded);margin-bottom:1rem;">Found ${results.length.toLocaleString()} results for "${query}"</p>`;
+          results.slice(0, 100).forEach(r => {
+            html += renderWordCard(r.word, r.info, r.lang);
+          });
+          if (results.length > 100) {
+            html += `<p style="color:var(--text-faded);text-align:center;">Showing first 100 of ${results.length} results. Refine your search.</p>`;
+          }
+          container.innerHTML = html;
+        }, 300);
       });
     });
   </script>
