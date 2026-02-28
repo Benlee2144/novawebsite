@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Psalms 28 Interlinear &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .interlinear-verse {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin: 16px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(197,150,12,0.12);
+    }
+    .interlinear-word {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 50px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .interlinear-word:hover {
+      background: rgba(197,150,12,0.1);
+    }
+    .word-original {
+      font-size: 1.2rem;
+      color: var(--leather-dark, #2c1810);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .word-original.hebrew {
+      font-family: 'SBL Hebrew', 'Ezra SIL', 'Times New Roman', serif;
+      direction: rtl;
+      font-size: 1.35rem;
+    }
+    .word-original.greek {
+      font-family: 'SBL Greek', 'Gentium Plus', 'Times New Roman', serif;
+    }
+    .word-translit {
+      font-size: 0.7rem;
+      font-style: italic;
+      color: var(--ink-light, #6b5b4a);
+      margin-top: 2px;
+    }
+    .word-english {
+      font-size: 0.8rem;
+      color: var(--ink, #3c2f2f);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .word-strongs {
+      font-size: 0.6rem;
+      color: var(--ultramarine, #1e3a6e);
+      margin-top: 2px;
+    }
+    .word-strongs a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+    }
+    .word-strongs a:hover {
+      text-decoration: underline;
+    }
+    .verse-num {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.75rem;
+      color: var(--vermillion, #c41e3a);
+      font-weight: 700;
+      min-width: 28px;
+      align-self: flex-start;
+      padding-top: 8px;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      margin: 16px 0;
+      border-top: 1px solid rgba(197,150,12,0.2);
+      border-bottom: 1px solid rgba(197,150,12,0.2);
+    }
+    .chapter-nav a {
+      color: var(--gold, #c59612);
+      text-decoration: none;
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.85rem;
+    }
+    .chapter-nav a:hover { text-decoration: underline; }
+    .book-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .book-nav a {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(197,150,12,0.08);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      border: 1px solid rgba(197,150,12,0.15);
+    }
+    .book-nav a:hover, .book-nav a.active {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .chapter-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+    }
+    .chapter-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(197,150,12,0.06);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(197,150,12,0.12);
+      border-radius: 3px;
+    }
+    .chapter-links a:hover {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .testament-section {
+      margin: 24px 0;
+    }
+    .testament-section h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      color: var(--vermillion, #c41e3a);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hebrew-verse {
+      direction: rtl;
+    }
+    .lexicon-entry {
+      padding: 20px 0;
+    }
+    .lex-word {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .lex-word.hebrew { direction: rtl; font-family: 'SBL Hebrew', 'Ezra SIL', serif; }
+    .lex-word.greek { font-family: 'SBL Greek', 'Gentium Plus', serif; }
+    .lex-meta {
+      color: var(--ink-light, #6b5b4a);
+      font-size: 0.9rem;
+      margin: 4px 0;
+    }
+    .lex-def {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    .lex-verses {
+      margin-top: 20px;
+    }
+    .lex-verses h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.9rem;
+      color: var(--vermillion, #c41e3a);
+      margin-bottom: 8px;
+    }
+    .lex-verse-list {
+      column-count: 3;
+      column-gap: 16px;
+      font-size: 0.8rem;
+    }
+    .lex-verse-list a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+      display: block;
+      padding: 2px 0;
+    }
+    .lex-verse-list a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .lex-verse-list { column-count: 2; }
+      .interlinear-word { min-width: 40px; padding: 3px 4px; }
+      .word-original { font-size: 1.05rem; }
+      .word-original.hebrew { font-size: 1.15rem; }
+    }
+    @media (max-width: 480px) {
+      .lex-verse-list { column-count: 1; }
+    }
+    
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Unveiled Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../interlinear/" class="active">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+        <li><a href="../reference/">Reference</a></li>
+        <li><a href="../search.html">Search</a></li>
+      </ul>
+    </div>
+  </header>
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div>
+      <div class="border-right"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+  <main class="page-container">
+
+    <article class="study-article">
+      <header class="study-header">
+        <div class="study-category">Interlinear &bull; Old Testament &bull; Hebrew</div>
+        <h1 class="study-title">Psalms 28</h1>
+        <p class="study-subtitle">Word-by-Word Hebrew-English Interlinear</p>
+      </header>
+      
+      <div class="chapter-nav">
+        <span><a href="psa-27.html">&larr; Chapter 27</a></span>
+        <a href="index.html">Psalms</a>
+        <span><a href="psa-29.html">Chapter 29 &rarr;</a></span>
+      </div>
+      
+      <div class="chapter-links"><a href="psa-1.html">1</a><a href="psa-2.html">2</a><a href="psa-3.html">3</a><a href="psa-4.html">4</a><a href="psa-5.html">5</a><a href="psa-6.html">6</a><a href="psa-7.html">7</a><a href="psa-8.html">8</a><a href="psa-9.html">9</a><a href="psa-10.html">10</a><a href="psa-11.html">11</a><a href="psa-12.html">12</a><a href="psa-13.html">13</a><a href="psa-14.html">14</a><a href="psa-15.html">15</a><a href="psa-16.html">16</a><a href="psa-17.html">17</a><a href="psa-18.html">18</a><a href="psa-19.html">19</a><a href="psa-20.html">20</a><a href="psa-21.html">21</a><a href="psa-22.html">22</a><a href="psa-23.html">23</a><a href="psa-24.html">24</a><a href="psa-25.html">25</a><a href="psa-26.html">26</a><a href="psa-27.html">27</a><a href="psa-28.html" class="active">28</a><a href="psa-29.html">29</a><a href="psa-30.html">30</a><a href="psa-31.html">31</a><a href="psa-32.html">32</a><a href="psa-33.html">33</a><a href="psa-34.html">34</a><a href="psa-35.html">35</a><a href="psa-36.html">36</a><a href="psa-37.html">37</a><a href="psa-38.html">38</a><a href="psa-39.html">39</a><a href="psa-40.html">40</a><a href="psa-41.html">41</a><a href="psa-42.html">42</a><a href="psa-43.html">43</a><a href="psa-44.html">44</a><a href="psa-45.html">45</a><a href="psa-46.html">46</a><a href="psa-47.html">47</a><a href="psa-48.html">48</a><a href="psa-49.html">49</a><a href="psa-50.html">50</a><a href="psa-51.html">51</a><a href="psa-52.html">52</a><a href="psa-53.html">53</a><a href="psa-54.html">54</a><a href="psa-55.html">55</a><a href="psa-56.html">56</a><a href="psa-57.html">57</a><a href="psa-58.html">58</a><a href="psa-59.html">59</a><a href="psa-60.html">60</a><a href="psa-61.html">61</a><a href="psa-62.html">62</a><a href="psa-63.html">63</a><a href="psa-64.html">64</a><a href="psa-65.html">65</a><a href="psa-66.html">66</a><a href="psa-67.html">67</a><a href="psa-68.html">68</a><a href="psa-69.html">69</a><a href="psa-70.html">70</a><a href="psa-71.html">71</a><a href="psa-72.html">72</a><a href="psa-73.html">73</a><a href="psa-74.html">74</a><a href="psa-75.html">75</a><a href="psa-76.html">76</a><a href="psa-77.html">77</a><a href="psa-78.html">78</a><a href="psa-79.html">79</a><a href="psa-80.html">80</a><a href="psa-81.html">81</a><a href="psa-82.html">82</a><a href="psa-83.html">83</a><a href="psa-84.html">84</a><a href="psa-85.html">85</a><a href="psa-86.html">86</a><a href="psa-87.html">87</a><a href="psa-88.html">88</a><a href="psa-89.html">89</a><a href="psa-90.html">90</a><a href="psa-91.html">91</a><a href="psa-92.html">92</a><a href="psa-93.html">93</a><a href="psa-94.html">94</a><a href="psa-95.html">95</a><a href="psa-96.html">96</a><a href="psa-97.html">97</a><a href="psa-98.html">98</a><a href="psa-99.html">99</a><a href="psa-100.html">100</a><a href="psa-101.html">101</a><a href="psa-102.html">102</a><a href="psa-103.html">103</a><a href="psa-104.html">104</a><a href="psa-105.html">105</a><a href="psa-106.html">106</a><a href="psa-107.html">107</a><a href="psa-108.html">108</a><a href="psa-109.html">109</a><a href="psa-110.html">110</a><a href="psa-111.html">111</a><a href="psa-112.html">112</a><a href="psa-113.html">113</a><a href="psa-114.html">114</a><a href="psa-115.html">115</a><a href="psa-116.html">116</a><a href="psa-117.html">117</a><a href="psa-118.html">118</a><a href="psa-119.html">119</a><a href="psa-120.html">120</a><a href="psa-121.html">121</a><a href="psa-122.html">122</a><a href="psa-123.html">123</a><a href="psa-124.html">124</a><a href="psa-125.html">125</a><a href="psa-126.html">126</a><a href="psa-127.html">127</a><a href="psa-128.html">128</a><a href="psa-129.html">129</a><a href="psa-130.html">130</a><a href="psa-131.html">131</a><a href="psa-132.html">132</a><a href="psa-133.html">133</a><a href="psa-134.html">134</a><a href="psa-135.html">135</a><a href="psa-136.html">136</a><a href="psa-137.html">137</a><a href="psa-138.html">138</a><a href="psa-139.html">139</a><a href="psa-140.html">140</a><a href="psa-141.html">141</a><a href="psa-142.html">142</a><a href="psa-143.html">143</a><a href="psa-144.html">144</a><a href="psa-145.html">145</a><a href="psa-146.html">146</a><a href="psa-147.html">147</a><a href="psa-148.html">148</a><a href="psa-149.html">149</a><a href="psa-150.html">150</a></div>
+      
+      <hr class="divider">
+      
+      <section class="study-body">
+        
+    <div class="kjv-text" style="margin:1.5rem 0;padding:1.2rem 1.5rem;background:rgba(197,150,12,0.04);border:1px solid rgba(197,150,12,0.12);border-radius:8px;">
+      <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--gold);margin:0 0 0.8rem;text-transform:uppercase;letter-spacing:0.05em;">KJV Text &mdash; Psalms 28</h3>
+      <div style="font-family:var(--font-reading);line-height:1.9;font-size:1rem;color:var(--ink);"><span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">1</span>Unto thee will I cry, O LORD my rock; be not silent to me: lest, if thou be silent to me, I become like them that go down into the pit. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">2</span>Hear the voice of my supplications, when I cry unto thee, when I lift up my hands toward thy holy oracle. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">3</span>Draw me not away with the wicked, and with the workers of iniquity, which speak peace to their neighbours, but mischief is in their hearts. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">4</span>Give them according to their deeds, and according to the wickedness of their endeavours: give them after the work of their hands; render to them their desert. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">5</span>Because they regard not the works of the LORD, nor the operation of his hands, he shall destroy them, and not build them up. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">6</span>Blessed be the LORD, because he hath heard the voice of my supplications. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">7</span>The LORD is my strength and my shield; my heart trusted in him, and I am helped: therefore my heart greatly rejoiceth; and with my song will I praise him. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">8</span>The LORD is their strength, and he is the saving strength of his anointed. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">9</span>Save thy people, and bless thine inheritance: feed them also, and lift them up for ever. </div></div>
+<div class="interlinear-verse hebrew-verse"><span class="verse-num">0</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לְ/דָוִ֡ד</span>
+  <span class="word-translit">le/daVid</span>
+  <span class="word-english">of/ David</span>
+  <span class="word-strongs">H9005</span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">1</span><span class="interlinear-word" data-strongs="H413">
+  <span class="word-original hebrew">אֵ֘לֶ֤י/ךָ</span>
+  <span class="word-translit">&#x27;eLei/kha</span>
+  <span class="word-english">to/ you</span>
+  <span class="word-strongs"><a href="../lexicon/h413.html">H413</a></span>
+</span><span class="interlinear-word" data-strongs="H3068">
+  <span class="word-original hebrew">יְהוָ֨ה\׀</span>
+  <span class="word-translit">Yahweh</span>
+  <span class="word-english">O Yahweh</span>
+  <span class="word-strongs"><a href="../lexicon/h3068.html">H3068</a></span>
+</span><span class="interlinear-word" data-strongs="H7121">
+  <span class="word-original hebrew">אֶקְרָ֗א</span>
+  <span class="word-translit">&#x27;ekRa&#x27;</span>
+  <span class="word-english">I call out</span>
+  <span class="word-strongs"><a href="../lexicon/h7121.html">H7121</a></span>
+</span><span class="interlinear-word" data-strongs="H6697">
+  <span class="word-original hebrew">צוּרִ/י֮</span>
+  <span class="word-translit">tzuR/i</span>
+  <span class="word-english">O rock/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h6697.html">H6697</a></span>
+</span><span class="interlinear-word" data-strongs="H408">
+  <span class="word-original hebrew">אַֽל\־</span>
+  <span class="word-translit">&#x27;al-</span>
+  <span class="word-english">may not</span>
+  <span class="word-strongs"><a href="../lexicon/h408.html">H408</a></span>
+</span><span class="interlinear-word" data-strongs="H2790">
+  <span class="word-original hebrew">תֶּחֱרַ֪שׁ</span>
+  <span class="word-translit">techeRash</span>
+  <span class="word-english">you be deaf</span>
+  <span class="word-strongs"><a href="../lexicon/h2790.html">H2790</a></span>
+</span><span class="interlinear-word" data-strongs="H4480">
+  <span class="word-original hebrew">מִ֫מֶּ֥/נִּי</span>
+  <span class="word-translit">miMe/ni</span>
+  <span class="word-english">from/ me</span>
+  <span class="word-strongs"><a href="../lexicon/h4480.html">H4480</a></span>
+</span><span class="interlinear-word" data-strongs="H6435">
+  <span class="word-original hebrew">פֶּן\־</span>
+  <span class="word-translit">pen-</span>
+  <span class="word-english">lest</span>
+  <span class="word-strongs"><a href="../lexicon/h6435.html">H6435</a></span>
+</span><span class="interlinear-word" data-strongs="H2814">
+  <span class="word-original hebrew">תֶּֽחֱשֶׁ֥ה</span>
+  <span class="word-translit">techeSheh</span>
+  <span class="word-english">you should be silent</span>
+  <span class="word-strongs"><a href="../lexicon/h2814.html">H2814</a></span>
+</span><span class="interlinear-word" data-strongs="H4480">
+  <span class="word-original hebrew">מִמֶּ֑/נִּי</span>
+  <span class="word-translit">miMe/ni</span>
+  <span class="word-english">from/ me</span>
+  <span class="word-strongs"><a href="../lexicon/h4480.html">H4480</a></span>
+</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וְ֝/נִמְשַׁ֗לְתִּי</span>
+  <span class="word-translit">ve/nimShalti</span>
+  <span class="word-english">and/ I will be equal</span>
+  <span class="word-strongs">H9001</span>
+</span><span class="interlinear-word" data-strongs="H5973">
+  <span class="word-original hebrew">עִם\־</span>
+  <span class="word-translit">&#x27;im-</span>
+  <span class="word-english">with</span>
+  <span class="word-strongs"><a href="../lexicon/h5973.html">H5973</a></span>
+</span><span class="interlinear-word" data-strongs="H3381">
+  <span class="word-original hebrew">י֥וֹרְדֵי</span>
+  <span class="word-translit">Yordei</span>
+  <span class="word-english">those who go down</span>
+  <span class="word-strongs"><a href="../lexicon/h3381.html">H3381</a></span>
+</span><span class="interlinear-word" data-strongs="H953">
+  <span class="word-original hebrew">בֽוֹר\׃</span>
+  <span class="word-translit">Vor</span>
+  <span class="word-english">of the pit</span>
+  <span class="word-strongs"><a href="../lexicon/h953.html">H953</a></span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> See how you translated this phrase in 18:2 where it is used with the same meaning.
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> This is an imperative, but it communicates a polite request rather than a command. If the imperative does not communicate a polite request for your readers, then use a form in your language that communicates a polite request. It may be helpful to add an expression such as “please” to make this clear. Alternate translation: [please do not be deaf to me]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> David is using **do not be deaf to me** as a common expression of his culture to mean “do not ignore me” or “do not refuse to answer me” (and here it specifically refers to Yahweh answering his prayers for help). If this phrase does not have that meaning for your readers, you could use a comparable expression from your language that does have that meaning, or you could state the meaning plainly. A
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">2</span><span class="interlinear-word" data-strongs="H8085">
+  <span class="word-original hebrew">שְׁמַ֤ע</span>
+  <span class="word-translit">sheMa&#x27;</span>
+  <span class="word-english">hear</span>
+  <span class="word-strongs"><a href="../lexicon/h8085.html">H8085</a></span>
+</span><span class="interlinear-word" data-strongs="H6963">
+  <span class="word-original hebrew">ק֣וֹל</span>
+  <span class="word-translit">Kol</span>
+  <span class="word-english">the sound of</span>
+  <span class="word-strongs"><a href="../lexicon/h6963.html">H6963</a></span>
+</span><span class="interlinear-word" data-strongs="H8469">
+  <span class="word-original hebrew">תַּ֭חֲנוּנַ/י</span>
+  <span class="word-translit">Tachanuna/i</span>
+  <span class="word-english">supplications/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h8469.html">H8469</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בְּ/שַׁוְּעִ֣/י</span>
+  <span class="word-translit">be/shave&#x27;/I</span>
+  <span class="word-english">when/ cry for help/ I</span>
+  <span class="word-strongs">H9003</span>
+</span><span class="interlinear-word" data-strongs="H413">
+  <span class="word-original hebrew">אֵלֶ֑י/ךָ</span>
+  <span class="word-translit">&#x27;eLei/kha</span>
+  <span class="word-english">to/ you</span>
+  <span class="word-strongs"><a href="../lexicon/h413.html">H413</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בְּ/נָשְׂאִ֥/י</span>
+  <span class="word-translit">be/nase&#x27;/I</span>
+  <span class="word-english">when/ lift up/ I</span>
+  <span class="word-strongs">H9003</span>
+</span><span class="interlinear-word" data-strongs="H3027">
+  <span class="word-original hebrew">יָ֝דַ֗/י</span>
+  <span class="word-translit">yaDa/i</span>
+  <span class="word-english">hands/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h3027.html">H3027</a></span>
+</span><span class="interlinear-word" data-strongs="H413">
+  <span class="word-original hebrew">אֶל\־</span>
+  <span class="word-translit">&#x27;el-</span>
+  <span class="word-english">to</span>
+  <span class="word-strongs"><a href="../lexicon/h413.html">H413</a></span>
+</span><span class="interlinear-word" data-strongs="H1687">
+  <span class="word-original hebrew">דְּבִ֥יר</span>
+  <span class="word-translit">deVir</span>
+  <span class="word-english">the innermost room of</span>
+  <span class="word-strongs"><a href="../lexicon/h1687.html">H1687</a></span>
+</span><span class="interlinear-word" data-strongs="H6944">
+  <span class="word-original hebrew">קָדְשֶֽׁ/ךָ\׃</span>
+  <span class="word-translit">kodShe/cha</span>
+  <span class="word-english">holiness/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h6944.html">H6944</a></span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> David is using an imperative form, but **Hear** communicates a polite request rather than a command. If the imperative does not communicate a polite request for your readers, then use a form in your language that communicates a polite request. It may be helpful to add an expression such as “please” to make this clear. Alternate translation: [Please hear]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> By **Hear**, David means pay attention to and respond favorably to his request. You could indicate this explicitly in your translation if that would be helpful to your readers. Alternate translation: [Pay attention to]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here, **voice** represents what David is saying by using his voice. If it would be helpful in your language, you could use an equivalent expression or state the meaning plainly. Alternate translation: [Hear the words of my pleas]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">3</span><span class="interlinear-word" data-strongs="H408">
+  <span class="word-original hebrew">אַל\־</span>
+  <span class="word-translit">&#x27;al-</span>
+  <span class="word-english">may not</span>
+  <span class="word-strongs"><a href="../lexicon/h408.html">H408</a></span>
+</span><span class="interlinear-word" data-strongs="H4900">
+  <span class="word-original hebrew">תִּמְשְׁכֵ֣/נִי</span>
+  <span class="word-translit">timsheKhe/ni</span>
+  <span class="word-english">you drag away/ me</span>
+  <span class="word-strongs"><a href="../lexicon/h4900.html">H4900</a></span>
+</span><span class="interlinear-word" data-strongs="H5973">
+  <span class="word-original hebrew">עִם\־</span>
+  <span class="word-translit">&#x27;im-</span>
+  <span class="word-english">with</span>
+  <span class="word-strongs"><a href="../lexicon/h5973.html">H5973</a></span>
+</span><span class="interlinear-word" data-strongs="H7563">
+  <span class="word-original hebrew">רְשָׁעִים֮</span>
+  <span class="word-translit">resha&#x27;Im</span>
+  <span class="word-english">wicked people</span>
+  <span class="word-strongs"><a href="../lexicon/h7563.html">H7563</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/עִם\־</span>
+  <span class="word-translit">ve/&#x27;im-</span>
+  <span class="word-english">and/ with</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H6466">
+  <span class="word-original hebrew">פֹּ֪עֲלֵ֫י</span>
+  <span class="word-translit">po&#x27;aLei</span>
+  <span class="word-english">those who do</span>
+  <span class="word-strongs"><a href="../lexicon/h6466.html">H6466</a></span>
+</span><span class="interlinear-word" data-strongs="H205">
+  <span class="word-original hebrew">אָ֥וֶן</span>
+  <span class="word-translit">&#x27;Aven</span>
+  <span class="word-english">of wickedness</span>
+  <span class="word-strongs"><a href="../lexicon/h205.html">H205</a></span>
+</span><span class="interlinear-word" data-strongs="H1696">
+  <span class="word-original hebrew">דֹּבְרֵ֣י</span>
+  <span class="word-translit">doeRei</span>
+  <span class="word-english">who speak</span>
+  <span class="word-strongs"><a href="../lexicon/h1696.html">H1696</a></span>
+</span><span class="interlinear-word" data-strongs="H7965">
+  <span class="word-original hebrew">שָׁ֭לוֹם</span>
+  <span class="word-translit">Shalom</span>
+  <span class="word-english">of peace</span>
+  <span class="word-strongs"><a href="../lexicon/h7965.html">H7965</a></span>
+</span><span class="interlinear-word" data-strongs="H5973">
+  <span class="word-original hebrew">עִם\־</span>
+  <span class="word-translit">&#x27;im-</span>
+  <span class="word-english">with</span>
+  <span class="word-strongs"><a href="../lexicon/h5973.html">H5973</a></span>
+</span><span class="interlinear-word" data-strongs="H7453">
+  <span class="word-original hebrew">רֵֽעֵי/הֶ֑ם</span>
+  <span class="word-translit">re&#x27;ei/Hem</span>
+  <span class="word-english">neighbors/ their</span>
+  <span class="word-strongs"><a href="../lexicon/h7453.html">H7453</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ֝/רָעָ֗ה</span>
+  <span class="word-translit">ve/ra&#x27;Ah</span>
+  <span class="word-english">and/ evil</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בִּ/לְבָבָֽ/ם\׃</span>
+  <span class="word-translit">bi/lvaVa/m</span>
+  <span class="word-english">is in/ heart/ their</span>
+  <span class="word-strongs">H9003</span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here **Do not drag me away** is an imperative, but it communicates a polite request rather than a command. If the imperative does not communicate a polite request for your readers, then use a form in your language that communicates a polite request. It may be helpful to add an expression such as “please” to make this clear. Alternate translation: [Please do not drag me away with the wicked]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here David is speaking of God taking his life as if God were someone who might **drag** him away by force in order to kill him or judge and punish him. See how you translated the similar phrase “Do not gather my soul with the sinful” in 26:9. If it would be helpful in your language, you could state the meaning plainly. Alternate translation: [Do not bring me away and punish me with the wicked] or 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> These two phrases mean basically the same thing. The second emphasizes the meaning of the first by repeating the same idea with different words. Hebrew poetry was based on this kind of repetition, and you may want to show this to your readers by including both phrases in your translation. If it is helpful, you could connect the phrases in a way that shows that the second phrase is repeating the fi
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">4</span><span class="interlinear-word" data-strongs="H5414">
+  <span class="word-original hebrew">תֶּן\־</span>
+  <span class="word-translit">ten-</span>
+  <span class="word-english">requite</span>
+  <span class="word-strongs"><a href="../lexicon/h5414.html">H5414</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לָ/הֶ֣ם</span>
+  <span class="word-translit">la/Hem</span>
+  <span class="word-english">to/ them</span>
+  <span class="word-strongs">H9005</span>
+</span><span class="interlinear-word" data-strongs="H9004">
+  <span class="word-original hebrew">כְּ/פָעֳלָ/ם֮</span>
+  <span class="word-translit">ke/fo&#x27;oLa/m</span>
+  <span class="word-english">according to/ work/ their</span>
+  <span class="word-strongs">H9004</span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/כְ/רֹ֪עַ</span>
+  <span class="word-translit">u/khe/Roa&#x27;</span>
+  <span class="word-english">and/ according to/ the wickedness of</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H4611">
+  <span class="word-original hebrew">מַֽעַלְלֵ֫י/הֶ֥ם</span>
+  <span class="word-translit">ma&#x27;aLei/Hem</span>
+  <span class="word-english">deeds/ their</span>
+  <span class="word-strongs"><a href="../lexicon/h4611.html">H4611</a></span>
+</span><span class="interlinear-word" data-strongs="H9004">
+  <span class="word-original hebrew">כְּ/מַעֲשֵׂ֣ה</span>
+  <span class="word-translit">ke/ma&#x27;aSeh</span>
+  <span class="word-english">according to/ the work of</span>
+  <span class="word-strongs">H9004</span>
+</span><span class="interlinear-word" data-strongs="H3027">
+  <span class="word-original hebrew">יְ֭דֵי/הֶם</span>
+  <span class="word-translit">Yedei/hem</span>
+  <span class="word-english">hands/ their</span>
+  <span class="word-strongs"><a href="../lexicon/h3027.html">H3027</a></span>
+</span><span class="interlinear-word" data-strongs="H5414">
+  <span class="word-original hebrew">תֵּ֣ן</span>
+  <span class="word-translit">ten</span>
+  <span class="word-english">requite</span>
+  <span class="word-strongs"><a href="../lexicon/h5414.html">H5414</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לָ/הֶ֑ם</span>
+  <span class="word-translit">la/Hem</span>
+  <span class="word-english">to/ them</span>
+  <span class="word-strongs">H9005</span>
+</span><span class="interlinear-word" data-strongs="H7725">
+  <span class="word-original hebrew">הָשֵׁ֖ב</span>
+  <span class="word-translit">haShev</span>
+  <span class="word-english">repay</span>
+  <span class="word-strongs"><a href="../lexicon/h7725.html">H7725</a></span>
+</span><span class="interlinear-word" data-strongs="H1576">
+  <span class="word-original hebrew">גְּמוּלָ֣/ם</span>
+  <span class="word-translit">gemuLa/m</span>
+  <span class="word-english">recompense/ their</span>
+  <span class="word-strongs"><a href="../lexicon/h1576.html">H1576</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לָ/הֶֽם\׃</span>
+  <span class="word-translit">la/Hem</span>
+  <span class="word-english">to/ them</span>
+  <span class="word-strongs">H9005</span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> David is using the imperative form **Give** to make a polite request to God rather than to give a command. If the imperative form would not communicate a polite request in your language, you could use a different form that would communicate a polite request. [Please give them … please give to them … please return to them] or [I ask that you give them … I ask that you give to them … I ask that you 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> These two phrases mean basically the same thing. The second emphasizes the meaning of the first by repeating the same idea with different words. Hebrew poetry was based on this kind of repetition, and you may want to show this to your readers by including both phrases in your translation. If it is helpful, you could connect the phrases in a way that shows that the second phrase is repeating the fi
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> By **their work**, David means the evil deeds and wicked actions of his enemies that he mentioned in the previous verse. You could indicate this explicitly in your translation if that would be helpful to your readers. Alternate translation: [according to their evil actions] or [according to what their wicked deeds deserve]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">5</span><span class="interlinear-word" data-strongs="H3588">
+  <span class="word-original hebrew">כִּ֤י</span>
+  <span class="word-translit">ki</span>
+  <span class="word-english">for</span>
+  <span class="word-strongs"><a href="../lexicon/h3588.html">H3588</a></span>
+</span><span class="interlinear-word" data-strongs="H3808">
+  <span class="word-original hebrew">לֹ֤א</span>
+  <span class="word-translit">lo&#x27;</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h3808.html">H3808</a></span>
+</span><span class="interlinear-word" data-strongs="H995">
+  <span class="word-original hebrew">יָבִ֡ינוּ</span>
+  <span class="word-translit">yaVinu</span>
+  <span class="word-english">they consider</span>
+  <span class="word-strongs"><a href="../lexicon/h995.html">H995</a></span>
+</span><span class="interlinear-word" data-strongs="H413">
+  <span class="word-original hebrew">אֶל\־</span>
+  <span class="word-translit">&#x27;el-</span>
+  <span class="word-english">to</span>
+  <span class="word-strongs"><a href="../lexicon/h413.html">H413</a></span>
+</span><span class="interlinear-word" data-strongs="H6468">
+  <span class="word-original hebrew">פְּעֻלֹּ֣ת</span>
+  <span class="word-translit">pe&#x27;uLot</span>
+  <span class="word-english">the deeds of</span>
+  <span class="word-strongs"><a href="../lexicon/h6468.html">H6468</a></span>
+</span><span class="interlinear-word" data-strongs="H3068">
+  <span class="word-original hebrew">יְ֭הוָה</span>
+  <span class="word-translit">Yahweh</span>
+  <span class="word-english">Yahweh</span>
+  <span class="word-strongs"><a href="../lexicon/h3068.html">H3068</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/אֶל\־</span>
+  <span class="word-translit">ve/&#x27;el-</span>
+  <span class="word-english">and/ to</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H4639">
+  <span class="word-original hebrew">מַעֲשֵׂ֣ה</span>
+  <span class="word-translit">ma&#x27;aSeh</span>
+  <span class="word-english">the work of</span>
+  <span class="word-strongs"><a href="../lexicon/h4639.html">H4639</a></span>
+</span><span class="interlinear-word" data-strongs="H3027">
+  <span class="word-original hebrew">יָדָ֑י/ו</span>
+  <span class="word-translit">yaDa/v</span>
+  <span class="word-english">hands/ his</span>
+  <span class="word-strongs"><a href="../lexicon/h3027.html">H3027</a></span>
+</span><span class="interlinear-word" data-strongs="H2040">
+  <span class="word-original hebrew">יֶ֝הֶרְסֵ֗/ם</span>
+  <span class="word-translit">yeherSe/m</span>
+  <span class="word-english">he will tear down/ them</span>
+  <span class="word-strongs"><a href="../lexicon/h2040.html">H2040</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/לֹ֣א</span>
+  <span class="word-translit">ve/Lo&#x27;</span>
+  <span class="word-english">and/ not</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H1129">
+  <span class="word-original hebrew">יִבְנֵֽ/ם\׃</span>
+  <span class="word-translit">yivNe/m</span>
+  <span class="word-english">he will rebuild/ them</span>
+  <span class="word-strongs"><a href="../lexicon/h1129.html">H1129</a></span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> The implication is that the wicked do not pay attention to or consider what God has done. You could include this information if that would be helpful to your readers. Alternate translation: [they do not pay attention to the works of Yahweh] or [they do not consider the works of Yahweh]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> These two phrases **the works of Yahweh** and **the action of his hands** mean basically the same thing. The second emphasizes the meaning of the first by repeating the same idea with different words. Hebrew poetry was based on this kind of repetition, and you may want to show this to your readers by including both phrases in your translation. If it is helpful, you could connect the phrases in a w
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> David is speaking of God’s judgment as if it is a building **he will tear** down and **not build** up. If it would be helpful in your language, you could state the meaning plainly. Alternate translation: [he will destroy them and not restore them]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">6</span><span class="interlinear-word" data-strongs="H1288">
+  <span class="word-original hebrew">בָּר֥וּךְ</span>
+  <span class="word-translit">baRukh</span>
+  <span class="word-english">be blessed</span>
+  <span class="word-strongs"><a href="../lexicon/h1288.html">H1288</a></span>
+</span><span class="interlinear-word" data-strongs="H3068">
+  <span class="word-original hebrew">יְהוָ֑ה</span>
+  <span class="word-translit">Yahweh</span>
+  <span class="word-english">Yahweh</span>
+  <span class="word-strongs"><a href="../lexicon/h3068.html">H3068</a></span>
+</span><span class="interlinear-word" data-strongs="H3588">
+  <span class="word-original hebrew">כִּי\־</span>
+  <span class="word-translit">kiSha-</span>
+  <span class="word-english">for</span>
+  <span class="word-strongs"><a href="../lexicon/h3588.html">H3588</a></span>
+</span><span class="interlinear-word" data-strongs="H8085">
+  <span class="word-original hebrew">שָׁ֝מַע</span>
+  <span class="word-translit">Shama&#x27;</span>
+  <span class="word-english">he has heard</span>
+  <span class="word-strongs"><a href="../lexicon/h8085.html">H8085</a></span>
+</span><span class="interlinear-word" data-strongs="H6963">
+  <span class="word-original hebrew">ק֣וֹל</span>
+  <span class="word-translit">Kol</span>
+  <span class="word-english">the sound of</span>
+  <span class="word-strongs"><a href="../lexicon/h6963.html">H6963</a></span>
+</span><span class="interlinear-word" data-strongs="H8469">
+  <span class="word-original hebrew">תַּחֲנוּנָֽ/י\׃</span>
+  <span class="word-translit">tachanuNa/i</span>
+  <span class="word-english">supplications/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h8469.html">H8469</a></span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> The expression **Blessed be Yahweh** is a passive verbal form. If it would be unnatural to use that form, you could express the idea in active form or in another way that is natural in your language. Alternate translation: [I bless Yahweh] or [Let me bless Yahweh]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> If it would be more natural in your language, you could reverse the order of these phrases, since the second phrase gives the reason for the result that the first phrase describes. Alternate translation: [Because he has heard the voice of my pleas, blessed be Yahweh]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here, **voice** represents the words that David spoke. If it would be helpful in your language, you could use an equivalent expression or state the meaning plainly. Alternate translation: [he has heard the words of my pleas]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">7</span><span class="interlinear-word" data-strongs="H3068">
+  <span class="word-original hebrew">יְהוָ֤ה\׀</span>
+  <span class="word-translit">Yahweh</span>
+  <span class="word-english">Yahweh</span>
+  <span class="word-strongs"><a href="../lexicon/h3068.html">H3068</a></span>
+</span><span class="interlinear-word" data-strongs="H5797">
+  <span class="word-original hebrew">עֻזִּ֥/י</span>
+  <span class="word-translit">&#x27;uZ/i</span>
+  <span class="word-english">is strength/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h5797.html">H5797</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/מָגִנִּ/י֮</span>
+  <span class="word-translit">u/magiN/i</span>
+  <span class="word-english">and/ shield/ my</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בּ֤/וֹ</span>
+  <span class="word-translit">b/o</span>
+  <span class="word-english">in/ him</span>
+  <span class="word-strongs">H9003</span>
+</span><span class="interlinear-word" data-strongs="H982">
+  <span class="word-original hebrew">בָטַ֥ח</span>
+  <span class="word-translit">vaTach</span>
+  <span class="word-english">it has trusted</span>
+  <span class="word-strongs"><a href="../lexicon/h982.html">H982</a></span>
+</span><span class="interlinear-word" data-strongs="H3820">
+  <span class="word-original hebrew">לִבִּ֗/י</span>
+  <span class="word-translit">liB/i</span>
+  <span class="word-english">heart/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h3820.html">H3820</a></span>
+</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וְֽ/נֶ֫עֱזָ֥רְתִּי</span>
+  <span class="word-translit">ve/Ne&#x27;eZareti</span>
+  <span class="word-english">and/ I was helped</span>
+  <span class="word-strongs">H9001</span>
+</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וַ/יַּעֲלֹ֥ז</span>
+  <span class="word-translit">va/iya&#x27;aLoz</span>
+  <span class="word-english">and/ it exulted</span>
+  <span class="word-strongs">H9001</span>
+</span><span class="interlinear-word" data-strongs="H3820">
+  <span class="word-original hebrew">לִבִּ֑/י</span>
+  <span class="word-translit">liB/i</span>
+  <span class="word-english">heart/ my</span>
+  <span class="word-strongs"><a href="../lexicon/h3820.html">H3820</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּֽ/מִ/שִּׁירִ֥/י</span>
+  <span class="word-translit">u/mi/shiR/i</span>
+  <span class="word-english">and/ from/ song/ my</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H3034">
+  <span class="word-original hebrew">אֲהוֹדֶֽ/נּוּ\׃</span>
+  <span class="word-translit">&#x27;ahoDe/nu</span>
+  <span class="word-english">I will give thanks to/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h3034.html">H3034</a></span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> See how translated the similar phrase “Yahweh, my strength” in 18:1.
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> See how you translated the phrase “my shield” in 18:2 where it is used with the same meaning.
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here David is speaking of his **heart** as if it were a person who **trusts** and **exults**. The heart represents the center of his emotions and will. If it would be helpful in your language, you could use a comparable expression or state the meaning plainly. Alternate translation: [I trust in him with all my being … therefore I greatly rejoice]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">8</span><span class="interlinear-word" data-strongs="H3068">
+  <span class="word-original hebrew">יְהוָ֥ה</span>
+  <span class="word-translit">Yahweh</span>
+  <span class="word-english">Yahweh</span>
+  <span class="word-strongs"><a href="../lexicon/h3068.html">H3068</a></span>
+</span><span class="interlinear-word" data-strongs="H5797">
+  <span class="word-original hebrew">עֹֽז\־</span>
+  <span class="word-translit">&#x27;oz-</span>
+  <span class="word-english">is strength</span>
+  <span class="word-strongs"><a href="../lexicon/h5797.html">H5797</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לָ֑/מוֹ</span>
+  <span class="word-translit">la/mo</span>
+  <span class="word-english">of/ them</span>
+  <span class="word-strongs">H9005</span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/מָ֘ע֤וֹז</span>
+  <span class="word-translit">u/Ma&#x27;oz</span>
+  <span class="word-english">and/ is the refuge of</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H3444">
+  <span class="word-original hebrew">יְשׁוּע֖וֹת</span>
+  <span class="word-translit">yeshu&#x27;ot</span>
+  <span class="word-english">the salvations of</span>
+  <span class="word-strongs"><a href="../lexicon/h3444.html">H3444</a></span>
+</span><span class="interlinear-word" data-strongs="H4899">
+  <span class="word-original hebrew">מְשִׁיח֣/וֹ</span>
+  <span class="word-translit">meshiCh/o</span>
+  <span class="word-english">anointed/ his</span>
+  <span class="word-strongs"><a href="../lexicon/h4899.html">H4899</a></span>
+</span><span class="interlinear-word" data-strongs="H1931">
+  <span class="word-original hebrew">הֽוּא\׃</span>
+  <span class="word-translit">Hu&#x27;</span>
+  <span class="word-english">he</span>
+  <span class="word-strongs"><a href="../lexicon/h1931.html">H1931</a></span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> If your language does not use an abstract noun for the idea of **strength**, you could express the same idea in another way. Alternate translation: [Yahweh makes his people strong] or [Yahweh strengthens his people]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Some ancient manuscripts read “for them” and some read **for his people**. For an explanation of the reason why the ULT reads **for his people** see the section in the Psalm 28 Introduction titled “Text variant in 28:8.”
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here David is speaking of Yahweh as if he were a **refuge** that provides protection and safety. If this image communicates well in your language, please use it. If not, you could express this as a comparison. Alternate translation: [and he protects his anointed one like a refuge] or [and he is the one who protects his anointed one]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">9</span><span class="interlinear-word" data-strongs="H3467">
+  <span class="word-original hebrew">הוֹשִׁ֤יעָ/ה\׀</span>
+  <span class="word-translit">hoShi&#x27;a/h</span>
+  <span class="word-english">save/ !</span>
+  <span class="word-strongs"><a href="../lexicon/h3467.html">H3467</a></span>
+</span><span class="interlinear-word" data-strongs="H853">
+  <span class="word-original hebrew">אֶת\־</span>
+  <span class="word-translit">&#x27;et-</span>
+  <span class="word-english">obj.</span>
+  <span class="word-strongs"><a href="../lexicon/h853.html">H853</a></span>
+</span><span class="interlinear-word" data-strongs="H5971">
+  <span class="word-original hebrew">עַמֶּ֗/ךָ</span>
+  <span class="word-translit">&#x27;aMe/kha</span>
+  <span class="word-english">people/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h5971.html">H5971</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/בָרֵ֥ךְ</span>
+  <span class="word-translit">u/vaRekh</span>
+  <span class="word-english">and/ bless</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H853">
+  <span class="word-original hebrew">אֶת\־</span>
+  <span class="word-translit">&#x27;et-</span>
+  <span class="word-english">obj.</span>
+  <span class="word-strongs"><a href="../lexicon/h853.html">H853</a></span>
+</span><span class="interlinear-word" data-strongs="H5159">
+  <span class="word-original hebrew">נַחֲלָתֶ֑/ךָ</span>
+  <span class="word-translit">nachalaTe/kha</span>
+  <span class="word-english">inheritance/ your</span>
+  <span class="word-strongs"><a href="../lexicon/h5159.html">H5159</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּֽ/רְעֵ֥/ם</span>
+  <span class="word-translit">u/re&#x27;E/m</span>
+  <span class="word-english">and/ shepherd/ them</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ֝/נַשְּׂאֵ֗/ם</span>
+  <span class="word-translit">ve/nase&#x27;E/m</span>
+  <span class="word-english">and/ carry/ them</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H5704">
+  <span class="word-original hebrew">עַד\־</span>
+  <span class="word-translit">&#x27;ad-</span>
+  <span class="word-english">until</span>
+  <span class="word-strongs"><a href="../lexicon/h5704.html">H5704</a></span>
+</span><span class="interlinear-word" data-strongs="H9009">
+  <span class="word-original hebrew">הָ/עוֹלָֽם\׃</span>
+  <span class="word-translit">ha/&#x27;oLam</span>
+  <span class="word-english">the/ perpetuity</span>
+  <span class="word-strongs">H9009</span>
+</span></div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> This is an imperative, but it communicates a polite request rather than a command. If the imperative does not communicate a polite request for your readers, then use a form in your language that communicates a polite request. It may be helpful to add an expression such as “please” to make this clear. Alternate translation: [Yahweh, please save your people and bless your inheritance; please be thei
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here David is speaking of God’s people as if they were his **inheritance**. David is picturing God’s people as something valuable that belongs to God, like property or possessions that are passed down in a family. If it would be helpful in your language, you could state the meaning plainly. Alternate translation: [your own people]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> David is speaking of Yahweh as if he were a **shepherd** who would guide and protect his people as a shepherd would guide and protect his flock. If this image communicates well in your language, please use it. If not, you could express this as a comparison. Alternate translation: [guide and protect them like a shepherd does his flock]
+    </div>
+      </section>
+      
+      <hr class="divider">
+      
+      
+<section class="study-body cross-ref-section">
+<h2>Cross-References (Treasury of Scripture Knowledge)</h2>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.1</strong> <a href="psa-143.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.143.7</a> &bull; <a href="psa-18.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.18.2</a> &bull; <a href="psa-83.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.83.1</a> &bull; <a href="pro-1.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Pro.1.12</a> &bull; <a href="psa-88.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.88.4</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.2</strong> <a href="psa-138.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.138.2</a> &bull; <a href="psa-141.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.141.2</a> &bull; <a href="1ti-2.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">1Ti.2.8</a> &bull; <a href="psa-140.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.140.6</a> &bull; <a href="psa-5.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.5.7</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.3</strong> <a href="psa-55.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.55.21</a> &bull; <a href="psa-12.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.12.2</a> &bull; <a href="jer-9.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Jer.9.8</a> &bull; <a href="psa-26.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.26.9</a> &bull; <a href="mic-3.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Mic.3.5</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.4</strong> <a href="2ti-4.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">2Ti.4.14</a> &bull; <a href="rev-22.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rev.22.12</a> &bull; <a href="psa-109.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.109.17</a> &bull; <a href="rev-18.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rev.18.6</a> &bull; <a href="rom-11.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rom.11.22</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.5</strong> <a href="isa-5.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.5.12</a> &bull; <a href="job-34.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.34.26</a> &bull; <a href="jhn-12.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Jhn.12.37</a> &bull; <a href="rom-1.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rom.1.28</a> &bull; <a href="psa-92.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.92.4</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.6</strong> <a href="psa-107.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.107.19</a> &bull; <a href="psa-31.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.31.21</a> &bull; <a href="psa-118.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.118.5</a> &bull; <a href="psa-116.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.116.1</a> &bull; <a href="psa-66.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.66.19</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.7</strong> <a href="psa-30.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.30.11</a> &bull; <a href="psa-56.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.56.3</a> &bull; <a href="isa-61.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.61.10</a> &bull; <a href="eph-6.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Eph.6.10</a> &bull; <a href="psa-40.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.40.3</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.8</strong> <a href="psa-20.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.20.6</a> &bull; <a href="psa-140.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.140.7</a> &bull; <a href="isa-61.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.61.1</a> &bull; <a href="1sa-16.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">1Sa.16.13</a> &bull; <a href="psa-2.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.2.2</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.9</strong> <a href="isa-40.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.40.11</a> &bull; <a href="psa-78.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.78.71</a> &bull; <a href="deu-9.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Deu.9.29</a> &bull; <a href="isa-63.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.63.9</a> &bull; <a href="mat-2.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Mat.2.6</a></p>
+</section>
+<hr class="divider">
+<div class="chapter-nav">
+        <span><a href="psa-27.html">&larr; Chapter 27</a></span>
+        <a href="index.html">All Books</a>
+        <span><a href="psa-29.html">Chapter 29 &rarr;</a></span>
+      </div>
+    </article>
+
+  </main>
+    </div>
+  </div>
+  <div class="book-spine" aria-hidden="true"></div>
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;The words of the LORD are pure words, like silver tried in a furnace of earth, purified seven times.&rdquo;</p>
+    <p class="footer-ref">PSALM 12:6</p>
+    <p class="footer-copy">The Unveiled Word &mdash; Soli Deo Gloria</p>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>

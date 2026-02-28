@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Job 25 Interlinear &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .interlinear-verse {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin: 16px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(197,150,12,0.12);
+    }
+    .interlinear-word {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 50px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .interlinear-word:hover {
+      background: rgba(197,150,12,0.1);
+    }
+    .word-original {
+      font-size: 1.2rem;
+      color: var(--leather-dark, #2c1810);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .word-original.hebrew {
+      font-family: 'SBL Hebrew', 'Ezra SIL', 'Times New Roman', serif;
+      direction: rtl;
+      font-size: 1.35rem;
+    }
+    .word-original.greek {
+      font-family: 'SBL Greek', 'Gentium Plus', 'Times New Roman', serif;
+    }
+    .word-translit {
+      font-size: 0.7rem;
+      font-style: italic;
+      color: var(--ink-light, #6b5b4a);
+      margin-top: 2px;
+    }
+    .word-english {
+      font-size: 0.8rem;
+      color: var(--ink, #3c2f2f);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .word-strongs {
+      font-size: 0.6rem;
+      color: var(--ultramarine, #1e3a6e);
+      margin-top: 2px;
+    }
+    .word-strongs a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+    }
+    .word-strongs a:hover {
+      text-decoration: underline;
+    }
+    .verse-num {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.75rem;
+      color: var(--vermillion, #c41e3a);
+      font-weight: 700;
+      min-width: 28px;
+      align-self: flex-start;
+      padding-top: 8px;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      margin: 16px 0;
+      border-top: 1px solid rgba(197,150,12,0.2);
+      border-bottom: 1px solid rgba(197,150,12,0.2);
+    }
+    .chapter-nav a {
+      color: var(--gold, #c59612);
+      text-decoration: none;
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.85rem;
+    }
+    .chapter-nav a:hover { text-decoration: underline; }
+    .book-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .book-nav a {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(197,150,12,0.08);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      border: 1px solid rgba(197,150,12,0.15);
+    }
+    .book-nav a:hover, .book-nav a.active {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .chapter-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+    }
+    .chapter-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(197,150,12,0.06);
+      color: var(--ink, #3c2f2f);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(197,150,12,0.12);
+      border-radius: 3px;
+    }
+    .chapter-links a:hover {
+      background: var(--gold, #c59612);
+      color: var(--vellum-light, #faf5e8);
+    }
+    .testament-section {
+      margin: 24px 0;
+    }
+    .testament-section h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      color: var(--vermillion, #c41e3a);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hebrew-verse {
+      direction: rtl;
+    }
+    .lexicon-entry {
+      padding: 20px 0;
+    }
+    .lex-word {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .lex-word.hebrew { direction: rtl; font-family: 'SBL Hebrew', 'Ezra SIL', serif; }
+    .lex-word.greek { font-family: 'SBL Greek', 'Gentium Plus', serif; }
+    .lex-meta {
+      color: var(--ink-light, #6b5b4a);
+      font-size: 0.9rem;
+      margin: 4px 0;
+    }
+    .lex-def {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    .lex-verses {
+      margin-top: 20px;
+    }
+    .lex-verses h3 {
+      font-family: var(--font-heading, 'Cinzel', serif);
+      font-size: 0.9rem;
+      color: var(--vermillion, #c41e3a);
+      margin-bottom: 8px;
+    }
+    .lex-verse-list {
+      column-count: 3;
+      column-gap: 16px;
+      font-size: 0.8rem;
+    }
+    .lex-verse-list a {
+      color: var(--ultramarine, #1e3a6e);
+      text-decoration: none;
+      display: block;
+      padding: 2px 0;
+    }
+    .lex-verse-list a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .lex-verse-list { column-count: 2; }
+      .interlinear-word { min-width: 40px; padding: 3px 4px; }
+      .word-original { font-size: 1.05rem; }
+      .word-original.hebrew { font-size: 1.15rem; }
+    }
+    @media (max-width: 480px) {
+      .lex-verse-list { column-count: 1; }
+    }
+    
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Unveiled Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../interlinear/" class="active">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+        <li><a href="../reference/">Reference</a></li>
+        <li><a href="../search.html">Search</a></li>
+      </ul>
+    </div>
+  </header>
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div>
+      <div class="border-right"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+  <main class="page-container">
+
+    <article class="study-article">
+      <header class="study-header">
+        <div class="study-category">Interlinear &bull; Old Testament &bull; Hebrew</div>
+        <h1 class="study-title">Job 25</h1>
+        <p class="study-subtitle">Word-by-Word Hebrew-English Interlinear</p>
+      </header>
+      
+      <div class="chapter-nav">
+        <span><a href="job-24.html">&larr; Chapter 24</a></span>
+        <a href="index.html">Job</a>
+        <span><a href="job-26.html">Chapter 26 &rarr;</a></span>
+      </div>
+      
+      <div class="chapter-links"><a href="job-1.html">1</a><a href="job-2.html">2</a><a href="job-3.html">3</a><a href="job-4.html">4</a><a href="job-5.html">5</a><a href="job-6.html">6</a><a href="job-7.html">7</a><a href="job-8.html">8</a><a href="job-9.html">9</a><a href="job-10.html">10</a><a href="job-11.html">11</a><a href="job-12.html">12</a><a href="job-13.html">13</a><a href="job-14.html">14</a><a href="job-15.html">15</a><a href="job-16.html">16</a><a href="job-17.html">17</a><a href="job-18.html">18</a><a href="job-19.html">19</a><a href="job-20.html">20</a><a href="job-21.html">21</a><a href="job-22.html">22</a><a href="job-23.html">23</a><a href="job-24.html">24</a><a href="job-25.html" class="active">25</a><a href="job-26.html">26</a><a href="job-27.html">27</a><a href="job-28.html">28</a><a href="job-29.html">29</a><a href="job-30.html">30</a><a href="job-31.html">31</a><a href="job-32.html">32</a><a href="job-33.html">33</a><a href="job-34.html">34</a><a href="job-35.html">35</a><a href="job-36.html">36</a><a href="job-37.html">37</a><a href="job-38.html">38</a><a href="job-39.html">39</a><a href="job-40.html">40</a><a href="job-41.html">41</a><a href="job-42.html">42</a></div>
+      
+      <hr class="divider">
+      
+      <section class="study-body">
+        
+    <div class="kjv-text" style="margin:1.5rem 0;padding:1.2rem 1.5rem;background:rgba(197,150,12,0.04);border:1px solid rgba(197,150,12,0.12);border-radius:8px;">
+      <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--gold);margin:0 0 0.8rem;text-transform:uppercase;letter-spacing:0.05em;">KJV Text &mdash; Job 25</h3>
+      <div style="font-family:var(--font-reading);line-height:1.9;font-size:1rem;color:var(--ink);"><span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">1</span>Then answered Bildad the Shuhite, and said, <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">2</span>Dominion and fear are with him, he maketh peace in his high places. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">3</span>Is there any number of his armies? and upon whom doth not his light arise? <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">4</span>How then can man be justified with God? or how can he be clean that is born of a woman? <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">5</span>Behold even to the moon, and it shineth not; yea, the stars are not pure in his sight. <span style="vertical-align:super;font-size:0.7em;font-weight:bold;color:var(--vermillion);margin-right:2px;">6</span>How much less man, that is a worm? and the son of man, which is a worm? </div></div>
+<div class="interlinear-verse hebrew-verse"><span class="verse-num">1</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וַ֭/יַּעַן</span>
+  <span class="word-translit">Va/iya&#x27;an</span>
+  <span class="word-english">and/ he answered</span>
+  <span class="word-strongs">H9001</span>
+</span><span class="interlinear-word" data-strongs="H1085">
+  <span class="word-original hebrew">בִּלְדַּ֥ד</span>
+  <span class="word-translit">bilDad</span>
+  <span class="word-english">Bildad</span>
+  <span class="word-strongs"><a href="../lexicon/h1085.html">H1085</a></span>
+</span><span class="interlinear-word" data-strongs="H9009">
+  <span class="word-original hebrew">הַ/שֻּׁחִ֗י</span>
+  <span class="word-translit">ha/shuChi</span>
+  <span class="word-english">the/ Shuhite</span>
+  <span class="word-strongs">H9009</span>
+</span><span class="interlinear-word" data-strongs="H9001">
+  <span class="word-original hebrew">וַ/יֹּאמַֽר\׃</span>
+  <span class="word-translit">va/iyoMar</span>
+  <span class="word-english">and/ he said</span>
+  <span class="word-strongs">H9001</span>
+</span></div><div class="interlinear-verse hebrew-verse"><span class="verse-num">2</span><span class="interlinear-word" data-strongs="H4910">
+  <span class="word-original hebrew">הַמְשֵׁ֣ל</span>
+  <span class="word-translit">hamShel</span>
+  <span class="word-english">dominion</span>
+  <span class="word-strongs"><a href="../lexicon/h4910.html">H4910</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וָ/פַ֣חַד</span>
+  <span class="word-translit">va/Fachad</span>
+  <span class="word-english">and/ dread</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H5973">
+  <span class="word-original hebrew">עִמּ֑/וֹ</span>
+  <span class="word-translit">iM/o</span>
+  <span class="word-english">are with/ him</span>
+  <span class="word-strongs"><a href="../lexicon/h5973.html">H5973</a></span>
+</span><span class="interlinear-word" data-strongs="H6213">
+  <span class="word-original hebrew">עֹשֶׂ֥ה</span>
+  <span class="word-translit">&#x27;oSeh</span>
+  <span class="word-english">he makes</span>
+  <span class="word-strongs"><a href="../lexicon/h6213.html">H6213</a></span>
+</span><span class="interlinear-word" data-strongs="H7965">
+  <span class="word-original hebrew">שָׁ֝ל֗וֹם</span>
+  <span class="word-translit">ShaLom</span>
+  <span class="word-english">peace</span>
+  <span class="word-strongs"><a href="../lexicon/h7965.html">H7965</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בִּ/מְרוֹמָֽי/ו\׃</span>
+  <span class="word-translit">bi/mroMa/v</span>
+  <span class="word-english">in/ heights/ his</span>
+  <span class="word-strongs">H9003</span>
+</span></div>
+    <div class="tsk-refs">
+      <h4>&#x1f517; Cross-References (Treasury of Scripture Knowledge)</h4>
+      <a href="../interlinear/job-26.html">Job 26 5-Job 26 14</a> <a href="../interlinear/eph-1.html">Eph 1 20-Eph 1 21</a> <a href="../interlinear/1ch-29.html">1Chr 29 11-1Chr 29 12</a> <a href="../interlinear/psa-99.html">Ps 99 1-Ps 99 3</a> <a href="../interlinear/job-9.html">Job 9 2-Job 9 10</a> <a href="../interlinear/mat-6.html">Matt 6 13</a> <a href="../interlinear/eph-2.html">Eph 2 16-Eph 2 17</a> <a href="../interlinear/isa-57.html">Isa 57 19</a> <a href="../interlinear/mat-5.html">Matt 5 9</a> <a href="../interlinear/jud-1.html">Jude 1 25</a> <a href="../interlinear/dan-4.html">Dan 4 34-Dan 4 37</a> <a href="../interlinear/job-40.html">Job 40 9-Job 40 14</a> <a href="../interlinear/rev-6.html">Rev 6 16</a> <a href="../interlinear/isa-57.html">Isa 57 15</a> <a href="../interlinear/mat-28.html">Matt 28 18</a> 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> The pronoun **him** refers to God. It may be helpful to clarify this for your readers. Alternate translation: [Dominion and awe are with God] or [God possesses dominion and awe]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> This phrase expresses a single idea by using two words connected with **and**. The word **fear** tells what response God’s **Dominion** produces in those who recognize its powerful and holy character. (In this context, the word **fear** describes reverence and respect for God and awe at his greatness.) If it would be more natural in your language, you could express this meaning with an equivalent 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> If your language does not use abstract nouns for the ideas of **Dominion** and **fear**, you could express the same ideas in other ways. Alternate translation: [God rules in a way that inspires great respect]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">3</span><span class="interlinear-word" data-strongs="H9008">
+  <span class="word-original hebrew">הֲ/יֵ֣שׁ</span>
+  <span class="word-translit">ha/Yesh</span>
+  <span class="word-english">¿/ is there</span>
+  <span class="word-strongs">H9008</span>
+</span><span class="interlinear-word" data-strongs="H4557">
+  <span class="word-original hebrew">מִ֭סְפָּר</span>
+  <span class="word-translit">Mispor</span>
+  <span class="word-english">a number</span>
+  <span class="word-strongs"><a href="../lexicon/h4557.html">H4557</a></span>
+</span><span class="interlinear-word" data-strongs="H9005">
+  <span class="word-original hebrew">לִ/גְדוּדָ֑י/ו</span>
+  <span class="word-translit">li/gduDa/v</span>
+  <span class="word-english">to/ troops/ his</span>
+  <span class="word-strongs">H9005</span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/עַל\־</span>
+  <span class="word-translit">ve/&#x27;al-</span>
+  <span class="word-english">and/ on</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H4310">
+  <span class="word-original hebrew">מִ֝֗י</span>
+  <span class="word-translit">Mi</span>
+  <span class="word-english">whom?</span>
+  <span class="word-strongs"><a href="../lexicon/h4310.html">H4310</a></span>
+</span><span class="interlinear-word" data-strongs="H3808">
+  <span class="word-original hebrew">לֹא\־</span>
+  <span class="word-translit">lo&#x27;-</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h3808.html">H3808</a></span>
+</span><span class="interlinear-word" data-strongs="H6965">
+  <span class="word-original hebrew">יָק֥וּם</span>
+  <span class="word-translit">yaKum</span>
+  <span class="word-english">does it rise</span>
+  <span class="word-strongs"><a href="../lexicon/h6965.html">H6965</a></span>
+</span><span class="interlinear-word" data-strongs="H216">
+  <span class="word-original hebrew">אוֹרֵֽ/הוּ\׃</span>
+  <span class="word-translit">&#x27;oRe/hu</span>
+  <span class="word-english">light/ his</span>
+  <span class="word-strongs"><a href="../lexicon/h216.html">H216</a></span>
+</span></div>
+    <div class="tsk-refs">
+      <h4>&#x1f517; Cross-References (Treasury of Scripture Knowledge)</h4>
+      <a href="../interlinear/gen-1.html">Gen 1 14-Gen 1 16</a> <a href="../interlinear/rev-5.html">Rev 5 11</a> <a href="../interlinear/mat-26.html">Matt 26 53</a> <a href="../interlinear/dan-7.html">Dan 7 10</a> <a href="../interlinear/jhn-1.html">John 1 4</a> <a href="../interlinear/isa-40.html">Isa 40 26</a> <a href="../interlinear/job-38.html">Job 38 12-Job 38 13</a> <a href="../interlinear/gen-1.html">Gen 1 3-Gen 1 5</a> <a href="../interlinear/psa-19.html">Ps 19 4-Ps 19 6</a> <a href="../interlinear/psa-103.html">Ps 103 20-Ps 103 21</a> <a href="../interlinear/psa-148.html">Ps 148 2-Ps 148 4</a> <a href="../interlinear/jas-1.html">Jas 1 17</a> <a href="../interlinear/mat-5.html">Matt 5 45</a> <a href="../interlinear/jhn-1.html">John 1 9</a> 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Job is using the question form for emphasis. If you would not use the question form for that purpose in your language, you could translate these questions as statements or as exclamations. Alternate translation: [There is no number to his troops! His light arises on everyone!]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> In this verse, Bildad is describing God’s greatness by saying that at night, there are too many stars in the sky to count, and by day, the sun shines all over the world. So in this context, the word **troops** implicitly refers to the stars as if they were soldiers. Alternate translation: [Is there a number to the stars?] or [There are too many stars in the sky to count!]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Bildad is using the term **light** by association to mean the sun. If it would be helpful in your language, you could state the meaning plainly. Alternate translation: [And upon whom does the sun not rise?] or [And the sun shines on everyone!]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">4</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/מַה\־</span>
+  <span class="word-translit">u/mah-</span>
+  <span class="word-english">and/ what?</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H6663">
+  <span class="word-original hebrew">יִּצְדַּ֣ק</span>
+  <span class="word-translit">yitzDak</span>
+  <span class="word-english">will he be righteous</span>
+  <span class="word-strongs"><a href="../lexicon/h6663.html">H6663</a></span>
+</span><span class="interlinear-word" data-strongs="H582">
+  <span class="word-original hebrew">אֱנ֣וֹשׁ</span>
+  <span class="word-translit">&#x27;eNoosh</span>
+  <span class="word-english">a person</span>
+  <span class="word-strongs"><a href="../lexicon/h582.html">H582</a></span>
+</span><span class="interlinear-word" data-strongs="H5973">
+  <span class="word-original hebrew">עִם\־</span>
+  <span class="word-translit">&#x27;im-</span>
+  <span class="word-english">with</span>
+  <span class="word-strongs"><a href="../lexicon/h5973.html">H5973</a></span>
+</span><span class="interlinear-word" data-strongs="H410">
+  <span class="word-original hebrew">אֵ֑ל</span>
+  <span class="word-translit">&#x27;El</span>
+  <span class="word-english">God</span>
+  <span class="word-strongs"><a href="../lexicon/h410.html">H410</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/מַה\־</span>
+  <span class="word-translit">u/mah-</span>
+  <span class="word-english">and/ what?</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H2135">
+  <span class="word-original hebrew">יִּ֝זְכֶּ֗ה</span>
+  <span class="word-translit">yizKeh</span>
+  <span class="word-english">will he be pure</span>
+  <span class="word-strongs"><a href="../lexicon/h2135.html">H2135</a></span>
+</span><span class="interlinear-word" data-strongs="H3205">
+  <span class="word-original hebrew">יְל֣וּד</span>
+  <span class="word-translit">yeLud</span>
+  <span class="word-english">one born of</span>
+  <span class="word-strongs"><a href="../lexicon/h3205.html">H3205</a></span>
+</span><span class="interlinear-word" data-strongs="H802">
+  <span class="word-original hebrew">אִשָּֽׁה\׃</span>
+  <span class="word-translit">&#x27;iShah</span>
+  <span class="word-english">a woman</span>
+  <span class="word-strongs"><a href="../lexicon/h802.html">H802</a></span>
+</span></div>
+    <div class="tsk-refs">
+      <h4>&#x1f517; Cross-References (Treasury of Scripture Knowledge)</h4>
+      <a href="../interlinear/job-4.html">Job 4 17-Job 4 19</a> <a href="../interlinear/job-15.html">Job 15 14-Job 15 16</a> <a href="../interlinear/zec-13.html">Zech 13 1</a> <a href="../interlinear/1co-6.html">1Cor 6 11</a> <a href="../interlinear/rom-3.html">Rom 3 19-Rom 3 20</a> <a href="../interlinear/psa-51.html">Ps 51 5</a> <a href="../interlinear/rev-1.html">Rev 1 5</a> <a href="../interlinear/1jn-1.html">1John 1 9</a> <a href="../interlinear/rom-5.html">Rom 5 1</a> <a href="../interlinear/eph-2.html">Eph 2 3</a> <a href="../interlinear/job-9.html">Job 9 2</a> <a href="../interlinear/psa-130.html">Ps 130 3</a> <a href="../interlinear/psa-143.html">Ps 143 2</a> <a href="../interlinear/job-14.html">Job 14 3-Job 14 4</a> 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Bildad is using the question form for emphasis. If you would not use the question form for that purpose in your language, you could translate this as a statement or as an exclamation. Alternate translation: [A man cannot be righteous with God! One born of a woman cannot be clean!]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Here the masculine term **man** has a generic sense that includes both men and women. If it would be helpful to your readers, you could use language in your translation that is clearly inclusive of both men and women. Alternate translation: [a person]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> See how you translated this expression in 15:14. Alternate translation: [a mortal]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">5</span><span class="interlinear-word" data-strongs="H2005">
+  <span class="word-original hebrew">הֵ֣ן</span>
+  <span class="word-translit">hen</span>
+  <span class="word-english">there!</span>
+  <span class="word-strongs"><a href="../lexicon/h2005.html">H2005</a></span>
+</span><span class="interlinear-word" data-strongs="H5704">
+  <span class="word-original hebrew">עַד\־</span>
+  <span class="word-translit">&#x27;ad-</span>
+  <span class="word-english">up to</span>
+  <span class="word-strongs"><a href="../lexicon/h5704.html">H5704</a></span>
+</span><span class="interlinear-word" data-strongs="H3394">
+  <span class="word-original hebrew">יָ֭רֵחַ</span>
+  <span class="word-translit">Yareach</span>
+  <span class="word-english">the moon</span>
+  <span class="word-strongs"><a href="../lexicon/h3394.html">H3394</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ/לֹ֣א</span>
+  <span class="word-translit">ve/Lo&#x27;</span>
+  <span class="word-english">and/ not</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H166">
+  <span class="word-original hebrew">יַאֲהִ֑יל</span>
+  <span class="word-translit">ya&#x27;aHil</span>
+  <span class="word-english">it is clear</span>
+  <span class="word-strongs"><a href="../lexicon/h166.html">H166</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וְ֝/כוֹכָבִ֗ים</span>
+  <span class="word-translit">ve/khokhaVim</span>
+  <span class="word-english">and/ the stars</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H3808">
+  <span class="word-original hebrew">לֹא\־</span>
+  <span class="word-translit">lo&#x27;-</span>
+  <span class="word-english">not</span>
+  <span class="word-strongs"><a href="../lexicon/h3808.html">H3808</a></span>
+</span><span class="interlinear-word" data-strongs="H2141">
+  <span class="word-original hebrew">זַכּ֥וּ</span>
+  <span class="word-translit">zaKu</span>
+  <span class="word-english">they are pure</span>
+  <span class="word-strongs"><a href="../lexicon/h2141.html">H2141</a></span>
+</span><span class="interlinear-word" data-strongs="H9003">
+  <span class="word-original hebrew">בְ/עֵינָֽי/ו\׃</span>
+  <span class="word-translit">ve/&#x27;eiNa/v</span>
+  <span class="word-english">in/ view/ his</span>
+  <span class="word-strongs">H9003</span>
+</span></div>
+    <div class="tsk-refs">
+      <h4>&#x1f517; Cross-References (Treasury of Scripture Knowledge)</h4>
+      <a href="../interlinear/isa-60.html">Isa 60 19-Isa 60 20</a> <a href="../interlinear/job-31.html">Job 31 26</a> <a href="../interlinear/isa-24.html">Isa 24 23</a> <a href="../interlinear/2co-3.html">2Cor 3 10</a> <a href="../interlinear/job-15.html">Job 15 15</a> 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Bildad implicitly means that compared with God’s holiness, the **moon** does not **shine** with the brightness of a pure, holy thing. You could indicate that in your translation if it would be helpful to your readers. Alternate translation: [the moon has no holy brightness]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Bildad is using the term **eyes** by association to mean sight. Sight, in turn, represents attention, perspective, and judgment. If it would be helpful in your language, you could state the meaning plainly. Alternate translation: [in his perspective]
+    </div><div class="interlinear-verse hebrew-verse"><span class="verse-num">6</span><span class="interlinear-word" data-strongs="H637">
+  <span class="word-original hebrew">אַ֭ף</span>
+  <span class="word-translit">&#x27;af</span>
+  <span class="word-english">indeed?</span>
+  <span class="word-strongs"><a href="../lexicon/h637.html">H637</a></span>
+</span><span class="interlinear-word" data-strongs="H3588">
+  <span class="word-original hebrew">כִּֽי\־</span>
+  <span class="word-translit">ki-</span>
+  <span class="word-english">for</span>
+  <span class="word-strongs"><a href="../lexicon/h3588.html">H3588</a></span>
+</span><span class="interlinear-word" data-strongs="H582">
+  <span class="word-original hebrew">אֱנ֣וֹשׁ</span>
+  <span class="word-translit">&#x27;eNoosh</span>
+  <span class="word-english">a person</span>
+  <span class="word-strongs"><a href="../lexicon/h582.html">H582</a></span>
+</span><span class="interlinear-word" data-strongs="H7415">
+  <span class="word-original hebrew">רִמָּ֑ה</span>
+  <span class="word-translit">riMah</span>
+  <span class="word-english">a maggot</span>
+  <span class="word-strongs"><a href="../lexicon/h7415.html">H7415</a></span>
+</span><span class="interlinear-word" data-strongs="H9002">
+  <span class="word-original hebrew">וּ/בֶן\־</span>
+  <span class="word-translit">u/ven-</span>
+  <span class="word-english">and/ a child of</span>
+  <span class="word-strongs">H9002</span>
+</span><span class="interlinear-word" data-strongs="H120">
+  <span class="word-original hebrew">אָ֝דָ֗ם</span>
+  <span class="word-translit">&#x27;aDam</span>
+  <span class="word-english">humankind</span>
+  <span class="word-strongs"><a href="../lexicon/h120.html">H120</a></span>
+</span><span class="interlinear-word" data-strongs="H8438">
+  <span class="word-original hebrew">תּוֹלֵעָֽה\׃\ \פ</span>
+  <span class="word-translit">tole&#x27;Ah</span>
+  <span class="word-english">a worm</span>
+  <span class="word-strongs"><a href="../lexicon/h8438.html">H8438</a></span>
+</span></div>
+    <div class="tsk-refs">
+      <h4>&#x1f517; Cross-References (Treasury of Scripture Knowledge)</h4>
+      <a href="../interlinear/isa-41.html">Isa 41 14</a> <a href="../interlinear/psa-22.html">Ps 22 6</a> <a href="../interlinear/job-7.html">Job 7 17</a> <a href="../interlinear/job-4.html">Job 4 19</a> <a href="../interlinear/gen-18.html">Gen 18 27</a> 
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> **Indeed that** is an expression that indicates that what follows is greater in degree than what a person has just said. If it would be helpful in your language, you could state the meaning plainly. Alternate translation: [How much less a man, a worm]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Bildad is leaving out some of the words that in many languages a sentence would need in order to be complete. You can supply these words from the context if that would be clearer in your language. Alternate translation: [How much less could a man, a worm, be pure]
+    </div>
+    <div class="tn-note">
+      <strong>&#x1f4dd; Cultural Note:</strong> Although the terms **man** and **son** are masculine, here both words have a generic sense that includes both men and women. If it would be helpful to your readers, you could use terms in your language that are clearly inclusive of both men and women. Alternate translation: [a human … or a human child]
+    </div>
+      </section>
+      
+      <hr class="divider">
+      
+      
+<section class="study-body cross-ref-section">
+<h2>Cross-References (Treasury of Scripture Knowledge)</h2>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.2</strong> <a href="rev-6.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rev.6.16</a> &bull; <a href="col-1.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Col.1.20</a> &bull; <a href="job-26.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.26.5</a> &bull; <a href="eph-1.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Eph.1.20</a> &bull; <a href="1ch-29.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">1Ch.29.11</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.3</strong> <a href="jas-1.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Jas.1.17</a> &bull; <a href="mat-5.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Mat.5.45</a> &bull; <a href="gen-1.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Gen.1.14</a> &bull; <a href="rev-5.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rev.5.11</a> &bull; <a href="mat-26.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Mat.26.53</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.4</strong> <a href="job-15.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.15.14</a> &bull; <a href="rom-5.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Rom.5.1</a> &bull; <a href="job-4.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.4.17</a> &bull; <a href="job-9.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.9.2</a> &bull; <a href="psa-130.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.130.3</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.5</strong> <a href="isa-60.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.60.19</a> &bull; <a href="job-15.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.15.15</a> &bull; <a href="job-31.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.31.26</a> &bull; <a href="isa-24.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.24.23</a> &bull; <a href="2co-3.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">2Co.3.10</a></p>
+<p style="margin:4px 0;"><strong style="color:var(--vermillion,#c41e3a);font-size:0.8rem;">v.6</strong> <a href="isa-41.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Isa.41.14</a> &bull; <a href="psa-22.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Psa.22.6</a> &bull; <a href="job-7.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.7.17</a> &bull; <a href="job-4.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Job.4.19</a> &bull; <a href="gen-18.html" style="color:var(--ultramarine,#1e3a6e);text-decoration:none;font-size:0.85rem;">Gen.18.27</a></p>
+</section>
+<hr class="divider">
+<div class="chapter-nav">
+        <span><a href="job-24.html">&larr; Chapter 24</a></span>
+        <a href="index.html">All Books</a>
+        <span><a href="job-26.html">Chapter 26 &rarr;</a></span>
+      </div>
+    </article>
+
+  </main>
+    </div>
+  </div>
+  <div class="book-spine" aria-hidden="true"></div>
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;The words of the LORD are pure words, like silver tried in a furnace of earth, purified seven times.&rdquo;</p>
+    <p class="footer-ref">PSALM 12:6</p>
+    <p class="footer-copy">The Unveiled Word &mdash; Soli Deo Gloria</p>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>
