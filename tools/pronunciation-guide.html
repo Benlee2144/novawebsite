@@ -151,47 +151,44 @@
       const container = document.getElementById('pronunciation-content');
       let html = '';
 
-      // Render Hebrew words
-      if (data.hebrew && data.hebrew.length > 0) {
-        html += '<div class="lang-section"><h2>Hebrew (עברית)</h2>';
-        data.hebrew.forEach(word => {
-          html += renderWordCard(word, 'hebrew');
+      // Data is { hebrew: { word: {ipa, romanization, ...} }, greek: {...} }
+      function renderSection(langData, title, lang) {
+        if (!langData || typeof langData !== 'object') return '';
+        const entries = Object.entries(langData);
+        if (entries.length === 0) return '';
+        
+        let sectionHtml = `<div class="lang-section"><h2>${title}</h2>`;
+        entries.forEach(([word, info]) => {
+          sectionHtml += renderWordCard(word, info, lang);
         });
-        html += '</div>';
+        sectionHtml += '</div>';
+        return sectionHtml;
       }
 
-      // Render Greek words
-      if (data.greek && data.greek.length > 0) {
-        html += '<div class="lang-section"><h2>Greek (Ελληνικά)</h2>';
-        data.greek.forEach(word => {
-          html += renderWordCard(word, 'greek');
-        });
-        html += '</div>';
-      }
-
-      // Render Aramaic words
-      if (data.aramaic && data.aramaic.length > 0) {
-        html += '<div class="lang-section"><h2>Aramaic (ארמית)</h2>';
-        data.aramaic.forEach(word => {
-          html += renderWordCard(word, 'aramaic');
-        });
-        html += '</div>';
-      }
+      html += renderSection(data.hebrew, 'Hebrew (עברית)', 'hebrew');
+      html += renderSection(data.greek, 'Greek (Ελληνικά)', 'greek');
+      html += renderSection(data.aramaic, 'Aramaic (ארמית)', 'aramaic');
 
       container.innerHTML = html || '<p>No pronunciation data available.</p>';
     }
 
-    function renderWordCard(word, lang) {
+    function renderWordCard(word, info, lang) {
+      const romanization = info.romanization || info.transliteration || '';
+      const ipa = info.ipa || '';
+      const meaning = info.meaning || info.definition || '';
+      const strongs = info.strongs || '';
+      const searchText = (word + ' ' + romanization + ' ' + ipa + ' ' + meaning).toLowerCase();
+      
       return `
-        <div class="word-card" data-search="${(word.word + ' ' + word.transliteration + ' ' + word.meaning).toLowerCase()}">
-          <div class="word-original">${word.word || ''}</div>
+        <div class="word-card" data-search="${searchText}">
+          <div class="word-original">${word}</div>
           <div class="word-info">
-            <h3>${word.transliteration || ''}</h3>
-            <div class="ipa">${word.ipa || ''}</div>
-            ${word.strongs ? `<div class="transliteration">Strong's: ${word.strongs}</div>` : ''}
-            <div class="meaning">${word.meaning || ''}</div>
+            <h3>${romanization}</h3>
+            <div class="ipa">/${ipa}/</div>
+            ${strongs ? `<div class="transliteration">Strong's: ${strongs}</div>` : ''}
+            ${meaning ? `<div class="meaning">${meaning}</div>` : ''}
           </div>
-          <button class="play-btn" onclick="speak('${(word.transliteration || '').replace(/'/g, "\\'")}', '${lang}')" title="Hear pronunciation">
+          <button class="play-btn" onclick="speak('${romanization.replace(/'/g, "\\'")}', '${lang}')" title="Hear pronunciation">
             🔊
           </button>
         </div>`;
