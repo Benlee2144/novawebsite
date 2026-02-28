@@ -1,19 +1,16 @@
 /**
- * Audio Pronunciation System
- * Adds 🔊 speaker buttons to every Hebrew/Greek word across the entire site.
- * Uses the browser's built-in Web Speech API (free, no API key).
+ * Audio Pronunciation System — Clear Voice Edition
+ * Uses Google Translate TTS for natural, clear pronunciation.
+ * Falls back to browser Speech API if Google is unavailable.
  * 
- * Supports:
- * - Study pages: .greek-block / .hebrew-block with .pronunciation or .transliteration
- * - Interlinear pages: .interlinear-word with .word-translit
- * - Lexicon pages: .lex-word with transliteration in subtitle
+ * Adds 🔊 buttons to:
+ * - Study pages: .greek-block / .hebrew-block
+ * - Interlinear pages: .interlinear-word
+ * - Lexicon pages: .lex-word
  */
 
 (function() {
   'use strict';
-
-  // Don't run if speech synthesis not available
-  if (!('speechSynthesis' in window)) return;
 
   const BUTTON_STYLE = `
     .speak-btn {
@@ -49,7 +46,6 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.2); }
     }
-    /* Speaker button in interlinear words */
     .interlinear-word .speak-btn {
       width: 20px;
       height: 20px;
@@ -63,27 +59,87 @@
   style.textContent = BUTTON_STYLE;
   document.head.appendChild(style);
 
-  function speakText(text, lang) {
-    // Cancel any current speech
+  // Audio player (reuse one element)
+  let audioEl = null;
+  function getAudio() {
+    if (!audioEl) {
+      audioEl = new Audio();
+      audioEl.volume = 1.0;
+    }
+    return audioEl;
+  }
+
+  /**
+   * Speak text using Google Translate TTS (clear, natural voice).
+   * Falls back to browser SpeechSynthesis if blocked.
+   */
+  function speakText(text, lang, btn) {
+    if (!text) return;
+
+    // Google Translate language codes
+    const langCode = lang === 'hebrew' ? 'iw' : lang === 'greek' ? 'el' : 'en';
+    
+    // Clean text for TTS
+    const cleanText = text
+      .replace(/[\/\-]/g, ' ')      // Replace slashes/hyphens with spaces
+      .replace(/[^\w\s\u0370-\u03FF\u0590-\u05FF]/g, '') // Keep letters + Hebrew/Greek
+      .trim();
+    
+    if (!cleanText) return;
+
+    // Try Google Translate TTS first (much better voice quality)
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${langCode}&q=${encodeURIComponent(cleanText)}`;
+    
+    const audio = getAudio();
+    
+    // Stop any currently playing audio
+    audio.pause();
+    audio.currentTime = 0;
+    
+    // Mark button as speaking
+    document.querySelectorAll('.speak-btn.speaking').forEach(b => b.classList.remove('speaking'));
+    if (btn) btn.classList.add('speaking');
+    
+    audio.src = ttsUrl;
+    audio.playbackRate = 0.85; // Slightly slower for clarity
+    
+    audio.onended = () => { if (btn) btn.classList.remove('speaking'); };
+    audio.onerror = () => {
+      // Fallback to browser speech synthesis
+      if (btn) btn.classList.remove('speaking');
+      fallbackSpeak(cleanText, lang, btn);
+    };
+    
+    audio.play().catch(() => {
+      // If autoplay blocked, fall back
+      fallbackSpeak(cleanText, lang, btn);
+    });
+  }
+
+  /**
+   * Fallback: Browser's built-in SpeechSynthesis
+   */
+  function fallbackSpeak(text, lang, btn) {
+    if (!('speechSynthesis' in window)) return;
+    
     speechSynthesis.cancel();
-    
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.65;  // Slow for clarity
+    utterance.rate = 0.65;
     utterance.pitch = 1.0;
-    utterance.volume = 1.0;
     
-    // Try to pick a voice matching the language
     const voices = speechSynthesis.getVoices();
     if (lang === 'hebrew') {
-      const heVoice = voices.find(v => v.lang.startsWith('he'));
-      if (heVoice) utterance.voice = heVoice;
+      const v = voices.find(v => v.lang.startsWith('he'));
+      if (v) utterance.voice = v;
     } else if (lang === 'greek') {
-      const elVoice = voices.find(v => v.lang.startsWith('el'));
-      if (elVoice) utterance.voice = elVoice;
+      const v = voices.find(v => v.lang.startsWith('el'));
+      if (v) utterance.voice = v;
     }
     
+    if (btn) btn.classList.add('speaking');
+    utterance.onend = () => { if (btn) btn.classList.remove('speaking'); };
+    utterance.onerror = () => { if (btn) btn.classList.remove('speaking'); };
     speechSynthesis.speak(utterance);
-    return utterance;
   }
 
   function createSpeakButton(text, lang) {
@@ -91,97 +147,91 @@
     btn.className = 'speak-btn';
     btn.innerHTML = '🔊';
     btn.title = 'Hear pronunciation';
-    btn.setAttribute('aria-label', 'Play pronunciation of ' + text);
+    btn.setAttribute('aria-label', 'Play pronunciation');
     
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      
-      // Remove speaking class from all buttons
-      document.querySelectorAll('.speak-btn.speaking').forEach(b => b.classList.remove('speaking'));
-      
-      btn.classList.add('speaking');
-      const utterance = speakText(text, lang);
-      utterance.onend = () => btn.classList.remove('speaking');
-      utterance.onerror = () => btn.classList.remove('speaking');
+      speakText(text, lang, btn);
     });
     
     return btn;
   }
 
   function enhanceStudyBlocks() {
-    // Study pages: .greek-block and .hebrew-block
     document.querySelectorAll('.greek-block, .hebrew-block').forEach(block => {
-      if (block.querySelector('.speak-btn')) return; // Already enhanced
+      if (block.querySelector('.speak-btn')) return;
       
-      const isGreek = block.classList.contains('greek-block');
-      const lang = isGreek ? 'greek' : 'hebrew';
-      
-      // Get pronunciation text (prefer .pronunciation, fall back to .transliteration)
+      const lang = block.classList.contains('greek-block') ? 'greek' : 'hebrew';
       const pronEl = block.querySelector('.pronunciation');
       const transEl = block.querySelector('.transliteration');
-      const text = (pronEl && pronEl.textContent.trim()) || 
-                   (transEl && transEl.textContent.trim()) || '';
+      const origEl = block.querySelector('.original-word');
       
-      if (!text) return;
+      // Use original word for Google TTS (it knows Hebrew/Greek), 
+      // pronunciation text as fallback
+      const originalText = origEl ? origEl.textContent.trim() : '';
+      const pronText = (pronEl && pronEl.textContent.trim()) || 
+                       (transEl && transEl.textContent.trim()) || originalText;
       
-      // Add button next to the original word
-      const wordEl = block.querySelector('.original-word');
-      if (wordEl) {
-        const btn = createSpeakButton(text, lang);
-        wordEl.style.display = 'flex';
-        wordEl.style.alignItems = 'center';
-        wordEl.style.justifyContent = 'center';
-        wordEl.style.gap = '6px';
-        wordEl.appendChild(btn);
+      if (!pronText) return;
+      
+      // For Google TTS, send the original script (βαπτίζω not "baptizo")
+      // It pronounces original scripts much better
+      const speakOriginal = originalText || pronText;
+      
+      if (origEl) {
+        const btn = createSpeakButton(speakOriginal, lang);
+        origEl.style.display = 'flex';
+        origEl.style.alignItems = 'center';
+        origEl.style.justifyContent = 'center';
+        origEl.style.gap = '6px';
+        origEl.appendChild(btn);
       }
     });
   }
 
   function enhanceInterlinearWords() {
-    // Interlinear pages: .interlinear-word with .word-translit
     document.querySelectorAll('.interlinear-word').forEach(word => {
       if (word.querySelector('.speak-btn')) return;
       
-      const translitEl = word.querySelector('.word-translit');
       const originalEl = word.querySelector('.word-original');
-      const text = (translitEl && translitEl.textContent.trim()) || '';
+      const translitEl = word.querySelector('.word-translit');
       
-      if (!text) return;
+      // Use original script for Google TTS
+      const originalText = originalEl ? originalEl.textContent.trim() : '';
+      const translitText = translitEl ? translitEl.textContent.trim() : '';
+      const speakText = originalText || translitText;
+      
+      if (!speakText) return;
       
       const isHebrew = originalEl && originalEl.classList.contains('hebrew');
       const lang = isHebrew ? 'hebrew' : 'greek';
       
-      const btn = createSpeakButton(text, lang);
+      const btn = createSpeakButton(speakText, lang);
       word.appendChild(btn);
     });
   }
 
   function enhanceLexiconWords() {
-    // Lexicon pages: .lex-word with transliteration in subtitle
     const lexWord = document.querySelector('.lex-word');
     if (!lexWord || lexWord.querySelector('.speak-btn')) return;
     
     const isHebrew = lexWord.classList.contains('hebrew');
     const lang = isHebrew ? 'hebrew' : 'greek';
     
-    // Get transliteration from subtitle
-    const subtitle = document.querySelector('.study-subtitle');
-    if (!subtitle) return;
+    // Use the original word for Google TTS
+    const originalText = lexWord.textContent.trim();
+    if (!originalText) return;
     
-    const subtitleText = subtitle.textContent.trim();
-    // Subtitle format: "ʼâb — H1"
-    const text = subtitleText.split('—')[0].trim();
-    
-    if (!text) return;
-    
-    const btn = createSpeakButton(text, lang);
+    const btn = createSpeakButton(originalText, lang);
     btn.style.marginLeft = '8px';
-    lexWord.parentElement.style.display = 'flex';
-    lexWord.parentElement.style.alignItems = 'center';
-    lexWord.parentElement.style.justifyContent = 'center';
-    lexWord.parentElement.style.gap = '8px';
-    lexWord.parentElement.appendChild(btn);
+    
+    const parent = lexWord.parentElement;
+    parent.style.display = 'flex';
+    parent.style.alignItems = 'center';
+    parent.style.justifyContent = 'center';
+    parent.style.gap = '8px';
+    parent.appendChild(btn);
   }
 
   function enhanceAll() {
@@ -190,19 +240,11 @@
     enhanceLexiconWords();
   }
 
-  // Run when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', enhanceAll);
   } else {
     enhanceAll();
   }
-
-  // Also run after a short delay to catch dynamically loaded content
+  
   setTimeout(enhanceAll, 1000);
-
-  // Chrome needs voices to load async
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = function() {};
-  }
-
 })();
