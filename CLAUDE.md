@@ -333,6 +333,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `genesis-1-1-in-the-beginning.html` — Word-by-word Hebrew of Genesis 1:1, 7 words
 - `blood-covenants-why-jesus-had-to-die.html` — Covenant theology, 12 words, 40+ refs
 - `repent-does-not-mean-for-your-sins.html` — Metanoia study, 18 words, 65+ refs, ~90 min
+- `tithing-the-tax-that-ended-at-the-cross.html` — Ma'aser/tithe study, 18 Hebrew/Greek words, 75+ refs, ~95 min
 - `hell-the-three-words-they-mashed-into-one.html` — Sheol/Hades/Gehenna/Tartarus, 22 words, 85+ refs, ~120 min
 - `where-do-believers-go-when-they-die.html` — Paradise/Abraham's Bosom/Absent from body, 19 words, 60+ refs, ~80 min
 - `body-soul-spirit-the-three-part-human.html` — Trichotomy, nephesh/psyche/pneuma/ruach, 21 words, 55+ refs, ~90 min
