@@ -9,7 +9,7 @@
   <style>
     #bible-map { 
       width: 100%; 
-      height: 500px; 
+      height: 600px; 
       border: 2px solid var(--gold); 
       border-radius: 8px; 
       margin: 1.5rem 0;
@@ -157,27 +157,96 @@
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <style>
+    .marker-cluster-small { background-color: rgba(197,150,12,0.4); }
+    .marker-cluster-small div { background-color: rgba(197,150,12,0.7); }
+    .marker-cluster-medium { background-color: rgba(197,150,12,0.5); }
+    .marker-cluster-medium div { background-color: rgba(197,150,12,0.8); }
+    .marker-cluster-large { background-color: rgba(197,150,12,0.6); }
+    .marker-cluster-large div { background-color: rgba(197,150,12,0.9); }
+    .marker-cluster div { color: #fff; font-weight: bold; }
+    .place-type-badge {
+      display: inline-block;
+      background: var(--ultramarine, #2c5282);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 4px;
+    }
+    .place-image-thumb {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin: 0.75rem 0;
+      border: 1px solid var(--gold, #c59612);
+    }
+    #detail-description {
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    .verse-chip {
+      display: inline-block;
+      background: var(--parchment, #e8dcc0);
+      border: 1px solid var(--gold, #c59612);
+      padding: 2px 8px;
+      margin: 2px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      text-decoration: none;
+      color: var(--ultramarine, #2c5282);
+      transition: all 0.2s;
+    }
+    .verse-chip:hover {
+      background: var(--gold, #c59612);
+      color: #fff;
+    }
+    #region-filter {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--gold);
+      border-radius: 6px;
+      font-family: var(--font-reading);
+      background: var(--parchment);
+      color: var(--ink);
+      margin-left: 0.5rem;
+    }
+  </style>
   <script>
     let places = {};
     let map = null;
     let markers = {};
+    let clusterGroup = null;
 
     async function init() {
-      // Initialize map centered on Israel
       map = L.map('bible-map').setView([31.5, 35.2], 7);
+      
+      // Use a cleaner map style
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 18
       }).addTo(map);
 
-      // Load places data
+      // Marker clustering for overlapping locations
+      clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 30,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false
+      });
+
       try {
         const resp = await fetch('../data/biblical_places.json');
         places = await resp.json();
         populateMap();
         populateList();
+        const count = Object.keys(places).length;
         document.getElementById('place-search').placeholder = 
-          `Search ${Object.keys(places).length.toLocaleString()} biblical places...`;
+          `Search ${count.toLocaleString()} biblical places...`;
       } catch(e) {
         console.error('Failed to load places:', e);
         document.getElementById('place-list').innerHTML = 
@@ -188,7 +257,7 @@
     function populateMap() {
       const goldIcon = L.divIcon({
         className: 'map-marker',
-        html: '<div style="width:10px;height:10px;background:var(--gold,#c59612);border:2px solid #8B6914;border-radius:50%;"></div>',
+        html: '<div style="width:10px;height:10px;background:#c59612;border:2px solid #8B6914;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>',
         iconSize: [14, 14],
         iconAnchor: [7, 7]
       });
@@ -196,22 +265,26 @@
       Object.entries(places).forEach(([name, place]) => {
         if (place.latitude && place.longitude) {
           const marker = L.marker([place.latitude, place.longitude], { icon: goldIcon })
-            .addTo(map)
             .bindTooltip(name, { direction: 'top', offset: [0, -10] });
           
           marker.on('click', () => showPlaceDetail(name, place));
           markers[name] = marker;
+          clusterGroup.addLayer(marker);
         }
       });
+
+      map.addLayer(clusterGroup);
     }
 
     function populateList() {
       const listEl = document.getElementById('place-list');
       const sortedNames = Object.keys(places).sort();
       
-      listEl.innerHTML = sortedNames.map(name => 
-        `<div class="place-link" onclick="selectPlace('${name.replace(/'/g, "\\'")}')">${name}</div>`
-      ).join('');
+      listEl.innerHTML = sortedNames.map(name => {
+        const p = places[name];
+        const types = (p.types || []).join(', ');
+        return `<div class="place-link" onclick="selectPlace('${name.replace(/'/g, "\\'")}')" title="${types}">${name}</div>`;
+      }).join('');
     }
 
     function selectPlace(name) {
@@ -221,9 +294,12 @@
       showPlaceDetail(name, place);
       
       if (place.latitude && place.longitude) {
-        map.flyTo([place.latitude, place.longitude], 10, { duration: 1 });
+        map.flyTo([place.latitude, place.longitude], 12, { duration: 1.2 });
         if (markers[name]) {
-          markers[name].openTooltip();
+          // Uncluster if needed
+          clusterGroup.zoomToShowLayer(markers[name], () => {
+            markers[name].openTooltip();
+          });
         }
       }
     }
@@ -233,45 +309,90 @@
       detail.classList.add('active');
       
       document.getElementById('detail-name').textContent = name;
-      document.getElementById('detail-modern').textContent = 
-        place.modern_name ? `Modern: ${place.modern_name}` : '';
+      
+      // Modern name
+      const modernEl = document.getElementById('detail-modern');
+      modernEl.textContent = place.modern_name ? `Modern: ${place.modern_name}` : '';
+      
+      // Types
+      const typesEl = document.getElementById('detail-types');
+      if (typesEl) typesEl.remove();
+      if (place.types && place.types.length > 0) {
+        const div = document.createElement('div');
+        div.id = 'detail-types';
+        div.style.margin = '0.5rem 0';
+        div.innerHTML = place.types.map(t => `<span class="place-type-badge">${t}</span>`).join('');
+        modernEl.after(div);
+      }
+      
+      // Coordinates
       document.getElementById('detail-coords').textContent = 
-        `${place.latitude.toFixed(4)}°N, ${place.longitude.toFixed(4)}°E`;
+        place.latitude ? `${place.latitude.toFixed(4)}°N, ${place.longitude.toFixed(4)}°E` : 'Coordinates uncertain';
       
-      const conf = place.confidence || 50;
+      // Confidence
+      const conf = place.confidence || 0;
       const confFill = document.getElementById('detail-confidence');
-      confFill.style.width = conf + '%';
-      confFill.style.background = conf > 75 ? '#28a745' : conf > 50 ? '#ffc107' : '#dc3545';
+      confFill.style.width = Math.max(conf, 5) + '%';
+      confFill.style.background = conf > 75 ? '#28a745' : conf > 40 ? '#ffc107' : '#dc3545';
+      const confLabel = conf > 75 ? 'High confidence' : conf > 40 ? 'Moderate confidence' : conf > 10 ? 'Low confidence' : 'Approximate/uncertain';
       document.getElementById('detail-confidence-text').textContent = 
-        `Location confidence: ${conf}%`;
+        `📍 Location confidence: ${conf.toFixed(0)}% — ${confLabel}`;
       
-      document.getElementById('detail-description').textContent = 
-        place.description || '';
+      // Image
+      const imgContainer = document.getElementById('detail-image');
+      if (imgContainer) imgContainer.remove();
+      if (place.image_url) {
+        const div = document.createElement('div');
+        div.id = 'detail-image';
+        div.innerHTML = `<img src="${place.image_url}" alt="${place.description || name}" class="place-image-thumb" onerror="this.parentElement.remove()">` +
+          (place.image_credit ? `<p style="font-size:0.8rem;color:var(--text-faded);margin-top:2px;">📸 ${place.image_credit}</p>` : '');
+        document.getElementById('detail-description').before(div);
+      }
       
+      // Description
+      const descEl = document.getElementById('detail-description');
+      descEl.textContent = place.description || 'No detailed description available for this location.';
+      descEl.style.fontStyle = place.description ? 'normal' : 'italic';
+      
+      // Verses with actual links
       const versesEl = document.getElementById('detail-verses');
       if (place.verses && place.verses.length > 0) {
-        versesEl.innerHTML = '<strong>Referenced in:</strong> ' + 
-          place.verses.slice(0, 10).map(v => 
-            `<a href="../interlinear/" style="color:var(--ultramarine)">${v}</a>`
-          ).join(', ') +
-          (place.verses.length > 10 ? ` and ${place.verses.length - 10} more...` : '');
+        const verseLinks = place.verses.map(v => {
+          if (typeof v === 'object') {
+            const url = v.url ? `../${v.url}` : '#';
+            return `<a href="${url}" class="verse-chip">${v.reference}</a>`;
+          }
+          return `<span class="verse-chip">${v}</span>`;
+        });
+        const shown = verseLinks.slice(0, 20).join(' ');
+        const more = place.verses.length > 20 ? `<span style="color:var(--text-faded);font-size:0.85rem;"> +${place.verses.length - 20} more</span>` : '';
+        versesEl.innerHTML = '<strong>📖 Referenced in:</strong><br>' + shown + more;
       } else {
-        versesEl.innerHTML = '';
+        versesEl.innerHTML = '<em style="color:var(--text-faded);">No specific verse references available.</em>';
       }
       
       detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Search functionality
+    // Search
     document.addEventListener('DOMContentLoaded', function() {
       init();
       
       document.getElementById('place-search').addEventListener('input', function() {
-        const query = this.value.toLowerCase();
+        const query = this.value.toLowerCase().trim();
         const listItems = document.querySelectorAll('.place-link');
         
+        if (!query) {
+          listItems.forEach(item => item.style.display = '');
+          return;
+        }
+        
         listItems.forEach(item => {
-          item.style.display = item.textContent.toLowerCase().includes(query) ? '' : 'none';
+          const name = item.textContent.toLowerCase();
+          const place = places[item.textContent];
+          const modern = (place && place.modern_name || '').toLowerCase();
+          const match = name.includes(query) || modern.includes(query);
+          item.style.display = match ? '' : 'none';
         });
       });
     });
