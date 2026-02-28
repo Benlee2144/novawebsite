@@ -96,11 +96,25 @@
           document.querySelectorAll(".search-cats input").forEach(cb => {
             cats[cb.dataset.cat] = cb.checked;
           });
-          const terms = query.toLowerCase().split(/\s+/);
+          
+          // Normalize HTML entities for proper apostrophe and quote matching
+          function normalizeText(text) {
+            return text.toLowerCase()
+              .replace(/&rsquo;/g, "'")     // Right single quotation mark
+              .replace(/&lsquo;/g, "'")     // Left single quotation mark  
+              .replace(/&quot;/g, '"')      // Quotation mark
+              .replace(/&amp;/g, '&')       // Ampersand
+              .replace(/&ldquo;/g, '"')     // Left double quotation mark
+              .replace(/&rdquo;/g, '"');    // Right double quotation mark
+          }
+          
+          const normalizedQuery = normalizeText(query);
+          const terms = normalizedQuery.split(/\s+/);
+          
           const results = searchIndex.filter(entry => {
             if (!cats[entry.c]) return false;
-            const text = entry.t.toLowerCase();
-            return terms.every(t => text.includes(t));
+            const searchText = normalizeText(entry.n + " " + entry.t + " " + entry.d);
+            return terms.every(t => searchText.includes(t));
           }).slice(0, 100);
           const catNames = {studies:"Study",lexicon:"Lexicon",easton:"Easton's",isbe:"ISBE",verse:"Interlinear"};
           document.getElementById("results-count").textContent = 
