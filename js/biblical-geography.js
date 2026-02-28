@@ -8,7 +8,7 @@ class BiblicalGeography {
     constructor() {
         this.places = {};
         this.currentPopup = null;
-        this.baseURL = 'https://your-cloudflare-pages.pages.dev'; // Update this
+        this.baseURL = ''; // Relative to current site
         this.loadPlacesData();
         this.initializeFeature();
     }
@@ -16,7 +16,7 @@ class BiblicalGeography {
     async loadPlacesData() {
         try {
             // Load from Cloudflare Pages (will set this up next)
-            const response = await fetch(`${this.baseURL}/data/biblical_places.json`);
+            const response = await fetch(`${this.baseURL}data/biblical_places.json`);
             this.places = await response.json();
             console.log(`✅ Loaded ${Object.keys(this.places).length} biblical places`);
             this.enhanceExistingContent();
@@ -24,7 +24,7 @@ class BiblicalGeography {
             console.error('❌ Failed to load biblical places:', error);
             // Fallback to local data during development
             try {
-                const response = await fetch('/biblical_places.json');
+                const response = await fetch('data/biblical_places.json');
                 this.places = await response.json();
                 console.log(`✅ Loaded ${Object.keys(this.places).length} biblical places (local fallback)`);
                 this.enhanceExistingContent();

@@ -7,7 +7,7 @@
 class ManuscriptConfidence {
     constructor(options = {}) {
         this.options = {
-            dataURL: options.dataURL || 'https://your-site.pages.dev/data',
+            dataURL: options.dataURL || '',
             autoEnhance: options.autoEnhance !== false,
             showOnHover: options.showOnHover !== false,
             detailedPopups: options.detailedPopups !== false,
@@ -42,7 +42,7 @@ class ManuscriptConfidence {
     
     async loadManuscriptData() {
         try {
-            const response = await fetch(`${this.options.dataURL}/manuscript_confidence.json`);
+            const response = await fetch(`${this.options.dataURL}data/manuscript_confidence.json`);
             this.manuscriptData = await response.json();
             console.log('📚 Loaded manuscript data:', 
                 this.manuscriptData.metadata.total_entries, 'entries');

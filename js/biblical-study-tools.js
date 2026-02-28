@@ -13,7 +13,7 @@
 class BiblicalStudyTools {
     constructor(options = {}) {
         this.options = {
-            dataURL: options.dataURL || 'https://your-site.pages.dev',
+            dataURL: options.dataURL || '',
             enableGeography: options.enableGeography !== false,
             enablePronunciation: options.enablePronunciation !== false,
             enableManuscripts: options.enableManuscripts !== false,
@@ -58,6 +58,7 @@ class BiblicalStudyTools {
             }
             
             this.initialized = true;
+            this.data.loaded = true;
             console.log('✅ Biblical Study Tools initialized successfully');
             
             // Fire ready event
@@ -73,7 +74,7 @@ class BiblicalStudyTools {
         if (!this.options.enableGeography) return;
         
         try {
-            const response = await fetch(`${this.options.dataURL}/data/biblical_places.json`);
+            const response = await fetch(`${this.options.dataURL}data/biblical_places.json`);
             this.data.places = await response.json();
             console.log(`📍 Loaded ${Object.keys(this.data.places).length} biblical places`);
         } catch (error) {
@@ -85,7 +86,7 @@ class BiblicalStudyTools {
         if (!this.options.enablePronunciation) return;
         
         try {
-            const response = await fetch(`${this.options.dataURL}/data/biblical_pronunciation.json`);
+            const response = await fetch(`${this.options.dataURL}data/biblical_pronunciation.json`);
             this.data.pronunciation = await response.json();
             console.log('🔊 Loaded pronunciation data');
         } catch (error) {
@@ -97,7 +98,7 @@ class BiblicalStudyTools {
         if (!this.options.enableManuscripts) return;
         
         try {
-            const response = await fetch(`${this.options.dataURL}/data/manuscript_confidence.json`);
+            const response = await fetch(`${this.options.dataURL}data/manuscript_confidence.json`);
             this.data.manuscripts = await response.json();
             console.log('📜 Loaded manuscript confidence data');
         } catch (error) {
@@ -478,20 +479,8 @@ class SemanticSearchFeature {
     }
 }
 
-// Auto-initialize if included in page
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        // Only auto-initialize if not already done
-        if (!window.biblicalStudyTools) {
-            window.biblicalStudyTools = new BiblicalStudyTools();
-        }
-    });
-} else {
-    // DOM already ready
-    if (!window.biblicalStudyTools) {
-        window.biblicalStudyTools = new BiblicalStudyTools();
-    }
-}
+// Do NOT auto-initialize — let each page initialize with correct dataURL
+// Pages call: new BiblicalStudyTools({ dataURL: './path/' })
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {

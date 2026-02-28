@@ -7,8 +7,8 @@
 class BiblicalPronunciation {
     constructor(options = {}) {
         this.options = {
-            audioURL: options.audioURL || 'https://your-site.pages.dev/audio',
-            dataURL: options.dataURL || 'https://your-site.pages.dev/data',
+            audioURL: options.audioURL || '',
+            dataURL: options.dataURL || '',
             autoEnhance: options.autoEnhance !== false,
             showIPA: options.showIPA !== false,
             showRomanization: options.showRomanization !== false,
@@ -44,7 +44,7 @@ class BiblicalPronunciation {
     
     async loadPronunciationData() {
         try {
-            const response = await fetch(`${this.options.dataURL}/biblical_pronunciation.json`);
+            const response = await fetch(`${this.options.dataURL}data/biblical_pronunciation.json`);
             this.pronunciationData = await response.json();
             console.log('📚 Loaded pronunciation data:', 
                 this.pronunciationData.metadata.total_words, 'words');
