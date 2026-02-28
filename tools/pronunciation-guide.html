@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hebrew &amp; Greek Pronunciation Guide &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .word-card {
+      background: rgba(197,150,12,0.05);
+      border: 1px solid rgba(197,150,12,0.3);
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin: 0.8rem 0;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: center;
+    }
+    .word-original {
+      font-size: 2rem;
+      font-family: serif;
+      color: var(--leather-dark);
+    }
+    .word-info h3 {
+      font-family: var(--font-heading);
+      color: var(--leather-dark);
+      margin: 0 0 0.2rem;
+      font-size: 1rem;
+    }
+    .word-info .ipa {
+      font-family: monospace;
+      color: var(--ultramarine);
+      font-size: 0.95rem;
+    }
+    .word-info .transliteration {
+      color: var(--text-faded);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+    .word-info .meaning {
+      font-family: var(--font-reading);
+      color: var(--ink);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+    .play-btn {
+      background: var(--gold);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .play-btn:hover { background: var(--leather-dark); transform: scale(1.1); }
+    .lang-section { margin: 2rem 0; }
+    .lang-section h2 {
+      font-family: var(--font-heading);
+      color: var(--leather-dark);
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: 0.5rem;
+    }
+    #pron-search {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.6rem 1rem;
+      border: 2px solid var(--gold);
+      border-radius: 6px;
+      font-family: var(--font-reading);
+      font-size: 1rem;
+      background: var(--parchment);
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .word-card { grid-template-columns: 1fr; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Unveiled Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+        <li><a href="../reference/">Reference</a></li>
+        <li><a href="../search.html">Search</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div><div class="border-right"></div>
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+
+      <main class="page-container">
+        <article class="study-article">
+          <header class="study-header">
+            <div class="study-category">Tools &bull; Languages &bull; Pronunciation</div>
+            <h1 class="study-title">Hebrew &amp; Greek Pronunciation Guide</h1>
+            <p class="study-subtitle">Hear the Original Words of Scripture</p>
+          </header>
+          <hr class="divider">
+
+          <section class="study-body">
+            <p class="drop-cap">The words of Scripture were meant to be spoken aloud. Hebrew poetry has rhythm and rhyme that disappears in English translation. Greek verb tenses carry meaning that gets lost in print. This guide helps you hear the words as they were originally pronounced, using academic IPA notation and audio playback.</p>
+
+            <input type="text" id="pron-search" placeholder="Search words..." autocomplete="off">
+
+            <div id="pronunciation-content">
+              <p style="color: var(--text-faded);">Loading pronunciation data...</p>
+            </div>
+          </section>
+        </article>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;Your word is a lamp to my feet and a light to my path.&rdquo;</p>
+    <p class="footer-ref">PSALM 119:105</p>
+    <p class="footer-copy">The Unveiled Word &mdash; Soli Deo Gloria</p>
+  </footer>
+
+  <script>
+    async function init() {
+      try {
+        const resp = await fetch('../data/biblical_pronunciation.json');
+        const data = await resp.json();
+        renderPronunciation(data);
+      } catch(e) {
+        document.getElementById('pronunciation-content').innerHTML = 
+          '<p style="color:red;">Failed to load pronunciation data.</p>';
+      }
+    }
+
+    function renderPronunciation(data) {
+      const container = document.getElementById('pronunciation-content');
+      let html = '';
+
+      // Render Hebrew words
+      if (data.hebrew && data.hebrew.length > 0) {
+        html += '<div class="lang-section"><h2>Hebrew (עברית)</h2>';
+        data.hebrew.forEach(word => {
+          html += renderWordCard(word, 'hebrew');
+        });
+        html += '</div>';
+      }
+
+      // Render Greek words
+      if (data.greek && data.greek.length > 0) {
+        html += '<div class="lang-section"><h2>Greek (Ελληνικά)</h2>';
+        data.greek.forEach(word => {
+          html += renderWordCard(word, 'greek');
+        });
+        html += '</div>';
+      }
+
+      // Render Aramaic words
+      if (data.aramaic && data.aramaic.length > 0) {
+        html += '<div class="lang-section"><h2>Aramaic (ארמית)</h2>';
+        data.aramaic.forEach(word => {
+          html += renderWordCard(word, 'aramaic');
+        });
+        html += '</div>';
+      }
+
+      container.innerHTML = html || '<p>No pronunciation data available.</p>';
+    }
+
+    function renderWordCard(word, lang) {
+      return `
+        <div class="word-card" data-search="${(word.word + ' ' + word.transliteration + ' ' + word.meaning).toLowerCase()}">
+          <div class="word-original">${word.word || ''}</div>
+          <div class="word-info">
+            <h3>${word.transliteration || ''}</h3>
+            <div class="ipa">${word.ipa || ''}</div>
+            ${word.strongs ? `<div class="transliteration">Strong's: ${word.strongs}</div>` : ''}
+            <div class="meaning">${word.meaning || ''}</div>
+          </div>
+          <button class="play-btn" onclick="speak('${(word.transliteration || '').replace(/'/g, "\\'")}', '${lang}')" title="Hear pronunciation">
+            🔊
+          </button>
+        </div>`;
+    }
+
+    function speak(text, lang) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.7;
+        utterance.pitch = 1;
+        // Try to use appropriate voice
+        const voices = speechSynthesis.getVoices();
+        const langCode = lang === 'hebrew' ? 'he' : lang === 'greek' ? 'el' : 'ar';
+        const voice = voices.find(v => v.lang.startsWith(langCode)) || voices[0];
+        if (voice) utterance.voice = voice;
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Search
+    document.addEventListener('DOMContentLoaded', function() {
+      init();
+      document.getElementById('pron-search').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        document.querySelectorAll('.word-card').forEach(card => {
+          const searchText = card.dataset.search || '';
+          card.style.display = searchText.includes(query) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

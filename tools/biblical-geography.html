@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biblical Geography &mdash; Interactive Map of 1,443 Biblical Places &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #bible-map { 
+      width: 100%; 
+      height: 500px; 
+      border: 2px solid var(--gold); 
+      border-radius: 8px; 
+      margin: 1.5rem 0;
+    }
+    .place-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .place-link {
+      padding: 0.4rem 0.8rem;
+      background: rgba(197,150,12,0.08);
+      border: 1px solid rgba(197,150,12,0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font-reading);
+      font-size: 0.9rem;
+      color: var(--ultramarine);
+      transition: all 0.2s;
+    }
+    .place-link:hover {
+      background: rgba(197,150,12,0.2);
+      border-color: var(--gold);
+    }
+    #place-search {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.6rem 1rem;
+      border: 2px solid var(--gold);
+      border-radius: 6px;
+      font-family: var(--font-reading);
+      font-size: 1rem;
+      background: var(--parchment);
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+    .place-detail {
+      background: rgba(197,150,12,0.05);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      display: none;
+    }
+    .place-detail.active { display: block; }
+    .place-detail h3 { 
+      font-family: var(--font-heading); 
+      color: var(--leather-dark); 
+      margin-bottom: 0.5rem; 
+    }
+    .place-detail .coords {
+      font-family: monospace;
+      color: var(--text-faded);
+      font-size: 0.85rem;
+    }
+    .confidence-bar {
+      height: 6px;
+      background: #ddd;
+      border-radius: 3px;
+      margin: 0.5rem 0;
+      overflow: hidden;
+    }
+    .confidence-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+    @media (max-width: 768px) {
+      #bible-map { height: 350px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Unveiled Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+        <li><a href="../reference/">Reference</a></li>
+        <li><a href="../search.html">Search</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div>
+      <div class="border-right"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+
+      <main class="page-container">
+        <article class="study-article">
+          <header class="study-header">
+            <div class="study-category">Tools &bull; Geography &bull; Interactive Map</div>
+            <h1 class="study-title">Biblical Geography</h1>
+            <p class="study-subtitle">Interactive Map of 1,443 Biblical Places with GPS Coordinates</p>
+          </header>
+          <hr class="divider">
+
+          <section class="study-body">
+            <p class="drop-cap">Every place mentioned in Scripture existed in the real world. This interactive map shows you exactly where&mdash;with GPS coordinates sourced from academic research spanning 70+ scholarly works. Click any location to see its modern name, historical significance, and the verses that reference it.</p>
+
+            <h2>Interactive Map</h2>
+            <p>Search for a biblical place or click any marker on the map.</p>
+            
+            <input type="text" id="place-search" placeholder="Search 1,443 biblical places..." autocomplete="off">
+            
+            <div id="bible-map"></div>
+            
+            <div id="place-detail" class="place-detail">
+              <h3 id="detail-name"></h3>
+              <p id="detail-modern" style="color: var(--ultramarine); font-weight: 600;"></p>
+              <p id="detail-coords" class="coords"></p>
+              <div class="confidence-bar">
+                <div id="detail-confidence" class="confidence-fill"></div>
+              </div>
+              <p id="detail-confidence-text" style="font-size: 0.85rem; color: var(--text-faded);"></p>
+              <p id="detail-description"></p>
+              <div id="detail-verses" style="margin-top: 0.5rem;"></div>
+            </div>
+
+            <h2>Browse by Region</h2>
+            <div id="place-list" class="place-list">
+              <p style="color: var(--text-faded);">Loading places...</p>
+            </div>
+          </section>
+        </article>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;Your word is a lamp to my feet and a light to my path.&rdquo;</p>
+    <p class="footer-ref">PSALM 119:105</p>
+    <p class="footer-copy">The Unveiled Word &mdash; Soli Deo Gloria</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let places = {};
+    let map = null;
+    let markers = {};
+
+    async function init() {
+      // Initialize map centered on Israel
+      map = L.map('bible-map').setView([31.5, 35.2], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 18
+      }).addTo(map);
+
+      // Load places data
+      try {
+        const resp = await fetch('../data/biblical_places.json');
+        places = await resp.json();
+        populateMap();
+        populateList();
+        document.getElementById('place-search').placeholder = 
+          `Search ${Object.keys(places).length.toLocaleString()} biblical places...`;
+      } catch(e) {
+        console.error('Failed to load places:', e);
+        document.getElementById('place-list').innerHTML = 
+          '<p style="color:red;">Failed to load biblical places data.</p>';
+      }
+    }
+
+    function populateMap() {
+      const goldIcon = L.divIcon({
+        className: 'map-marker',
+        html: '<div style="width:10px;height:10px;background:var(--gold,#c59612);border:2px solid #8B6914;border-radius:50%;"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+
+      Object.entries(places).forEach(([name, place]) => {
+        if (place.latitude && place.longitude) {
+          const marker = L.marker([place.latitude, place.longitude], { icon: goldIcon })
+            .addTo(map)
+            .bindTooltip(name, { direction: 'top', offset: [0, -10] });
+          
+          marker.on('click', () => showPlaceDetail(name, place));
+          markers[name] = marker;
+        }
+      });
+    }
+
+    function populateList() {
+      const listEl = document.getElementById('place-list');
+      const sortedNames = Object.keys(places).sort();
+      
+      listEl.innerHTML = sortedNames.map(name => 
+        `<div class="place-link" onclick="selectPlace('${name.replace(/'/g, "\\'")}')">${name}</div>`
+      ).join('');
+    }
+
+    function selectPlace(name) {
+      const place = places[name];
+      if (!place) return;
+      
+      showPlaceDetail(name, place);
+      
+      if (place.latitude && place.longitude) {
+        map.flyTo([place.latitude, place.longitude], 10, { duration: 1 });
+        if (markers[name]) {
+          markers[name].openTooltip();
+        }
+      }
+    }
+
+    function showPlaceDetail(name, place) {
+      const detail = document.getElementById('place-detail');
+      detail.classList.add('active');
+      
+      document.getElementById('detail-name').textContent = name;
+      document.getElementById('detail-modern').textContent = 
+        place.modern_name ? `Modern: ${place.modern_name}` : '';
+      document.getElementById('detail-coords').textContent = 
+        `${place.latitude.toFixed(4)}°N, ${place.longitude.toFixed(4)}°E`;
+      
+      const conf = place.confidence || 50;
+      const confFill = document.getElementById('detail-confidence');
+      confFill.style.width = conf + '%';
+      confFill.style.background = conf > 75 ? '#28a745' : conf > 50 ? '#ffc107' : '#dc3545';
+      document.getElementById('detail-confidence-text').textContent = 
+        `Location confidence: ${conf}%`;
+      
+      document.getElementById('detail-description').textContent = 
+        place.description || '';
+      
+      const versesEl = document.getElementById('detail-verses');
+      if (place.verses && place.verses.length > 0) {
+        versesEl.innerHTML = '<strong>Referenced in:</strong> ' + 
+          place.verses.slice(0, 10).map(v => 
+            `<a href="../interlinear/" style="color:var(--ultramarine)">${v}</a>`
+          ).join(', ') +
+          (place.verses.length > 10 ? ` and ${place.verses.length - 10} more...` : '');
+      } else {
+        versesEl.innerHTML = '';
+      }
+      
+      detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      init();
+      
+      document.getElementById('place-search').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const listItems = document.querySelectorAll('.place-link');
+        
+        listItems.forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>
