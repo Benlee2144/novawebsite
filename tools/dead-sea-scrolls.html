@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dead Sea Scrolls &mdash; Biblical Manuscripts by Book &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .dss-container { max-width: 900px; margin: 0 auto; padding: 1rem; }
+    .dss-summary {
+      background: rgba(197,150,12,0.06); border: 2px solid var(--gold,#c5960c);
+      border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; text-align: center;
+    }
+    .dss-stat { display: inline-block; margin: 0.5rem 1.5rem; }
+    .dss-stat-num { font-family: var(--font-heading,'Cinzel',serif); font-size: 2rem; color: var(--gold,#c5960c); display: block; }
+    .dss-stat-label { font-size: 0.85rem; color: var(--text-faded,#6b5b4a); }
+    .book-card {
+      margin-bottom: 1.2rem; border: 1px solid rgba(197,150,12,0.2); border-radius: 10px;
+      overflow: hidden; transition: all 0.3s;
+    }
+    .book-card:hover { border-color: var(--gold,#c5960c); }
+    .book-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 1.2rem; cursor: pointer; background: rgba(197,150,12,0.03);
+    }
+    .book-name { font-family: var(--font-heading,'Cinzel',serif); font-size: 1.1rem; color: var(--leather-dark,#2c1810); }
+    .book-count { font-size: 0.85rem; color: var(--gold,#c5960c); font-weight: 700; }
+    .book-scrolls { display: none; padding: 0 1.2rem 1rem; }
+    .book-card.expanded .book-scrolls { display: block; }
+    .scroll-item {
+      padding: 0.8rem; margin: 0.5rem 0; background: rgba(197,150,12,0.02);
+      border-left: 3px solid var(--gold,#c5960c); border-radius: 0 8px 8px 0;
+    }
+    .scroll-item.highlight { border-left-color: #c62828; background: rgba(198,40,40,0.04); }
+    .scroll-id { font-family: monospace; font-size: 0.9rem; color: var(--leather-dark,#2c1810); font-weight: 700; }
+    .scroll-meta { font-size: 0.8rem; color: var(--text-faded,#6b5b4a); margin: 0.2rem 0; }
+    .scroll-content { font-family: var(--font-reading,Georgia,serif); font-size: 0.9rem; color: var(--ink,#3c2f2f); line-height: 1.5; }
+    .interlinear-link {
+      display: inline-block; margin-top: 0.3rem; padding: 2px 8px;
+      background: rgba(30,58,110,0.08); border-radius: 4px; font-size: 0.8rem;
+      color: var(--ultramarine,#1e3a6e); text-decoration: none;
+    }
+    .interlinear-link:hover { background: rgba(30,58,110,0.15); }
+    .esther-note {
+      margin: 1.5rem 0; padding: 1rem 1.5rem; background: rgba(198,40,40,0.05);
+      border: 1px solid rgba(198,40,40,0.2); border-radius: 10px;
+      font-family: var(--font-reading,Georgia,serif); font-size: 0.95rem; color: var(--ink,#3c2f2f);
+    }
+    @media (max-width: 600px) { .dss-stat { margin: 0.5rem 0.8rem; } }
+  </style>
+</head>
+<body>
+  <main class="dss-container">
+    <h1 style="text-align:center;font-family:var(--font-heading,'Cinzel',serif);color:var(--leather-dark,#2c1810);">
+      📜 Dead Sea Scrolls
+    </h1>
+    <p style="text-align:center;font-family:var(--font-reading,Georgia,serif);color:var(--ink,#3c2f2f);max-width:700px;margin:0 auto 1rem;">
+      Every known biblical manuscript from the Qumran caves, organized by book. Discovered 1946–1956 near the Dead Sea, these scrolls pushed our oldest Old Testament manuscripts back by 1,000 years.
+    </p>
+
+    <div class="dss-summary" id="summary"></div>
+    <div id="books"></div>
+    <div class="esther-note" id="esther-note"></div>
+  </main>
+
+  <script>
+  async function init() {
+    const resp = await fetch('../data/dead_sea_scrolls.json');
+    const data = await resp.json();
+
+    document.getElementById('summary').innerHTML = `
+      <div class="dss-stat"><span class="dss-stat-num">${data.total_known_manuscripts.match(/\d+/)?.[0] || '900+'}</span><span class="dss-stat-label">Total Scrolls & Fragments</span></div>
+      <div class="dss-stat"><span class="dss-stat-num">~230</span><span class="dss-stat-label">Biblical Manuscripts</span></div>
+      <div class="dss-stat"><span class="dss-stat-num">${data.total_books_represented}</span><span class="dss-stat-label">OT Books Found</span></div>
+      <div class="dss-stat"><span class="dss-stat-num">11</span><span class="dss-stat-label">Caves</span></div>
+      <p style="margin-top:1rem;font-size:0.9rem;color:var(--ink,#3c2f2f);text-align:left;max-width:700px;margin-left:auto;margin-right:auto;">${data.significance}</p>
+      <p style="font-size:0.85rem;color:var(--text-faded,#6b5b4a);margin-top:0.5rem;">📍 ${data.discovery}<br>🏛️ ${data.current_location}</p>
+    `;
+
+    document.getElementById('books').innerHTML = data.books.map(book => {
+      const scrollsHtml = book.scrolls.map(s => `
+        <div class="scroll-item ${s.highlight ? 'highlight' : ''}">
+          <div class="scroll-id">${s.id}</div>
+          <div class="scroll-meta">📅 ${s.date} &nbsp; 🕳️ Cave ${s.cave || 'Other'}</div>
+          <div class="scroll-content">${s.content}</div>
+          <a class="interlinear-link" href="../interlinear/${book.abbr}-1.html">View ${book.book} Interlinear →</a>
+        </div>
+      `).join('');
+      return `<div class="book-card" onclick="this.classList.toggle('expanded')">
+        <div class="book-header">
+          <span class="book-name">${book.book}</span>
+          <span class="book-count">${book.scrolls.length} manuscript${book.scrolls.length>1?'s':''} ▾</span>
+        </div>
+        <div class="book-scrolls">${scrollsHtml}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('esther-note').innerHTML = `
+      <strong>📕 Missing: ${data.books_not_found.join(', ')}</strong><br>${data.note}
+    `;
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+  </script>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/audio-pronunciation.js?v2"></script>
+  <script src="../js/bg-music.js?v2"></script>
+</body>
+</html>

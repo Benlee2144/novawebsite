@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Word Frequency &mdash; Most Used Hebrew &amp; Greek Words &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .freq-container { max-width: 900px; margin: 0 auto; padding: 1rem; }
+    .lang-tabs { display: flex; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; }
+    .lang-tab {
+      padding: 0.6rem 2rem; border: 2px solid var(--gold,#c5960c); border-radius: 20px;
+      background: transparent; color: var(--ink,#3c2f2f); font-size: 1rem; cursor: pointer; font-weight: 700;
+    }
+    .lang-tab.active { background: var(--gold,#c5960c); color: #fff; }
+    .word-row {
+      display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1rem;
+      border-bottom: 1px solid rgba(197,150,12,0.1); transition: background 0.2s;
+    }
+    .word-row:hover { background: rgba(197,150,12,0.05); }
+    .word-rank { width: 40px; text-align: right; font-weight: 700; color: var(--gold,#c5960c); font-size: 0.85rem; }
+    .word-bar-wrap { flex: 1; min-width: 100px; }
+    .word-bar { height: 24px; background: linear-gradient(90deg, var(--gold,#c5960c), rgba(197,150,12,0.3)); border-radius: 4px; min-width: 2px; }
+    .word-info { width: 250px; }
+    .word-original { font-size: 1.2rem; }
+    .word-meaning { font-size: 0.8rem; color: var(--text-faded,#6b5b4a); display: block; }
+    .word-count { width: 60px; text-align: right; font-weight: 700; color: var(--ink,#3c2f2f); font-size: 0.9rem; }
+    .word-link { color: var(--ultramarine,#1e3a6e); text-decoration: none; font-size: 0.8rem; }
+    .stats { text-align: center; color: var(--text-faded,#6b5b4a); font-size: 0.9rem; margin: 0.5rem 0 1rem; }
+    @media (max-width: 600px) {
+      .word-row { flex-wrap: wrap; gap: 0.3rem; }
+      .word-info { width: 100%; }
+      .word-bar-wrap { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="freq-container">
+    <h1 style="text-align:center;font-family:var(--font-heading,'Cinzel',serif);color:var(--leather-dark,#2c1810);">
+      📊 Word Frequency
+    </h1>
+    <p style="text-align:center;font-family:var(--font-reading,Georgia,serif);color:var(--ink,#3c2f2f);max-width:700px;margin:0 auto 1rem;">
+      The 200 most frequently used Hebrew and Greek words in the Bible, ranked by number of occurrences. Click any word to see its full lexicon entry.
+    </p>
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="show('hebrew')">Hebrew (OT)</button>
+      <button class="lang-tab" onclick="show('greek')">Greek (NT)</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="list"></div>
+  </main>
+
+  <script>
+  let data = {};
+  let current = 'hebrew';
+
+  function decode(s) {
+    const d = document.createElement('div'); d.innerHTML = s; return d.textContent;
+  }
+
+  async function init() {
+    const resp = await fetch('../data/word_frequency.json');
+    data = await resp.json();
+    show('hebrew');
+  }
+
+  function show(lang) {
+    current = lang;
+    document.querySelectorAll('.lang-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(lang)));
+    const words = data[lang] || [];
+    const max = words.length ? words[0].c : 1;
+    const total = lang === 'hebrew' ? data.total_hebrew : data.total_greek;
+    document.getElementById('stats').textContent = `Showing top ${words.length} of ${total} ${lang === 'hebrew' ? 'Hebrew' : 'Greek'} words`;
+    document.getElementById('list').innerHTML = words.map((w, i) => {
+      const pct = (w.c / max * 100).toFixed(1);
+      const name = decode(w.w).replace(/^[HG]\d+\s*[—–-]\s*/, '');
+      const meaning = decode(w.m);
+      return `<div class="word-row">
+        <span class="word-rank">#${i+1}</span>
+        <div class="word-info">
+          <span class="word-original">${name}</span>
+          <span class="word-meaning">${meaning}</span>
+          <a class="word-link" href="../lexicon/${w.s.toLowerCase()}.html">${w.s} →</a>
+        </div>
+        <div class="word-bar-wrap"><div class="word-bar" style="width:${pct}%"></div></div>
+        <span class="word-count">${w.c.toLocaleString()}</span>
+      </div>`;
+    }).join('');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+  </script>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/audio-pronunciation.js?v2"></script>
+  <script src="../js/bg-music.js?v2"></script>
+</body>
+</html>
