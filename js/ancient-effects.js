@@ -366,7 +366,7 @@
   // FEATURE 9: 3D Rotating Codex (Homepage/Index)
   // ============================================================
   function initRotatingCodex() {
-    const target = document.querySelector('.cover-section, .hero-section, .studies-hero');
+    const target = document.querySelector('.book-cover, .cover-section, .hero-section, .studies-hero, .studies-header');
     if (!target || document.querySelector('.codex-3d')) return;
 
     const codex = document.createElement('div');
@@ -587,8 +587,8 @@
   function initAll() {
     const isStudy = document.querySelector('.study-article');
     const isContent = document.querySelector('.book-page');
-    const isHome = document.querySelector('.cover-section');
-    const isIndex = document.querySelector('.studies-hero');
+    const isHome = document.querySelector('.book-cover');
+    const isIndex = document.querySelector('.studies-header');
 
     if (isContent) {
       initAgingParchment();
