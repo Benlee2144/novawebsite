@@ -20,20 +20,33 @@
     return segments.length > 1 ? '../'.repeat(segments.length - 1) : './';
   }
 
+  // Check if mobile device (do this outside init for template use)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   function init() {
     const basePath = getBasePath();
     const audioSrc = basePath + 'audio/bg-music.mp3';
 
-    // Create audio element via DOM (more reliable cross-browser)
+    // Create audio element with mobile-optimized settings
     const audio = document.createElement('audio');
     audio.id = 'bg-music-audio';
     audio.loop = true;
-    audio.preload = 'auto';
-    // No crossOrigin — same-origin on GitHub Pages
-    const source = document.createElement('source');
-    source.src = audioSrc;
-    source.type = 'audio/mpeg';
-    audio.appendChild(source);
+    audio.preload = isMobile ? 'metadata' : 'auto'; // Less aggressive on mobile
+    if (isIOS) {
+      audio.playsInline = true;
+      audio.setAttribute('playsinline', 'true');
+    }
+    
+    // For mobile, set src directly (avoid source elements on iOS)
+    if (isMobile) {
+      audio.src = audioSrc;
+    } else {
+      const source = document.createElement('source');
+      source.src = audioSrc;
+      source.type = 'audio/mpeg';
+      audio.appendChild(source);
+    }
     document.body.appendChild(audio);
     
     // Restore saved state
@@ -49,11 +62,21 @@
     }
     audio.addEventListener('error', () => {
       const err = audio.error;
-      setStatus('Error loading: ' + (err ? err.message : 'unknown'));
+      const errMsg = err ? err.message : 'unknown error';
+      setStatus('Error: ' + errMsg);
+      console.error('🎵 Audio error:', errMsg);
     });
     audio.addEventListener('canplay', () => setStatus('Ready'));
     audio.addEventListener('playing', () => setStatus('Playing ♪'));
     audio.addEventListener('waiting', () => setStatus('Loading...'));
+    audio.addEventListener('loadstart', () => setStatus('Loading audio...'));
+    
+    // iOS-specific debugging
+    if (isIOS) {
+      audio.addEventListener('stalled', () => setStatus('Network stalled'));
+      audio.addEventListener('suspend', () => setStatus('Loading suspended'));
+      console.log('🎵 iOS device detected, using mobile-optimized settings');
+    }
 
     // Create floating music button
     const container = document.createElement('div');
@@ -74,6 +97,7 @@
         </div>
         <p class="bgm-note">Plays alongside study narration</p>
         <p id="bgm-status" class="bgm-note" style="color:#c59612;"></p>
+        ${isMobile ? '<p class="bgm-note" style="color:#ff9800;">📱 Mobile: May require multiple taps</p>' : ''}
       </div>
     `;
 
@@ -232,33 +256,67 @@
       panel.classList.remove('open');
     });
 
-    playBtn.addEventListener('click', () => {
+    playBtn.addEventListener('click', async () => {
       if (playing) {
         audio.pause();
         playBtn.textContent = '▶';
         toggleBtn.classList.remove('playing');
         playing = false;
       } else {
+        // Set volume first
         audio.volume = muted ? 0 : parseFloat(volSlider.value) / 100;
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            console.log('🎵 BG Music playing');
-            playBtn.textContent = '⏸';
-            toggleBtn.classList.add('playing');
-            playing = true;
-          }).catch((err) => {
-            console.error('🎵 BG Music play failed:', err);
-            // Try loading and playing again
-            audio.load();
-            setTimeout(() => {
-              audio.play().then(() => {
-                playBtn.textContent = '⏸';
-                toggleBtn.classList.add('playing');
-                playing = true;
-              }).catch(e => console.error('🎵 Retry failed:', e));
-            }, 200);
-          });
+        
+        // Enhanced mobile play handling
+        try {
+          // For iOS, ensure audio is ready
+          if (isIOS && audio.readyState < 2) {
+            setStatus('Loading audio...');
+            await new Promise((resolve) => {
+              const canPlayHandler = () => {
+                audio.removeEventListener('canplay', canPlayHandler);
+                audio.removeEventListener('loadeddata', canPlayHandler);
+                resolve();
+              };
+              audio.addEventListener('canplay', canPlayHandler);
+              audio.addEventListener('loadeddata', canPlayHandler);
+              audio.load();
+              
+              // Timeout after 15 seconds
+              setTimeout(() => {
+                audio.removeEventListener('canplay', canPlayHandler);
+                audio.removeEventListener('loadeddata', canPlayHandler);
+                resolve();
+              }, 15000);
+            });
+          }
+          
+          // Try to play with retries for mobile
+          const maxRetries = isMobile ? 3 : 1;
+          let success = false;
+          
+          for (let attempt = 1; attempt <= maxRetries && !success; attempt++) {
+            try {
+              setStatus(attempt > 1 ? `Retry ${attempt}...` : 'Starting...');
+              await audio.play();
+              success = true;
+              console.log(`🎵 BG Music playing (attempt ${attempt})`);
+              playBtn.textContent = '⏸';
+              toggleBtn.classList.add('playing');
+              playing = true;
+            } catch (playErr) {
+              console.warn(`🎵 Play attempt ${attempt} failed:`, playErr.message);
+              if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                audio.load();
+              } else {
+                setStatus('Playback failed on this device');
+                console.error('🎵 All play attempts failed');
+              }
+            }
+          }
+        } catch (err) {
+          console.error('🎵 Play setup failed:', err);
+          setStatus('Error: ' + err.message);
         }
       }
     });
