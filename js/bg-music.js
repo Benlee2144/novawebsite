@@ -26,7 +26,10 @@
 
   function init() {
     const basePath = getBasePath();
-    const audioSrc = basePath + 'audio/bg-music.mp3';
+    // Use smaller file for mobile devices
+    const audioFile = isMobile ? 'bg-music-mobile.mp3' : 'bg-music.mp3';
+    const audioSrc = basePath + 'audio/' + audioFile;
+    console.log('🎵 Loading audio:', audioFile, 'for', isMobile ? 'mobile' : 'desktop');
 
     // Create audio element with mobile-optimized settings
     const audio = document.createElement('audio');
@@ -62,9 +65,19 @@
     }
     audio.addEventListener('error', () => {
       const err = audio.error;
-      const errMsg = err ? err.message : 'unknown error';
+      let errMsg = 'unknown error';
+      if (err) {
+        // Decode specific error codes for debugging
+        const errorCodes = {
+          1: 'MEDIA_ERR_ABORTED - playback aborted',
+          2: 'MEDIA_ERR_NETWORK - network error during load', 
+          3: 'MEDIA_ERR_DECODE - error decoding audio',
+          4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - audio format not supported'
+        };
+        errMsg = errorCodes[err.code] || `Error code ${err.code}`;
+      }
       setStatus('Error: ' + errMsg);
-      console.error('🎵 Audio error:', errMsg);
+      console.error('🎵 Audio error:', errMsg, 'readyState:', audio.readyState, 'src:', audio.src);
     });
     audio.addEventListener('canplay', () => setStatus('Ready'));
     audio.addEventListener('playing', () => setStatus('Playing ♪'));
