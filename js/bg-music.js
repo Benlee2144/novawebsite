@@ -26,30 +26,47 @@
 
   function init() {
     const basePath = getBasePath();
-    // Use smaller file for mobile devices
-    const audioFile = isMobile ? 'bg-music-mobile.mp3' : 'bg-music.mp3';
-    const audioSrc = basePath + 'audio/' + audioFile;
-    console.log('🎵 Loading audio:', audioFile, 'for', isMobile ? 'mobile' : 'desktop');
+    console.log('🎵 Initializing audio for', isMobile ? 'mobile' : 'desktop', isIOS ? '(iOS)' : '');
 
     // Create audio element with mobile-optimized settings
     const audio = document.createElement('audio');
     audio.id = 'bg-music-audio';
     audio.loop = true;
-    audio.preload = isMobile ? 'metadata' : 'auto'; // Less aggressive on mobile
+    audio.preload = isMobile ? 'metadata' : 'auto';
     if (isIOS) {
       audio.playsInline = true;
       audio.setAttribute('playsinline', 'true');
     }
     
-    // For mobile, set src directly (avoid source elements on iOS)
     if (isMobile) {
-      audio.src = audioSrc;
+      // For iOS, try AAC first (better compatibility), then MP3 fallback
+      if (isIOS) {
+        // Use multiple source elements for iOS compatibility
+        const sourceAAC = document.createElement('source');
+        sourceAAC.src = basePath + 'audio/bg-music-mobile.m4a';
+        sourceAAC.type = 'audio/mp4; codecs="mp4a.40.2"'; // AAC-LC
+        audio.appendChild(sourceAAC);
+        
+        const sourceMP3 = document.createElement('source');
+        sourceMP3.src = basePath + 'audio/bg-music-mobile.mp3';
+        sourceMP3.type = 'audio/mpeg';
+        audio.appendChild(sourceMP3);
+        
+        console.log('🎵 iOS: Added AAC and MP3 sources');
+      } else {
+        // Android/other mobile: just use MP3
+        audio.src = basePath + 'audio/bg-music-mobile.mp3';
+        console.log('🎵 Mobile (non-iOS): Using MP3');
+      }
     } else {
+      // Desktop: use full-quality file
       const source = document.createElement('source');
-      source.src = audioSrc;
+      source.src = basePath + 'audio/bg-music.mp3';
       source.type = 'audio/mpeg';
       audio.appendChild(source);
+      console.log('🎵 Desktop: Using full-quality MP3');
     }
+    
     document.body.appendChild(audio);
     
     // Restore saved state
@@ -63,11 +80,14 @@
       const el = document.getElementById('bgm-status');
       if (el) el.textContent = msg;
     }
+    // Track which source is currently being tried
+    let currentSourceIndex = 0;
+    const sources = Array.from(audio.querySelectorAll('source'));
+    
     audio.addEventListener('error', () => {
       const err = audio.error;
       let errMsg = 'unknown error';
       if (err) {
-        // Decode specific error codes for debugging
         const errorCodes = {
           1: 'MEDIA_ERR_ABORTED - playback aborted',
           2: 'MEDIA_ERR_NETWORK - network error during load', 
@@ -76,8 +96,23 @@
         };
         errMsg = errorCodes[err.code] || `Error code ${err.code}`;
       }
-      setStatus('Error: ' + errMsg);
-      console.error('🎵 Audio error:', errMsg, 'readyState:', audio.readyState, 'src:', audio.src);
+      
+      const currentSrc = audio.currentSrc || audio.src || 'unknown';
+      const format = currentSrc.includes('.m4a') ? 'AAC' : currentSrc.includes('.mp3') ? 'MP3' : 'unknown';
+      
+      console.error('🎵 Audio error:', errMsg, 'format:', format, 'src:', currentSrc);
+      
+      // If we have multiple sources and this isn't the last one, try the next
+      if (sources.length > 1 && currentSourceIndex < sources.length - 1) {
+        setStatus(`${format} failed, trying MP3...`);
+        currentSourceIndex++;
+      } else {
+        setStatus(`Error: ${errMsg.split(' - ')[0]}`);
+        // Show helpful message for unsupported format
+        if (err && err.code === 4) {
+          setTimeout(() => setStatus('This device may not support background music'), 2000);
+        }
+      }
     });
     audio.addEventListener('canplay', () => setStatus('Ready'));
     audio.addEventListener('playing', () => setStatus('Playing ♪'));
