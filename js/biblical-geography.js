@@ -8,29 +8,30 @@ class BiblicalGeography {
     constructor() {
         this.places = {};
         this.currentPopup = null;
-        this.baseURL = ''; // Relative to current site
+        // Derive base URL from this script's src attribute
+        this.baseURL = BiblicalGeography._getBaseURL();
         this.loadPlacesData();
         this.initializeFeature();
     }
 
+    static _getBaseURL() {
+        const scripts = document.querySelectorAll('script[src*="biblical-geography"]');
+        if (scripts.length) {
+            const src = scripts[scripts.length - 1].getAttribute('src');
+            return src.replace(/js\/biblical-geography\.js.*$/, '');
+        }
+        return '../';
+    }
+
     async loadPlacesData() {
         try {
-            // Load from Cloudflare Pages (will set this up next)
             const response = await fetch(`${this.baseURL}data/biblical_places.json`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             this.places = await response.json();
             console.log(`✅ Loaded ${Object.keys(this.places).length} biblical places`);
             this.enhanceExistingContent();
         } catch (error) {
-            console.error('❌ Failed to load biblical places:', error);
-            // Fallback to local data during development
-            try {
-                const response = await fetch('data/biblical_places.json');
-                this.places = await response.json();
-                console.log(`✅ Loaded ${Object.keys(this.places).length} biblical places (local fallback)`);
-                this.enhanceExistingContent();
-            } catch (fallbackError) {
-                console.error('❌ Fallback also failed:', fallbackError);
-            }
+            // Silently fail — this script runs on many pages where data may not be needed
         }
     }
 

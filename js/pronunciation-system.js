@@ -44,15 +44,25 @@ class BiblicalPronunciation {
     
     async loadPronunciationData() {
         try {
-            const response = await fetch(`${this.options.dataURL}data/biblical_pronunciation.json`);
+            const dataURL = this.options.dataURL || BiblicalPronunciation._getBaseURL();
+            const response = await fetch(`${dataURL}data/biblical_pronunciation.json`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             this.pronunciationData = await response.json();
             console.log('📚 Loaded pronunciation data:', 
                 this.pronunciationData.metadata.total_words, 'words');
         } catch (error) {
-            console.error('❌ Failed to load pronunciation data:', error);
-            // Fallback to embedded data
+            // Silently fail on pages where data is not available
             this.pronunciationData = this.getEmbeddedData();
         }
+    }
+
+    static _getBaseURL() {
+        const scripts = document.querySelectorAll('script[src*="pronunciation-system"]');
+        if (scripts.length) {
+            const src = scripts[scripts.length - 1].getAttribute('src');
+            return src.replace(/js\/pronunciation-system\.js.*$/, '');
+        }
+        return '../';
     }
     
     enhanceExistingContent() {

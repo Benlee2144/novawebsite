@@ -42,15 +42,25 @@ class ManuscriptConfidence {
     
     async loadManuscriptData() {
         try {
-            const response = await fetch(`${this.options.dataURL}data/manuscript_confidence.json`);
+            const dataURL = this.options.dataURL || ManuscriptConfidence._getBaseURL();
+            const response = await fetch(`${dataURL}data/manuscript_confidence.json`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             this.manuscriptData = await response.json();
             console.log('📚 Loaded manuscript data:', 
                 this.manuscriptData.metadata.total_entries, 'entries');
         } catch (error) {
-            console.error('❌ Failed to load manuscript data:', error);
-            // Fallback to embedded data
+            // Silently fail on pages where data is not available
             this.manuscriptData = this.getEmbeddedData();
         }
+    }
+
+    static _getBaseURL() {
+        const scripts = document.querySelectorAll('script[src*="manuscript-confidence"]');
+        if (scripts.length) {
+            const src = scripts[scripts.length - 1].getAttribute('src');
+            return src.replace(/js\/manuscript-confidence\.js.*$/, '');
+        }
+        return '../';
     }
     
     enhanceExistingContent() {
