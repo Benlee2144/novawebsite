@@ -67,8 +67,11 @@
       // Check for explicit data-base-path first
       const basePath = scripts[0].getAttribute('data-base-path');
       if (basePath) return basePath;
-      const src = scripts[0].getAttribute('src').split('?')[0]; // strip cache buster
-      return src.replace('js/audio-pronunciation.js', '');
+      // Strip cache buster (?v3, ?v4, etc.) before parsing path
+      const src = scripts[0].getAttribute('src').replace(/\?.*$/, '');
+      // Handle both "js/audio-pronunciation.js" and "../js/audio-pronunciation.js" etc.
+      const idx = src.indexOf('js/audio-pronunciation.js');
+      if (idx >= 0) return src.substring(0, idx) || './';
     }
     // Fallback
     const segments = window.location.pathname.split('/').filter(Boolean);
