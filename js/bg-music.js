@@ -16,16 +16,31 @@
     const basePath = getBasePath();
     const audioSrc = basePath + 'audio/bg-music.mp3';
 
-    // Create audio element
-    const audio = new Audio(audioSrc);
+    // Create audio element via DOM (more reliable cross-browser)
+    const audio = document.createElement('audio');
+    audio.id = 'bg-music-audio';
     audio.loop = true;
-    audio.preload = 'none'; // Don't load until user clicks
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+    const source = document.createElement('source');
+    source.src = audioSrc;
+    source.type = 'audio/mpeg';
+    audio.appendChild(source);
+    document.body.appendChild(audio);
     
     // Restore saved state
     const savedVol = localStorage.getItem('bgMusicVol');
     const savedMute = localStorage.getItem('bgMusicMute');
     audio.volume = savedVol ? parseFloat(savedVol) : 0.15;
     let muted = savedMute === 'true';
+    
+    // Debug
+    audio.addEventListener('error', (e) => {
+      console.error('🎵 BG Music error:', audio.error);
+    });
+    audio.addEventListener('canplay', () => {
+      console.log('🎵 BG Music ready to play');
+    });
 
     // Create floating music button
     const container = document.createElement('div');
@@ -208,13 +223,30 @@
         audio.pause();
         playBtn.textContent = '▶';
         toggleBtn.classList.remove('playing');
+        playing = false;
       } else {
         audio.volume = muted ? 0 : parseFloat(volSlider.value) / 100;
-        audio.play().catch(() => {});
-        playBtn.textContent = '⏸';
-        toggleBtn.classList.add('playing');
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('🎵 BG Music playing');
+            playBtn.textContent = '⏸';
+            toggleBtn.classList.add('playing');
+            playing = true;
+          }).catch((err) => {
+            console.error('🎵 BG Music play failed:', err);
+            // Try loading and playing again
+            audio.load();
+            setTimeout(() => {
+              audio.play().then(() => {
+                playBtn.textContent = '⏸';
+                toggleBtn.classList.add('playing');
+                playing = true;
+              }).catch(e => console.error('🎵 Retry failed:', e));
+            }, 200);
+          });
+        }
       }
-      playing = !playing;
     });
 
     volSlider.addEventListener('input', () => {
