@@ -64,8 +64,10 @@
     // Derive from our own script tag — most reliable method
     const scripts = document.querySelectorAll('script[src*="audio-pronunciation"]');
     if (scripts.length > 0) {
-      const src = scripts[0].getAttribute('src');
-      // src is like "../js/audio-pronunciation.js" or "./js/audio-pronunciation.js"
+      // Check for explicit data-base-path first
+      const basePath = scripts[0].getAttribute('data-base-path');
+      if (basePath) return basePath;
+      const src = scripts[0].getAttribute('src').split('?')[0]; // strip cache buster
       return src.replace('js/audio-pronunciation.js', '');
     }
     // Fallback
