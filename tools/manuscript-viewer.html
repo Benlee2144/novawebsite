@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manuscript Comparison Viewer — The Unveiled Word</title>
+  <meta name="description" content="Compare ancient biblical manuscripts side by side. Codex Sinaiticus, Codex Vaticanus, Dead Sea Scrolls, Textus Receptus, and more.">
+  <link rel="stylesheet" href="../css/style.css?v3">
+  <link rel="stylesheet" href="../css/ancient-effects.css?v1">
+  <style>
+    .ms-viewer {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .ms-intro {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--parchment-text);
+    }
+    .ms-intro h2 {
+      font-family: var(--font-heading);
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .ms-selector {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .ms-selector select {
+      padding: 10px 16px;
+      background: var(--leather-dark);
+      color: var(--gold);
+      border: 1px solid var(--gold-dim);
+      border-radius: 4px;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      cursor: pointer;
+      min-width: 200px;
+    }
+    .ms-selector select:focus {
+      border-color: var(--gold);
+      outline: none;
+    }
+    .ms-compare-area {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      align-items: stretch;
+      margin-bottom: 2rem;
+    }
+    .ms-panel {
+      background: linear-gradient(135deg, #d4c4a0, #c8b88c, #bca878);
+      border-radius: 8px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+    }
+    .ms-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .ms-panel-label {
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      color: rgba(80, 60, 30, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    .ms-panel-date {
+      font-size: 0.75rem;
+      color: rgba(80, 60, 30, 0.5);
+      text-align: center;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+    .ms-text {
+      font-size: 1.3rem;
+      line-height: 2;
+      color: #2a1c0f;
+      text-align: right;
+      direction: rtl;
+      position: relative;
+      z-index: 1;
+    }
+    .ms-text.greek-text {
+      text-align: left;
+      direction: ltr;
+      font-family: 'Noto Serif', Georgia, serif;
+    }
+    .ms-text .highlight {
+      background: rgba(197, 150, 12, 0.2);
+      border-radius: 2px;
+      padding: 0 3px;
+    }
+    .ms-divider-col {
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+    }
+    .ms-slider {
+      writing-mode: vertical-lr;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 40px;
+      height: 200px;
+      background: transparent;
+      cursor: col-resize;
+    }
+    .ms-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle at 35% 35%, #c0392b, #96281b, #6b1c1c);
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      cursor: grab;
+    }
+    .ms-verse-selector {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .ms-verse-selector input {
+      padding: 10px 16px;
+      background: var(--leather-dark);
+      color: var(--gold);
+      border: 1px solid var(--gold-dim);
+      border-radius: 4px;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      width: 200px;
+      text-align: center;
+    }
+    .ms-verse-selector input::placeholder {
+      color: rgba(197, 150, 12, 0.4);
+    }
+    .ms-info {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .ms-info-card {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--gold-dim);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .ms-info-card h3 {
+      font-family: var(--font-heading);
+      color: var(--gold);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .ms-info-card p {
+      color: var(--parchment-text);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .ms-info-card .ms-date {
+      color: var(--gold-dim);
+      font-size: 0.75rem;
+      font-style: italic;
+    }
+    @media (max-width: 768px) {
+      .ms-compare-area {
+        grid-template-columns: 1fr;
+      }
+      .ms-divider-col { display: none; }
+      .ms-panel { margin-bottom: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="../" class="site-logo">The Unveiled Word</a>
+      <button class="nav-toggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+      <ul class="nav-links">
+        <li><a href="../studies/">Studies</a></li>
+        <li><a href="../interlinear/">Interlinear</a></li>
+        <li><a href="../lexicon/">Lexicon</a></li>
+        <li><a href="../reference/">Reference</a></li>
+        <li><a href="./" class="active">Tools</a></li>
+        <li><a href="../search.html">Search</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="book-page">
+    <div class="illuminated-border">
+      <div class="border-left"></div><div class="border-right"></div>
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+
+    <main class="page-container">
+      <div class="ms-viewer">
+        <div class="ms-intro">
+          <h2>⚖️ Manuscript Comparison Viewer</h2>
+          <p>Compare how the same passage appears across the most important ancient biblical manuscripts. Select two manuscripts and a passage to see the differences.</p>
+        </div>
+
+        <div class="ms-selector">
+          <select id="ms-left">
+            <option value="sinaiticus">Codex Sinaiticus (א) — c. 330–360 AD</option>
+            <option value="vaticanus">Codex Vaticanus (B) — c. 325–350 AD</option>
+            <option value="alexandrinus">Codex Alexandrinus (A) — c. 400–440 AD</option>
+            <option value="bezae">Codex Bezae (D) — c. 400 AD</option>
+            <option value="textus">Textus Receptus — 1516 AD</option>
+            <option value="majority">Majority Text</option>
+          </select>
+          <select id="ms-right">
+            <option value="vaticanus">Codex Vaticanus (B) — c. 325–350 AD</option>
+            <option value="sinaiticus" selected>Codex Sinaiticus (א) — c. 330–360 AD</option>
+            <option value="alexandrinus">Codex Alexandrinus (A) — c. 400–440 AD</option>
+            <option value="bezae">Codex Bezae (D) — c. 400 AD</option>
+            <option value="textus">Textus Receptus — 1516 AD</option>
+            <option value="majority">Majority Text</option>
+          </select>
+        </div>
+
+        <div class="ms-compare-area" id="compare-area">
+          <div class="ms-panel" id="panel-left">
+            <div class="ms-panel-label">Codex Sinaiticus (א)</div>
+            <div class="ms-panel-date">c. 330–360 AD • British Library</div>
+            <div class="ms-text greek-text" id="text-left">
+              Select a passage below to compare manuscripts.
+            </div>
+          </div>
+          <div class="ms-divider-col">
+            <div style="width:2px;height:100%;background:linear-gradient(180deg,transparent,var(--gold-dim),var(--gold),var(--gold-dim),transparent);"></div>
+          </div>
+          <div class="ms-panel" id="panel-right">
+            <div class="ms-panel-label">Codex Vaticanus (B)</div>
+            <div class="ms-panel-date">c. 325–350 AD • Vatican Library</div>
+            <div class="ms-text greek-text" id="text-right">
+              Select a passage below to compare manuscripts.
+            </div>
+          </div>
+        </div>
+
+        <div class="ms-verse-selector">
+          <p style="color:var(--parchment-text);margin-bottom:0.5rem;font-size:0.9rem;">Select a notable textual variant:</p>
+          <select id="passage-select" style="padding:10px 16px;background:var(--leather-dark);color:var(--gold);border:1px solid var(--gold-dim);border-radius:4px;font-family:var(--font-heading);font-size:0.9rem;cursor:pointer;min-width:300px;">
+            <option value="">— Choose a passage —</option>
+            <option value="john-comma">1 John 5:7–8 (Comma Johanneum)</option>
+            <option value="mark-ending">Mark 16:9–20 (Long Ending)</option>
+            <option value="john-pericope">John 7:53–8:11 (Woman Caught in Adultery)</option>
+            <option value="luke-sweat">Luke 22:43–44 (Bloody Sweat)</option>
+            <option value="matt-doxology">Matthew 6:13 (Lord's Prayer Doxology)</option>
+            <option value="john-pool">John 5:3b–4 (Angel at the Pool)</option>
+            <option value="acts-eunuch">Acts 8:37 (Eunuch's Confession)</option>
+            <option value="rom-doxology">Romans 16:25–27 (Placement)</option>
+          </select>
+        </div>
+
+        <div class="ms-info">
+          <div class="ms-info-card">
+            <h3>Codex Sinaiticus (א)</h3>
+            <p class="ms-date">c. 330–360 AD</p>
+            <p>The oldest complete New Testament manuscript. Discovered at St. Catherine's Monastery, Mount Sinai by Constantine Tischendorf in 1844. Now split between the British Library, Leipzig University, Saint Catherine's Monastery, and the National Library of Russia.</p>
+          </div>
+          <div class="ms-info-card">
+            <h3>Codex Vaticanus (B)</h3>
+            <p class="ms-date">c. 325–350 AD</p>
+            <p>Considered by many scholars as the most important Greek manuscript. Has been in the Vatican Library since at least 1475. Contains most of the Old and New Testaments in Greek. Missing the Pastoral Epistles, Philemon, and Revelation.</p>
+          </div>
+          <div class="ms-info-card">
+            <h3>Codex Alexandrinus (A)</h3>
+            <p class="ms-date">c. 400–440 AD</p>
+            <p>A fifth-century manuscript containing most of the Bible in Greek. Given as a gift to King Charles I of England in 1627. Now housed in the British Library. One of the earliest and most complete manuscripts of the Greek Bible.</p>
+          </div>
+          <div class="ms-info-card">
+            <h3>Codex Bezae (D)</h3>
+            <p class="ms-date">c. 400 AD</p>
+            <p>A bilingual Greek-Latin manuscript of the Gospels and Acts. Known for its many unique readings not found in other manuscripts. Named after Theodore Beza, who donated it to Cambridge University in 1581. The most controversial major manuscript.</p>
+          </div>
+          <div class="ms-info-card">
+            <h3>Textus Receptus</h3>
+            <p class="ms-date">1516 AD (Erasmus)</p>
+            <p>The "Received Text" compiled by Erasmus of Rotterdam. Based on a handful of late medieval manuscripts. The basis for the King James Version (1611) and most Reformation-era translations. Now superseded by critical texts based on earlier manuscripts.</p>
+          </div>
+          <div class="ms-info-card">
+            <h3>Majority Text</h3>
+            <p class="ms-date">Various (5th–15th century)</p>
+            <p>The reading found in the majority of surviving Greek manuscripts (~5,800 total). Also called the Byzantine Text. Later than the Alexandrian manuscripts but numerically dominant. The basis for the Greek Orthodox lectionary tradition.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    </div>
+  </div>
+
+  <div class="book-spine" aria-hidden="true"></div>
+
+  <footer class="site-footer">
+    <p class="footer-scripture">&ldquo;Heaven and earth will pass away, but my words will not pass away.&rdquo;</p>
+    <p class="footer-ref">MATTHEW 24:35</p>
+    <p class="footer-copy">The Unveiled Word &mdash; Soli Deo Gloria</p>
+  </footer>
+
+  <script src="../js/main.js?v3"></script>
+  <script>
+    // Textual variant data
+    const variants = {
+      'john-comma': {
+        title: '1 John 5:7–8 — The Comma Johanneum',
+        note: 'The Trinitarian formula ("the Father, the Word, and the Holy Ghost") is absent from virtually all Greek manuscripts before the 16th century.',
+        left: {
+          sinaiticus: 'ὅτι τρεῖς εἰσιν οἱ μαρτυροῦντες, τὸ πνεῦμα καὶ τὸ ὕδωρ καὶ τὸ αἷμα, καὶ οἱ τρεῖς εἰς τὸ ἕν εἰσιν.',
+          vaticanus: 'ὅτι τρεῖς εἰσιν οἱ μαρτυροῦντες, τὸ πνεῦμα καὶ τὸ ὕδωρ καὶ τὸ αἷμα, καὶ οἱ τρεῖς εἰς τὸ ἕν εἰσιν.',
+          alexandrinus: 'ὅτι τρεῖς εἰσιν οἱ μαρτυροῦντες, τὸ πνεῦμα καὶ τὸ ὕδωρ καὶ τὸ αἷμα, καὶ οἱ τρεῖς εἰς τὸ ἕν εἰσιν.',
+          bezae: '[Not extant — Codex Bezae does not contain the Catholic Epistles]',
+          textus: 'ὅτι τρεῖς εἰσιν οἱ μαρτυροῦντες <span class="highlight">ἐν τῷ οὐρανῷ, ὁ Πατήρ, ὁ Λόγος, καὶ τὸ Ἅγιον Πνεῦμα· καὶ οὗτοι οἱ τρεῖς ἕν εἰσι. καὶ τρεῖς εἰσιν οἱ μαρτυροῦντες ἐν τῇ γῇ,</span> τὸ πνεῦμα καὶ τὸ ὕδωρ καὶ τὸ αἷμα· καὶ οἱ τρεῖς εἰς τὸ ἕν εἰσιν.',
+          majority: 'ὅτι τρεῖς εἰσιν οἱ μαρτυροῦντες, τὸ πνεῦμα καὶ τὸ ὕδωρ καὶ τὸ αἷμα, καὶ οἱ τρεῖς εἰς τὸ ἕν εἰσιν.',
+        }
+      },
+      'mark-ending': {
+        title: 'Mark 16:9–20 — The Long Ending',
+        note: 'The last 12 verses of Mark are absent from the two oldest manuscripts (Sinaiticus and Vaticanus). Most scholars believe the original ending was lost or Mark intended to end at 16:8.',
+        left: {
+          sinaiticus: '<span class="highlight">[The text ends at Mark 16:8: ἐφοβοῦντο γάρ — "for they were afraid."]</span>',
+          vaticanus: '<span class="highlight">[The text ends at Mark 16:8: ἐφοβοῦντο γάρ — "for they were afraid." A blank column follows, unique in the manuscript.]</span>',
+          alexandrinus: 'Ἀναστὰς δὲ πρωῒ πρώτῃ σαββάτου ἐφάνη πρῶτον Μαρίᾳ τῇ Μαγδαληνῇ, παρ᾽ ἧς ἐκβεβλήκει ἑπτὰ δαιμόνια... [Full long ending present]',
+          bezae: 'Ἀναστὰς δὲ πρωΐ... [Long ending present with unique additions]',
+          textus: 'Ἀναστὰς δὲ πρωΐ πρώτῃ σαββάτου ἐφάνη πρῶτον Μαρίᾳ τῇ Μαγδαληνῇ... [Full long ending, vv. 9–20]',
+          majority: 'Ἀναστὰς δὲ πρωΐ πρώτῃ σαββάτου ἐφάνη πρῶτον Μαρίᾳ τῇ Μαγδαληνῇ... [Full long ending present in majority of manuscripts]',
+        }
+      },
+      'john-pericope': {
+        title: 'John 7:53–8:11 — The Woman Caught in Adultery',
+        note: 'This beloved story is absent from the earliest and best manuscripts. It was likely a floating oral tradition inserted into John\'s Gospel by later scribes. Some manuscripts place it after Luke 21:38.',
+        left: {
+          sinaiticus: '<span class="highlight">[Passage absent. Text goes directly from John 7:52 to 8:12.]</span>',
+          vaticanus: '<span class="highlight">[Passage absent. Text goes directly from John 7:52 to 8:12.]</span>',
+          alexandrinus: '<span class="highlight">[Pages missing at this point in the manuscript — cannot determine.]</span>',
+          bezae: 'Ἐπορεύθη ἕκαστος εἰς τὸν οἶκον αὐτοῦ, Ἰησοῦς δὲ ἐπορεύθη εἰς τὸ ὄρος τῶν ἐλαιῶν... [Full pericope present — Bezae is the earliest witness]',
+          textus: 'Καὶ ἐπορεύθη ἕκαστος εἰς τὸν οἶκον αὐτοῦ. Ἰησοῦς δὲ ἐπορεύθη εἰς τὸ ὄρος τῶν ἐλαιῶν... ὁ ἀναμάρτητος ὑμῶν πρῶτος τὸν λίθον ἐπ᾽ αὐτῇ βαλέτω...',
+          majority: '[Present in majority of later manuscripts, often marked with asterisks or obeli to indicate doubt]',
+        }
+      },
+      'luke-sweat': {
+        title: 'Luke 22:43–44 — The Bloody Sweat',
+        note: 'The angel strengthening Jesus and His sweat "like drops of blood" are absent from several early manuscripts. Some scholars argue they were removed to avoid showing Jesus in apparent weakness; others that they were added for dramatic effect.',
+        left: {
+          sinaiticus: '<span class="highlight">[First scribe included these verses, but a later corrector marked them for deletion]</span> ὤφθη δὲ αὐτῷ ἄγγελος ἀπ᾽ οὐρανοῦ ἐνισχύων αὐτόν. καὶ γενόμενος ἐν ἀγωνίᾳ ἐκτενέστερον προσηύχετο· καὶ ἐγένετο ὁ ἱδρὼς αὐτοῦ ὡσεὶ θρόμβοι αἵματος καταβαίνοντες ἐπὶ τὴν γῆν.',
+          vaticanus: '<span class="highlight">[Verses absent]</span>',
+          alexandrinus: 'ὤφθη δὲ αὐτῷ ἄγγελος ἀπ᾽ οὐρανοῦ ἐνισχύων αὐτόν. καὶ γενόμενος ἐν ἀγωνίᾳ ἐκτενέστερον προσηύχετο· καὶ ἐγένετο ὁ ἱδρὼς αὐτοῦ ὡσεὶ θρόμβοι αἵματος...',
+          bezae: 'ὤφθη δὲ αὐτῷ ἄγγελος ἀπ᾽ οὐρανοῦ ἐνισχύων αὐτόν...',
+          textus: 'ὤφθη δὲ αὐτῷ ἄγγελος ἀπ᾽ οὐρανοῦ ἐνισχύων αὐτόν. καὶ γενόμενος ἐν ἀγωνίᾳ ἐκτενέστερον προσηύχετο· ἐγένετο δὲ ὁ ἱδρὼς αὐτοῦ ὡσεὶ θρόμβοι αἵματος καταβαίνοντες ἐπὶ τὴν γῆν.',
+          majority: 'ὤφθη δὲ αὐτῷ ἄγγελος ἀπ᾽ οὐρανοῦ ἐνισχύων αὐτόν...',
+        }
+      },
+      'matt-doxology': {
+        title: 'Matthew 6:13 — The Lord\'s Prayer Doxology',
+        note: '"For thine is the kingdom, and the power, and the glory, for ever. Amen." This doxology is absent from the earliest manuscripts and was likely added from liturgical usage.',
+        left: {
+          sinaiticus: 'καὶ μὴ εἰσενέγκῃς ἡμᾶς εἰς πειρασμόν, ἀλλὰ ῥῦσαι ἡμᾶς ἀπὸ τοῦ πονηροῦ. <span class="highlight">[Text ends here — no doxology]</span>',
+          vaticanus: 'καὶ μὴ εἰσενέγκῃς ἡμᾶς εἰς πειρασμόν, ἀλλὰ ῥῦσαι ἡμᾶς ἀπὸ τοῦ πονηροῦ. <span class="highlight">[Text ends here — no doxology]</span>',
+          alexandrinus: 'καὶ μὴ εἰσενέγκῃς ἡμᾶς εἰς πειρασμόν, ἀλλὰ ῥῦσαι ἡμᾶς ἀπὸ τοῦ πονηροῦ. <span class="highlight">[Text ends here — no doxology]</span>',
+          bezae: 'καὶ μὴ εἰσενέγκῃς ἡμᾶς εἰς πειρασμόν, ἀλλὰ ῥῦσαι ἡμᾶς ἀπὸ τοῦ πονηροῦ. <span class="highlight">[No doxology]</span>',
+          textus: 'καὶ μὴ εἰσενέγκῃς ἡμᾶς εἰς πειρασμόν, ἀλλὰ ῥῦσαι ἡμᾶς ἀπὸ τοῦ πονηροῦ. <span class="highlight">ὅτι σοῦ ἐστιν ἡ βασιλεία καὶ ἡ δύναμις καὶ ἡ δόξα εἰς τοὺς αἰῶνας. ἀμήν.</span>',
+          majority: 'καὶ μὴ εἰσενέγκῃς ἡμᾶς εἰς πειρασμόν, ἀλλὰ ῥῦσαι ἡμᾶς ἀπὸ τοῦ πονηροῦ. <span class="highlight">ὅτι σοῦ ἐστιν ἡ βασιλεία καὶ ἡ δύναμις καὶ ἡ δόξα εἰς τοὺς αἰῶνας. ἀμήν.</span>',
+        }
+      },
+      'john-pool': {
+        title: 'John 5:3b–4 — The Angel at the Pool of Bethesda',
+        note: 'The explanation about an angel stirring the water is absent from the earliest manuscripts. It was likely a marginal gloss explaining a popular tradition that was later incorporated into the text.',
+        left: {
+          sinaiticus: '<span class="highlight">[Verses 3b–4 absent. Goes directly from "blind, lame, and paralyzed" to "One man was there..."]</span>',
+          vaticanus: '<span class="highlight">[Verses 3b–4 absent]</span>',
+          alexandrinus: '<span class="highlight">[Verses 3b–4 absent]</span>',
+          bezae: '<span class="highlight">[Manuscript damaged at this point]</span>',
+          textus: 'ἐκδεχομένων τὴν τοῦ ὕδατος κίνησιν. <span class="highlight">Ἄγγελος γὰρ κατὰ καιρὸν κατέβαινεν ἐν τῇ κολυμβήθρᾳ, καὶ ἐτάρασσε τὸ ὕδωρ· ὁ οὖν πρῶτος ἐμβὰς μετὰ τὴν ταραχὴν τοῦ ὕδατος, ὑγιὴς ἐγίνετο ᾧ δήποτε κατείχετο νοσήματι.</span>',
+          majority: 'ἐκδεχομένων τὴν τοῦ ὕδατος κίνησιν. <span class="highlight">ἄγγελος γὰρ κατὰ καιρὸν κατέβαινεν ἐν τῇ κολυμβήθρᾳ καὶ ἐτάρασσεν τὸ ὕδωρ...</span>',
+        }
+      },
+      'acts-eunuch': {
+        title: 'Acts 8:37 — The Eunuch\'s Confession',
+        note: '"And Philip said, If thou believest with all thine heart, thou mayest. And he answered and said, I believe that Jesus Christ is the Son of God." This verse is absent from the oldest manuscripts.',
+        left: {
+          sinaiticus: '<span class="highlight">[Verse absent. Goes directly from v.36 "what prevents me from being baptized?" to v.38 "he commanded the chariot to stop"]</span>',
+          vaticanus: '<span class="highlight">[Verse absent]</span>',
+          alexandrinus: '<span class="highlight">[Verse absent]</span>',
+          bezae: '<span class="highlight">[Verse present in Bezae\'s unique text:]</span> εἶπεν δὲ αὐτῷ ὁ Φίλιππος· Εἰ πιστεύεις ἐξ ὅλης τῆς καρδίας, ἔξεστιν. ἀποκριθεὶς δὲ εἶπεν· Πιστεύω τὸν υἱὸν τοῦ θεοῦ εἶναι τὸν Ἰησοῦν Χριστόν.',
+          textus: '<span class="highlight">εἶπε δὲ ὁ Φίλιππος, Εἰ πιστεύεις ἐξ ὅλης τῆς καρδίας, ἔξεστιν. ἀποκριθεὶς δὲ εἶπε, Πιστεύω τὸν υἱὸν τοῦ θεοῦ εἶναι τὸν Ἰησοῦν Χριστόν.</span>',
+          majority: '<span class="highlight">[Verse absent from most manuscripts, present in some later copies]</span>',
+        }
+      },
+      'rom-doxology': {
+        title: 'Romans 16:25–27 — The Doxology Placement',
+        note: 'This doxology ("Now to him who is able to strengthen you...") appears in different locations across manuscripts: after 14:23, after 15:33, after 16:23, or omitted entirely. Its placement is one of the most complex textual problems in the NT.',
+        left: {
+          sinaiticus: '[Doxology appears <span class="highlight">after 16:23</span>] Τῷ δὲ δυναμένῳ ὑμᾶς στηρίξαι κατὰ τὸ εὐαγγέλιόν μου καὶ τὸ κήρυγμα Ἰησοῦ Χριστοῦ...',
+          vaticanus: '[Doxology appears <span class="highlight">after 16:23</span>]',
+          alexandrinus: '[Doxology appears <span class="highlight">after 14:23 AND after 16:23</span> — present in both locations]',
+          bezae: '<span class="highlight">[Doxology absent entirely]</span>',
+          textus: '[Doxology appears <span class="highlight">after 16:24</span>] Τῷ δὲ δυναμένῳ ὑμᾶς στηρίξαι...',
+          majority: '[Doxology placement <span class="highlight">varies widely</span> across manuscripts]',
+        }
+      },
+    };
+
+    const msNames = {
+      sinaiticus: { name: 'Codex Sinaiticus (א)', date: 'c. 330–360 AD • British Library' },
+      vaticanus: { name: 'Codex Vaticanus (B)', date: 'c. 325–350 AD • Vatican Library' },
+      alexandrinus: { name: 'Codex Alexandrinus (A)', date: 'c. 400–440 AD • British Library' },
+      bezae: { name: 'Codex Bezae (D)', date: 'c. 400 AD • Cambridge University' },
+      textus: { name: 'Textus Receptus', date: '1516 AD (Erasmus)' },
+      majority: { name: 'Majority Text', date: '5th–15th century' },
+    };
+
+    function updateDisplay() {
+      const leftMs = document.getElementById('ms-left').value;
+      const rightMs = document.getElementById('ms-right').value;
+      const passage = document.getElementById('passage-select').value;
+
+      document.querySelector('#panel-left .ms-panel-label').textContent = msNames[leftMs].name;
+      document.querySelector('#panel-left .ms-panel-date').textContent = msNames[leftMs].date;
+      document.querySelector('#panel-right .ms-panel-label').textContent = msNames[rightMs].name;
+      document.querySelector('#panel-right .ms-panel-date').textContent = msNames[rightMs].date;
+
+      if (passage && variants[passage]) {
+        const v = variants[passage];
+        document.getElementById('text-left').innerHTML = '<strong style="display:block;margin-bottom:1rem;color:#4a3520;">' + v.title + '</strong>' +
+          (v.left[leftMs] || '[Not available for this manuscript]') +
+          '<p style="margin-top:1rem;font-size:0.8rem;color:#6a5530;font-style:italic;">' + v.note + '</p>';
+        document.getElementById('text-right').innerHTML = '<strong style="display:block;margin-bottom:1rem;color:#4a3520;">' + v.title + '</strong>' +
+          (v.left[rightMs] || '[Not available for this manuscript]');
+      }
+    }
+
+    document.getElementById('ms-left').addEventListener('change', updateDisplay);
+    document.getElementById('ms-right').addEventListener('change', updateDisplay);
+    document.getElementById('passage-select').addEventListener('change', updateDisplay);
+  </script>
+</body>
+</html>
