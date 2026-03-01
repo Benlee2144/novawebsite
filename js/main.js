@@ -292,3 +292,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
 });
+/* Fix: bfcache can leave animated elements invisible after back-navigation */
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    document.querySelectorAll('.study-card, .page-container, .featured-section').forEach(function(el) {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.style.animation = 'none';
+    });
+  }
+});
