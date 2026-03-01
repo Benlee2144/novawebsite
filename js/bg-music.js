@@ -6,6 +6,14 @@
   'use strict';
 
   function getBasePath() {
+    // Find our own script tag and derive base from its src
+    const scripts = document.querySelectorAll('script[src*="bg-music"]');
+    if (scripts.length > 0) {
+      const src = scripts[0].getAttribute('src');
+      // src is like "../js/bg-music.js" or "./js/bg-music.js"
+      return src.replace('js/bg-music.js', '');
+    }
+    // Fallback
     const path = window.location.pathname;
     const segments = path.split('/').filter(Boolean);
     segments.pop();
@@ -21,7 +29,7 @@
     audio.id = 'bg-music-audio';
     audio.loop = true;
     audio.preload = 'auto';
-    audio.crossOrigin = 'anonymous';
+    // No crossOrigin — same-origin on GitHub Pages
     const source = document.createElement('source');
     source.src = audioSrc;
     source.type = 'audio/mpeg';
@@ -34,13 +42,18 @@
     audio.volume = savedVol ? parseFloat(savedVol) : 0.15;
     let muted = savedMute === 'true';
     
-    // Debug
-    audio.addEventListener('error', (e) => {
-      console.error('🎵 BG Music error:', audio.error);
+    // Status updates visible in panel
+    function setStatus(msg) {
+      const el = document.getElementById('bgm-status');
+      if (el) el.textContent = msg;
+    }
+    audio.addEventListener('error', () => {
+      const err = audio.error;
+      setStatus('Error loading: ' + (err ? err.message : 'unknown'));
     });
-    audio.addEventListener('canplay', () => {
-      console.log('🎵 BG Music ready to play');
-    });
+    audio.addEventListener('canplay', () => setStatus('Ready'));
+    audio.addEventListener('playing', () => setStatus('Playing ♪'));
+    audio.addEventListener('waiting', () => setStatus('Loading...'));
 
     // Create floating music button
     const container = document.createElement('div');
@@ -60,6 +73,7 @@
           </div>
         </div>
         <p class="bgm-note">Plays alongside study narration</p>
+        <p id="bgm-status" class="bgm-note" style="color:#c59612;"></p>
       </div>
     `;
 
