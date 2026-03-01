@@ -61,17 +61,17 @@
 
   // Determine base path for audio files
   function getBasePath() {
-    const path = window.location.pathname;
-    const depth = (path.match(/\//g) || []).length - 1;
-    // /novawebsite/studies/foo.html → depth 2 → ../
-    // /novawebsite/index.html → depth 1 → ./
-    // Handle GitHub Pages path
-    const segments = path.split('/').filter(Boolean);
-    // Remove filename
+    // Derive from our own script tag — most reliable method
+    const scripts = document.querySelectorAll('script[src*="audio-pronunciation"]');
+    if (scripts.length > 0) {
+      const src = scripts[0].getAttribute('src');
+      // src is like "../js/audio-pronunciation.js" or "./js/audio-pronunciation.js"
+      return src.replace('js/audio-pronunciation.js', '');
+    }
+    // Fallback
+    const segments = window.location.pathname.split('/').filter(Boolean);
     segments.pop();
-    // Remove 'novawebsite' base if present
-    const base = segments.length > 1 ? '../'.repeat(segments.length - 1) : './';
-    return base;
+    return segments.length > 1 ? '../'.repeat(segments.length - 1) : './';
   }
 
   // Load pre-generated audio index

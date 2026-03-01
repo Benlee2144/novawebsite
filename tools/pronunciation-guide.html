@@ -257,24 +257,47 @@
             ${strongs ? `<div class="transliteration">Strong's: ${strongs}</div>` : ''}
             ${meaning ? `<div class="meaning">${meaning}</div>` : ''}
           </div>
-          <button class="play-btn" onclick="speak('${romanization.replace(/'/g, "\\'")}', '${lang}')" title="Hear pronunciation">
+          <button class="play-btn" onclick="speakWord('${word.replace(/'/g, "\\'")}', '${lang}')" title="Hear pronunciation">
             🔊
           </button>
         </div>`;
     }
 
-    function speak(text, lang) {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.7;
-        utterance.pitch = 1;
-        // Try to use appropriate voice
-        const voices = speechSynthesis.getVoices();
-        const langCode = lang === 'hebrew' ? 'he' : lang === 'greek' ? 'el' : 'ar';
-        const voice = voices.find(v => v.lang.startsWith(langCode)) || voices[0];
-        if (voice) utterance.voice = voice;
-        speechSynthesis.speak(utterance);
+    // Audio index for pre-generated neural voices
+    let audioIdx = null;
+    let audioEl = null;
+    
+    async function loadAudioIdx() {
+      try {
+        const resp = await fetch('../audio/index.json');
+        if (resp.ok) audioIdx = await resp.json();
+      } catch(e) {}
+    }
+    loadAudioIdx();
+
+    function speakWord(word, lang) {
+      if (!audioEl) { audioEl = new Audio(); audioEl.volume = 1.0; }
+      audioEl.pause();
+      
+      // 1. Pre-generated neural audio (best quality)
+      if (audioIdx && audioIdx[lang] && audioIdx[lang][word]) {
+        audioEl.src = '../' + audioIdx[lang][word];
+        audioEl.playbackRate = 1.0;
+        audioEl.play().catch(() => speakGoogle(word, lang));
+        return;
       }
+      
+      // 2. Google Translate TTS fallback
+      speakGoogle(word, lang);
+    }
+    
+    function speakGoogle(word, lang) {
+      if (!audioEl) { audioEl = new Audio(); audioEl.volume = 1.0; }
+      const langCode = lang === 'hebrew' ? 'iw' : 'el';
+      const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=' + langCode + '&q=' + encodeURIComponent(word);
+      audioEl.src = url;
+      audioEl.playbackRate = 0.85;
+      audioEl.play().catch(() => {});
     }
 
     // Search with live filtering
