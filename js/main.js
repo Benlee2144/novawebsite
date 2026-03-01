@@ -292,13 +292,25 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
 });
-/* Fix: bfcache can leave animated elements invisible after back-navigation */
+/* Fix: bfcache can leave animated elements invisible after back-navigation.
+   When the browser restores a page from bfcache, CSS animations don't replay,
+   but their initial states (opacity:0) can persist. Force everything visible. */
 window.addEventListener('pageshow', function(e) {
   if (e.persisted) {
-    document.querySelectorAll('.study-card, .page-container, .featured-section').forEach(function(el) {
+    // Kill all fadeIn animations and force visible
+    document.querySelectorAll('.study-card, .page-container, .featured-section, .study-article, .study-header, .study-body, .book-page').forEach(function(el) {
       el.style.opacity = '1';
       el.style.transform = 'none';
       el.style.animation = 'none';
+    });
+    // Also re-trigger any tool page init functions that rendered via JS
+    // (bfcache preserves DOM so this shouldn't be needed, but just in case)
+    document.querySelectorAll('[id]').forEach(function(el) {
+      if (el.innerHTML === '' && el.id !== 'q') {
+        // Empty container that should have content — page might need re-init
+        // Dispatch a custom event tools can listen for
+        document.dispatchEvent(new Event('bfcache-restore'));
+      }
     });
   }
 });
