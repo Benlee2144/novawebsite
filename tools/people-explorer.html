@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biblical People Explorer &mdash; 1,832 People from Scripture &mdash; The Unveiled Word</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .people-container { max-width: 960px; margin: 0 auto; padding: 1rem; }
+    .search-box {
+      width: 100%; max-width: 500px; margin: 0 auto 1rem; display: block;
+      padding: 0.8rem 1.2rem; border: 2px solid var(--gold,#c5960c); border-radius: 8px;
+      font-size: 1.1rem; background: var(--parchment,#faf6ef); color: var(--ink,#3c2f2f);
+    }
+    .stats { text-align: center; color: var(--text-faded,#6b5b4a); font-size: 0.9rem; margin-bottom: 1rem; }
+    .alpha-nav { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 1rem 0; }
+    .alpha-btn {
+      width: 32px; height: 32px; border: 1px solid var(--gold,#c5960c); border-radius: 4px;
+      background: transparent; color: var(--ink,#3c2f2f); font-weight: 700; cursor: pointer;
+      font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+    }
+    .alpha-btn:hover, .alpha-btn.active { background: var(--gold,#c5960c); color: #fff; }
+    .people-list { margin: 1rem 0; }
+    .person-card {
+      padding: 1rem 1.2rem; margin-bottom: 0.75rem;
+      background: rgba(197,150,12,0.03); border: 1px solid rgba(197,150,12,0.15);
+      border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    }
+    .person-card:hover { border-color: var(--gold,#c5960c); }
+    .person-card.expanded { background: rgba(197,150,12,0.07); }
+    .person-name {
+      font-family: var(--font-heading,'Cinzel',serif); font-size: 1.1rem;
+      color: var(--leather-dark,#2c1810); display: inline;
+    }
+    .person-desc { display: inline; font-size: 0.9rem; color: var(--text-faded,#6b5b4a); margin-left: 0.5rem; }
+    .person-details { display: none; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid rgba(197,150,12,0.15); }
+    .person-card.expanded .person-details { display: block; }
+    .detail-row { font-size: 0.9rem; color: var(--ink,#3c2f2f); margin: 0.3rem 0; line-height: 1.5; }
+    .detail-label { font-weight: 700; color: var(--leather-dark,#2c1810); }
+    .person-summary { font-family: var(--font-reading,Georgia,serif); font-size: 0.95rem; line-height: 1.6; color: var(--ink,#3c2f2f); margin: 0.5rem 0; }
+    .verse-link {
+      display: inline-block; margin: 2px 4px 2px 0; padding: 2px 8px;
+      background: rgba(197,150,12,0.1); border-radius: 4px; font-size: 0.8rem;
+      color: var(--ultramarine,#1e3a6e); text-decoration: none;
+    }
+    .verse-link:hover { background: rgba(197,150,12,0.25); }
+    .gender-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 0.7rem;
+      font-weight: 700; margin-left: 0.5rem; vertical-align: middle;
+    }
+    .gender-Male { background: #e3f2fd; color: #1565c0; }
+    .gender-Female { background: #fce4ec; color: #c62828; }
+    .showing { text-align: center; color: var(--text-faded,#6b5b4a); font-size: 0.85rem; margin: 0.5rem 0; }
+    @media (max-width: 600px) { .person-card { padding: 0.8rem; } }
+  </style>
+</head>
+<body>
+  <main class="people-container">
+    <h1 style="text-align:center;font-family:var(--font-heading,'Cinzel',serif);color:var(--leather-dark,#2c1810);">
+      👥 Biblical People Explorer
+    </h1>
+    <p style="text-align:center;font-family:var(--font-reading,Georgia,serif);color:var(--ink,#3c2f2f);max-width:700px;margin:0 auto 1rem;">
+      1,832 people from Scripture with family relationships, tribal affiliations, and verse references. Data from STEPBible (CC BY 4.0).
+    </p>
+    <input type="text" class="search-box" id="search" placeholder="Search by name, tribe, or description...">
+    <div class="stats" id="stats"></div>
+    <div class="alpha-nav" id="alpha"></div>
+    <div class="showing" id="showing"></div>
+    <div class="people-list" id="list"></div>
+    <button id="load-more" style="display:none;margin:1rem auto;padding:0.6rem 2rem;border:2px solid var(--gold,#c5960c);border-radius:6px;background:transparent;color:var(--ink,#3c2f2f);cursor:pointer;font-size:1rem;">Load More</button>
+  </main>
+
+  <script>
+  const OSIS_TO_SITE = {
+    'Gen':'gen','Exod':'exo','Lev':'lev','Num':'num','Deut':'deu','Josh':'jos','Judg':'jdg',
+    'Ruth':'rut','1Sam':'1sa','2Sam':'2sa','1Kgs':'1ki','2Kgs':'2ki','1Chr':'1ch','2Chr':'2ch',
+    'Ezra':'ezr','Neh':'neh','Esth':'est','Job':'job','Ps':'psa','Prov':'pro','Eccl':'ecc',
+    'Song':'sng','Isa':'isa','Jer':'jer','Lam':'lam','Ezek':'ezk','Dan':'dan','Hos':'hos',
+    'Joel':'jol','Amos':'amo','Obad':'oba','Jonah':'jon','Mic':'mic','Nah':'nam','Hab':'hab',
+    'Zeph':'zep','Hag':'hag','Zech':'zec','Mal':'mal','Matt':'mat','Mark':'mrk','Luke':'luk',
+    'John':'jhn','Acts':'act','Rom':'rom','1Cor':'1co','2Cor':'2co','Gal':'gal','Eph':'eph',
+    'Phil':'php','Col':'col','1Thess':'1th','2Thess':'2th','1Tim':'1ti','2Tim':'2ti',
+    'Titus':'tit','Phlm':'phm','Heb':'heb','Jas':'jas','1Pet':'1pe','2Pet':'2pe',
+    '1John':'1jn','2John':'2jn','3John':'3jn','Jude':'jud','Rev':'rev'
+  };
+
+  function verseUrl(ref) {
+    const m = ref.match(/^(\d?[A-Za-z]+)\.(\d+)/);
+    if (!m) return null;
+    const book = OSIS_TO_SITE[m[1]];
+    return book ? `../interlinear/${book}-${m[2]}.html` : null;
+  }
+  function verseDisplay(ref) { return ref.replace(/\./g,' ').replace(/(\d)(\D)/,'$1 $2'); }
+
+  let allPeople = [];
+  let filtered = [];
+  let shown = 0;
+  const PAGE = 50;
+  let activeLetter = null;
+
+  async function init() {
+    const resp = await fetch('../data/biblical_people.json');
+    const raw = await resp.json();
+    allPeople = Object.entries(raw).map(([key, p]) => ({
+      ...p, key, displayName: (p.name||key).replace(/_/g,' ')
+    })).sort((a,b) => a.displayName.localeCompare(b.displayName));
+
+    document.getElementById('stats').textContent = `${allPeople.length} people from Scripture`;
+
+    // Alpha nav
+    const letters = [...new Set(allPeople.map(p => (p.displayName[0]||'').toUpperCase()))].sort();
+    const alphaEl = document.getElementById('alpha');
+    letters.forEach(l => {
+      const btn = document.createElement('button');
+      btn.className = 'alpha-btn'; btn.textContent = l;
+      btn.onclick = () => { activeLetter = activeLetter===l?null:l; applyFilter(); };
+      alphaEl.appendChild(btn);
+    });
+
+    document.getElementById('search').addEventListener('input', () => { activeLetter=null; applyFilter(); });
+    document.getElementById('load-more').onclick = loadMore;
+    applyFilter();
+  }
+
+  function applyFilter() {
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    filtered = allPeople;
+    if (activeLetter) filtered = filtered.filter(p => (p.displayName[0]||'').toUpperCase()===activeLetter);
+    if (q) filtered = filtered.filter(p =>
+      (p.displayName+' '+(p.description||'')+' '+(p.tribe||'')+' '+(p.summary||'')).toLowerCase().includes(q)
+    );
+    document.querySelectorAll('.alpha-btn').forEach(b => b.classList.toggle('active', b.textContent===activeLetter));
+    shown = 0;
+    document.getElementById('list').innerHTML = '';
+    loadMore();
+  }
+
+  function loadMore() {
+    const end = Math.min(shown + PAGE, filtered.length);
+    const listEl = document.getElementById('list');
+    for (let i = shown; i < end; i++) {
+      const p = filtered[i];
+      const card = document.createElement('div');
+      card.className = 'person-card';
+      card.onclick = () => card.classList.toggle('expanded');
+
+      const versesHtml = (p.verses||[]).slice(0,20).map(v => {
+        const url = verseUrl(v);
+        return url ? `<a class="verse-link" href="${url}">${verseDisplay(v)}</a>` : `<span class="verse-link">${verseDisplay(v)}</span>`;
+      }).join('') + ((p.verses||[]).length>20 ? `<span class="verse-link">+${p.verses.length-20} more</span>` : '');
+
+      const family = [];
+      if (p.partners && p.partners.length) family.push(`<span class="detail-label">Spouse:</span> ${p.partners.join(', ')}`);
+      if (p.offspring && p.offspring.length) family.push(`<span class="detail-label">Children:</span> ${p.offspring.join(', ')}`);
+
+      card.innerHTML = `
+        <span class="person-name">${p.displayName}</span>
+        ${p.gender ? `<span class="gender-badge gender-${p.gender}">${p.gender}</span>` : ''}
+        <span class="person-desc">${p.description||''}</span>
+        <div class="person-details">
+          ${p.summary ? `<div class="person-summary">${p.summary}</div>` : ''}
+          ${p.tribe ? `<div class="detail-row"><span class="detail-label">Tribe/Nation:</span> ${p.tribe}</div>` : ''}
+          ${family.map(f=>`<div class="detail-row">${f}</div>`).join('')}
+          ${p.strongs ? `<div class="detail-row"><span class="detail-label">Strong's:</span> ${p.strongs}</div>` : ''}
+          ${versesHtml ? `<div class="detail-row" style="margin-top:0.5rem">${versesHtml}</div>` : ''}
+        </div>`;
+      listEl.appendChild(card);
+    }
+    shown = end;
+    document.getElementById('showing').textContent = `Showing ${shown} of ${filtered.length}`;
+    document.getElementById('load-more').style.display = shown < filtered.length ? 'block' : 'none';
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+  </script>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/audio-pronunciation.js?v2"></script>
+  <script src="../js/bg-music.js?v2"></script>
+</body>
+</html>
