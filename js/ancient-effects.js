@@ -363,12 +363,232 @@
   }
 
   // ============================================================
+  // FEATURE 9: 3D Rotating Codex (Homepage/Index)
+  // ============================================================
+  function initRotatingCodex() {
+    const target = document.querySelector('.cover-section, .hero-section, .studies-hero');
+    if (!target || document.querySelector('.codex-3d')) return;
+
+    const codex = document.createElement('div');
+    codex.className = 'codex-3d';
+    codex.setAttribute('aria-hidden', 'true');
+    codex.innerHTML = `
+      <div class="codex-scene">
+        <div class="codex-book">
+          <div class="codex-face codex-front">
+            <div class="codex-emboss">✝</div>
+            <div class="codex-title-emboss">The Unveiled Word</div>
+            <div class="codex-border-detail"></div>
+          </div>
+          <div class="codex-face codex-back"></div>
+          <div class="codex-face codex-spine">
+            <div class="codex-spine-bands"></div>
+          </div>
+          <div class="codex-face codex-top"></div>
+          <div class="codex-face codex-bottom"></div>
+          <div class="codex-face codex-pages-edge"></div>
+        </div>
+      </div>
+    `;
+    target.appendChild(codex);
+  }
+
+  // ============================================================
+  // FEATURE 11: Verse Constellation Map
+  // Built as a standalone tool — see tools/verse-constellations.html
+  // Init adds a subtle star-field background to study pages
+  // ============================================================
+  function initStarField() {
+    if (!document.querySelector('.study-article') || window.innerWidth < 768) return;
+    
+    const canvas = document.createElement('canvas');
+    canvas.className = 'star-field-bg';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const stars = [];
+    const NUM_STARS = 60;
+
+    for (let i = 0; i < NUM_STARS; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.3,
+        a: Math.random() * 0.03 + 0.01,
+        speed: Math.random() * 0.0005 + 0.0002,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+
+    // Draw cross-reference lines between nearby stars
+    function drawConnections() {
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const dx = stars[i].x - stars[j].x;
+          const dy = stars[i].y - stars[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            const lineAlpha = (1 - dist / 150) * 0.015;
+            ctx.strokeStyle = `rgba(197, 150, 12, ${lineAlpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(stars[i].x, stars[i].y);
+            ctx.lineTo(stars[j].x, stars[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    let frame = 0;
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      frame++;
+
+      stars.forEach(s => {
+        const twinkle = Math.sin(frame * s.speed * 60 + s.phase) * 0.5 + 0.5;
+        const alpha = s.a * (0.5 + twinkle * 0.5);
+        ctx.fillStyle = `rgba(197, 150, 12, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      drawConnections();
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  }
+
+  // ============================================================
+  // FEATURE 12: Hebrew Letter Particle Effects
+  // Hover shows proto-Sinaitic ancestor forms briefly
+  // ============================================================
+  function initHebrewParticles() {
+    const hebrewWords = document.querySelectorAll('.hebrew-block .original-word');
+    if (!hebrewWords.length) return;
+
+    const protoMap = {
+      'א': '𐤀', 'ב': '𐤁', 'ג': '𐤂', 'ד': '𐤃', 'ה': '𐤄',
+      'ו': '𐤅', 'ז': '𐤆', 'ח': '𐤇', 'ט': '𐤈', 'י': '𐤉',
+      'כ': '𐤊', 'ך': '𐤊', 'ל': '𐤋', 'מ': '𐤌', 'ם': '𐤌',
+      'נ': '𐤍', 'ן': '𐤍', 'ס': '𐤎', 'ע': '𐤏', 'פ': '𐤐',
+      'ף': '𐤐', 'צ': '𐤑', 'ץ': '𐤑', 'ק': '𐤒', 'ר': '𐤓',
+      'ש': '𐤔', 'ת': '𐤕'
+    };
+
+    hebrewWords.forEach(el => {
+      el.style.cursor = 'pointer';
+      el.title = 'Hover to see proto-Sinaitic form';
+      
+      el.addEventListener('mouseenter', function() {
+        if (this.dataset.animating) return;
+        this.dataset.animating = 'true';
+        const original = this.textContent;
+
+        // Convert to proto-Sinaitic
+        let proto = '';
+        for (const ch of original) {
+          const base = ch.replace(/[\u0591-\u05C7\u05B0-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]/g, '');
+          proto += protoMap[base] || ch;
+        }
+
+        this.classList.add('hebrew-morphing');
+        this.textContent = proto;
+
+        // Create floating particles of the original letters
+        const rect = this.getBoundingClientRect();
+        for (const ch of original.replace(/[\u0591-\u05C7\u05B0-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\s]/g, '')) {
+          const particle = document.createElement('span');
+          particle.className = 'hebrew-particle';
+          particle.textContent = ch;
+          particle.style.cssText = `
+            position: fixed;
+            left: ${rect.left + Math.random() * rect.width}px;
+            top: ${rect.top + Math.random() * rect.height}px;
+            font-size: ${14 + Math.random() * 10}px;
+            color: var(--gold-leaf);
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0.8;
+          `;
+          document.body.appendChild(particle);
+          
+          const dx = (Math.random() - 0.5) * 80;
+          const dy = -30 - Math.random() * 60;
+          particle.animate([
+            { transform: 'translate(0, 0) rotate(0deg)', opacity: 0.8 },
+            { transform: `translate(${dx}px, ${dy}px) rotate(${(Math.random()-0.5)*90}deg)`, opacity: 0 }
+          ], { duration: 1000 + Math.random() * 500, easing: 'ease-out' }).onfinish = () => particle.remove();
+        }
+
+        setTimeout(() => {
+          this.textContent = original;
+          this.classList.remove('hebrew-morphing');
+          delete this.dataset.animating;
+        }, 1200);
+      });
+    });
+  }
+
+  // ============================================================
+  // FEATURE 15: DNA of a Word (Word Family Tree)
+  // Shows related words branching from root on Greek/Hebrew blocks
+  // ============================================================
+  function initWordDNA() {
+    // Add expandable root-word indicators to word blocks
+    const wordBlocks = document.querySelectorAll('.greek-block, .hebrew-block');
+    if (!wordBlocks.length) return;
+
+    wordBlocks.forEach(block => {
+      const defEl = block.querySelector('.word-definition');
+      if (!defEl) return;
+      
+      // Look for "From X + Y" patterns in the definition
+      const text = defEl.textContent;
+      const fromMatch = text.match(/From\s+(\w+)\s+\(([^)]+)\)/i);
+      if (!fromMatch) return;
+
+      const rootIndicator = document.createElement('div');
+      rootIndicator.className = 'word-dna-root';
+      rootIndicator.innerHTML = `
+        <span class="dna-icon">🧬</span>
+        <span class="dna-label">Word Root: <em>${fromMatch[1]}</em> — ${fromMatch[2]}</span>
+      `;
+      rootIndicator.style.cssText = `
+        margin-top: 8px;
+        padding: 6px 10px;
+        background: rgba(197, 150, 12, 0.05);
+        border-left: 2px solid rgba(197, 150, 12, 0.2);
+        border-radius: 0 4px 4px 0;
+        font-size: 0.8rem;
+        color: var(--ink-faded);
+        cursor: default;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+      `;
+      rootIndicator.addEventListener('mouseenter', () => rootIndicator.style.opacity = '1');
+      rootIndicator.addEventListener('mouseleave', () => rootIndicator.style.opacity = '0.7');
+      
+      block.appendChild(rootIndicator);
+    });
+  }
+
+  // ============================================================
   // INIT ALL FEATURES
   // ============================================================
   function initAll() {
-    // Only init on study/content pages, not tools or index
     const isStudy = document.querySelector('.study-article');
     const isContent = document.querySelector('.book-page');
+    const isHome = document.querySelector('.cover-section');
+    const isIndex = document.querySelector('.studies-hero');
 
     if (isContent) {
       initAgingParchment();
@@ -382,6 +602,13 @@
       initAmbience();
       initMarginNotes();
       initCandleLitMode();
+      initStarField();
+      initHebrewParticles();
+      initWordDNA();
+    }
+
+    if (isHome || isIndex) {
+      initRotatingCodex();
     }
   }
 
