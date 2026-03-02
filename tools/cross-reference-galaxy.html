@@ -931,10 +931,10 @@ function buildCross(){
   }
 
   // Vertical beam
-  fillBox(crossX, crossY, crossZ, vWidth, vHeight, beamDepth, 3.5);
+  fillBox(crossX, crossY, crossZ, vWidth, vHeight, beamDepth, 6);
 
   // Horizontal beam (crossbar)
-  fillBox(crossX, crossY+hY, crossZ, hWidth, hHeight, beamDepth, 3.5);
+  fillBox(crossX, crossY+hY, crossZ, hWidth, hHeight, beamDepth, 6);
 
   // Wood grain texture effect — extra particles along the beams with slight offsets
   // Vertical grain lines
@@ -985,7 +985,7 @@ function buildCross(){
     const py=crossY+hY*0.5+Math.sin(angle)*r*0.7; // Centered slightly above middle
     const pz=crossZ-5-Math.random()*15; // Behind the cross
     const falloff=1.0-r/100;
-    particles.push({x:px, y:py, z:pz, bright:Math.max(0.05,falloff*0.25)});
+    particles.push({x:px, y:py, z:pz, bright:Math.max(0.2,falloff*0.6)});
   }
 
   // Build geometry
@@ -998,14 +998,14 @@ function buildCross(){
     pos[i*3]=p.x;
     pos[i*3+1]=p.y;
     pos[i*3+2]=p.z;
-    sizes[i]=0.8+Math.random()*1.5;
+    sizes[i]=1.5+Math.random()*2.5;
 
-    // Warm wood/gold tones
-    const b=p.bright||0.5;
-    const warmth=Math.random()*0.1;
-    colors[i*3]=(0.75+warmth)*b;      // R — warm
-    colors[i*3+1]=(0.55+warmth)*b;    // G — muted gold
-    colors[i*3+2]=(0.25+warmth*0.5)*b; // B — low for wood tone
+    // Warm wood/gold tones — bright enough to see
+    const b=Math.max(0.5, p.bright||0.7);
+    const warmth=Math.random()*0.15;
+    colors[i*3]=(0.9+warmth)*b;       // R — warm gold
+    colors[i*3+1]=(0.7+warmth)*b;     // G — gold
+    colors[i*3+2]=(0.3+warmth*0.5)*b; // B — warm
   });
 
   const geo=new THREE.BufferGeometry();
@@ -1027,7 +1027,7 @@ function buildCross(){
         float drift=mod(uTime*0.8+position.x*0.01+position.y*0.005,20.0);
         p.y+=drift*0.5;
         // Gentle flicker
-        vAlpha=0.6+sin(uTime*1.5+position.x*0.3+position.y*0.2)*0.15;
+        vAlpha=0.85+sin(uTime*1.5+position.x*0.3+position.y*0.2)*0.15;
         vec4 mv=modelViewMatrix*vec4(p,1.0);
         gl_Position=projectionMatrix*mv;
         gl_PointSize=size*uPR*(120.0/-mv.z);
@@ -1039,7 +1039,7 @@ function buildCross(){
       void main(){
         float d=length(gl_PointCoord-0.5);
         if(d>0.5)discard;
-        float a=smoothstep(0.5,0.05,d)*vAlpha*0.12;
+        float a=smoothstep(0.5,0.05,d)*vAlpha*0.55;
         gl_FragColor=vec4(vC,a);
       }
     `,
@@ -1557,7 +1557,7 @@ function flyToCross(){
 
   // Cross is at (0, 0, -280), fly to a position in front of it
   const crossPos=new THREE.Vector3(0,25,-280);
-  const camPos=new THREE.Vector3(0,25,-180);
+  const camPos=new THREE.Vector3(0,30,-200);
   animateCamera(camPos,crossPos);
 
   // Show a panel for the cross
