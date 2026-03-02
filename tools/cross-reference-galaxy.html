@@ -4,835 +4,545 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cross-Reference Galaxy — The Unveiled Word</title>
-<meta name="description" content="Explore 264,000+ cross-references between every book of the Bible as a stunning 3D galaxy. Click any book to see its connections light up.">
+<meta name="description" content="Explore 264,000+ cross-references between every book of the Bible as a stunning 3D galaxy.">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="canonical" href="https://benlee2144.github.io/novawebsite/tools/cross-reference-galaxy.html">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#050208;font-family:'Cinzel',Georgia,serif}
-#canvas{width:100%;height:100%;display:block;cursor:grab}
-#canvas:active{cursor:grabbing}
+html,body{width:100%;height:100%;overflow:hidden;background:#020108;font-family:'Cinzel',Georgia,serif}
+canvas{width:100%;height:100%;display:block;cursor:grab}
+canvas:active{cursor:grabbing}
 
-/* Top bar */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:100;
-  background:linear-gradient(180deg,rgba(5,2,8,0.95) 0%,rgba(5,2,8,0.7) 70%,transparent 100%);
-  padding:16px 24px 32px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+  background:linear-gradient(180deg,rgba(2,1,8,0.9) 0%,transparent 100%);
+  padding:14px 20px 40px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none}
 #topbar *{pointer-events:auto}
-#topbar a{color:#c5960c;text-decoration:none;font-size:0.85rem;opacity:0.7;transition:opacity 0.3s}
-#topbar a:hover{opacity:1}
-#title{color:#c5960c;font-size:1.1rem;letter-spacing:0.15em;text-transform:uppercase;text-shadow:0 0 20px rgba(197,150,12,0.5)}
-#stats{color:rgba(255,245,220,0.5);font-size:0.7rem;letter-spacing:0.1em;font-family:Georgia,serif}
+#topbar a{color:rgba(197,150,12,0.6);text-decoration:none;font-size:0.75rem;transition:color 0.3s}
+#topbar a:hover{color:#c5960c}
+#title{color:rgba(197,150,12,0.8);font-size:0.9rem;letter-spacing:0.2em;text-transform:uppercase;text-align:center}
+#stats{color:rgba(255,245,220,0.3);font-size:0.6rem;letter-spacing:0.08em;font-family:Georgia,serif;text-align:right}
 
-/* Info panel */
 #info{position:fixed;bottom:0;left:0;right:0;z-index:100;text-align:center;
-  background:linear-gradient(0deg,rgba(5,2,8,0.95) 0%,rgba(5,2,8,0.7) 70%,transparent 100%);
-  padding:32px 24px 20px;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);pointer-events:none}
-#info *{pointer-events:auto}
-#info.hidden{transform:translateY(100%)}
-#bookname{color:#c5960c;font-size:1.8rem;margin-bottom:4px;text-shadow:0 0 30px rgba(197,150,12,0.6)}
-#bookdetail{color:rgba(255,245,220,0.7);font-size:0.85rem;font-family:Georgia,serif;margin-bottom:8px}
-#connections-list{color:rgba(255,245,220,0.5);font-size:0.75rem;font-family:Georgia,serif;max-height:80px;overflow-y:auto;line-height:1.6}
-#hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99;
-  color:rgba(255,245,220,0.3);font-size:0.7rem;font-family:Georgia,serif;letter-spacing:0.1em;
-  transition:opacity 1s;pointer-events:none}
+  background:linear-gradient(0deg,rgba(2,1,8,0.95) 0%,rgba(2,1,8,0.6) 60%,transparent 100%);
+  padding:40px 24px 24px;transform:translateY(100%);transition:transform 0.6s cubic-bezier(0.4,0,0.2,1)}
+#info.show{transform:translateY(0)}
+#bookname{color:#c5960c;font-size:1.4rem;margin-bottom:4px;text-shadow:0 0 20px rgba(197,150,12,0.4)}
+#bookdetail{color:rgba(255,245,220,0.5);font-size:0.75rem;font-family:Georgia,serif;margin-bottom:6px}
+#connections-list{color:rgba(255,245,220,0.35);font-size:0.65rem;font-family:Georgia,serif;line-height:1.7}
 
-/* Section legend */
-#legend{position:fixed;top:70px;right:20px;z-index:100;pointer-events:none}
-#legend div{display:flex;align-items:center;gap:8px;margin-bottom:4px;pointer-events:auto;cursor:pointer;
-  opacity:0.6;transition:opacity 0.3s}
-#legend div:hover{opacity:1}
-#legend .dot{width:10px;height:10px;border-radius:50%}
-#legend .label{color:rgba(255,245,220,0.7);font-size:0.65rem;font-family:Georgia,serif;letter-spacing:0.05em}
+#hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99;
+  color:rgba(255,245,220,0.2);font-size:0.65rem;font-family:Georgia,serif;letter-spacing:0.1em;
+  transition:opacity 2s}
 
-/* Loading */
-#loading{position:fixed;inset:0;z-index:200;background:#050208;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;transition:opacity 1s}
-#loading.fade{opacity:0;pointer-events:none}
-#loading h1{color:#c5960c;font-size:1.4rem;letter-spacing:0.2em;margin-bottom:12px;text-transform:uppercase}
-#loading p{color:rgba(255,245,220,0.4);font-size:0.8rem;font-family:Georgia,serif}
-#loadbar{width:200px;height:2px;background:rgba(197,150,12,0.15);border-radius:1px;margin-top:20px;overflow:hidden}
-#loadfill{width:0%;height:100%;background:linear-gradient(90deg,#c5960c,#e8d48b);transition:width 0.3s;border-radius:1px}
+#legend{position:fixed;top:60px;right:16px;z-index:100;opacity:0.5;transition:opacity 0.3s}
+#legend:hover{opacity:1}
+#legend div{display:flex;align-items:center;gap:6px;margin-bottom:3px;cursor:pointer}
+#legend .dot{width:6px;height:6px;border-radius:50%}
+#legend .lbl{color:rgba(255,245,220,0.5);font-size:0.55rem;font-family:Georgia,serif}
 
-@media(max-width:768px){
-  #title{font-size:0.85rem}
-  #bookname{font-size:1.3rem}
-  #legend{display:none}
-}
+#loading{position:fixed;inset:0;z-index:200;background:#020108;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;transition:opacity 1.5s}
+#loading.done{opacity:0;pointer-events:none}
+#loading h1{color:rgba(197,150,12,0.8);font-size:1.1rem;letter-spacing:0.25em;text-transform:uppercase}
+#loading p{color:rgba(255,245,220,0.25);font-size:0.7rem;font-family:Georgia,serif;margin-top:8px}
+.bar{width:160px;height:1px;background:rgba(197,150,12,0.1);margin-top:20px;overflow:hidden}
+.fill{width:0%;height:100%;background:#c5960c;transition:width 0.4s}
+
+@media(max-width:768px){#legend{display:none}#title{font-size:0.75rem}}
 </style>
 </head>
 <body>
-
-<div id="loading">
-  <h1>✦ Cross-Reference Galaxy ✦</h1>
-  <p>Mapping 264,000 connections between 66 books</p>
-  <div id="loadbar"><div id="loadfill"></div></div>
-</div>
-
-<div id="topbar">
-  <a href="../">← The Unveiled Word</a>
-  <div id="title">Cross-Reference Galaxy</div>
-  <div id="stats">66 Books · 264,673 References</div>
-</div>
-
+<div id="loading"><h1>✦ Mapping the Galaxy ✦</h1><p>264,000 connections across 66 books</p><div class="bar"><div class="fill" id="lf"></div></div></div>
+<div id="topbar"><a href="../">← Home</a><div id="title">Cross-Reference Galaxy</div><div id="stats">66 Books · 264,673 Refs</div></div>
 <div id="legend"></div>
+<canvas id="c"></canvas>
+<div id="info"><div id="bookname"></div><div id="bookdetail"></div><div id="connections-list"></div></div>
+<div id="hint">drag to orbit · scroll to zoom · tap a star</div>
 
-<canvas id="canvas"></canvas>
-
-<div id="info" class="hidden">
-  <div id="bookname"></div>
-  <div id="bookdetail"></div>
-  <div id="connections-list"></div>
-</div>
-
-<div id="hint">Click a book to explore · Scroll to zoom · Drag to orbit</div>
-
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-// ═══════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════
-const SECTION_COLORS = {
-  'Torah':          new THREE.Color(0xc5960c),   // Gold
-  'History':        new THREE.Color(0x8b6914),   // Bronze
-  'Poetry':         new THREE.Color(0x4a90d9),   // Blue
-  'Major Prophets': new THREE.Color(0xd94444),   // Red
-  'Minor Prophets': new THREE.Color(0xe87040),   // Orange
-  'Gospels':        new THREE.Color(0xf0e68c),   // Bright gold
-  'Church History': new THREE.Color(0x50c878),   // Emerald
-  "Paul's Letters": new THREE.Color(0x9b59b6),   // Purple
-  'General Letters':new THREE.Color(0x2ecc71),   // Green
-  'Apocalyptic':    new THREE.Color(0xff4444),   // Crimson
+const SEC_COL = {
+  'Torah':          0xd4a843,
+  'History':        0x9e7a2e,
+  'Poetry':         0x5b9bd5,
+  'Major Prophets': 0xc94040,
+  'Minor Prophets': 0xd4784a,
+  'Gospels':        0xf5deb3,
+  'Church History': 0x3db87a,
+  "Paul's Letters": 0x8e44ad,
+  'General Letters':0x27ae60,
+  'Apocalyptic':    0xe74c3c,
 };
 
-let scene, camera, renderer, composer, controls;
-let bookMeshes = [];
-let bookLabels = [];
-let connectionLines = [];
-let particleSystem;
-let nebulaParticles;
-let galaxyData = null;
-let selectedBook = null;
-let hoveredBook = null;
-let raycaster = new THREE.Raycaster();
-let mouse = new THREE.Vector2();
-let clock = new THREE.Clock();
-let loadProgress = 0;
+let scene,camera,renderer,composer,controls,clock;
+let bookMeshes=[],allGlows=[],connLines=[],data=null;
+let selected=null,raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
 
-// ═══════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════
-async function init() {
-  updateLoad(10);
+function lp(p){document.getElementById('lf').style.width=p+'%'}
 
-  // Scene
-  scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x050208, 0.0015);
+// ── Star texture (procedural) ──
+function makeStarTex(){
+  const c=document.createElement('canvas');c.width=128;c.height=128;
+  const x=c.getContext('2d');
+  const g=x.createRadialGradient(64,64,0,64,64,64);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(0.05,'rgba(255,255,255,0.9)');
+  g.addColorStop(0.15,'rgba(255,245,220,0.6)');
+  g.addColorStop(0.3,'rgba(255,220,150,0.2)');
+  g.addColorStop(0.5,'rgba(200,150,80,0.05)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g;x.fillRect(0,0,128,128);
+  // Add cross-flare
+  x.globalCompositeOperation='lighter';
+  const g2=x.createLinearGradient(0,64,128,64);
+  g2.addColorStop(0,'rgba(255,255,255,0)');
+  g2.addColorStop(0.4,'rgba(255,245,220,0.05)');
+  g2.addColorStop(0.5,'rgba(255,255,255,0.15)');
+  g2.addColorStop(0.6,'rgba(255,245,220,0.05)');
+  g2.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=g2;x.fillRect(0,56,128,16);
+  const g3=x.createLinearGradient(64,0,64,128);
+  g3.addColorStop(0,'rgba(255,255,255,0)');
+  g3.addColorStop(0.4,'rgba(255,245,220,0.05)');
+  g3.addColorStop(0.5,'rgba(255,255,255,0.15)');
+  g3.addColorStop(0.6,'rgba(255,245,220,0.05)');
+  g3.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=g3;x.fillRect(56,0,16,128);
+  return new THREE.CanvasTexture(c);
+}
 
-  // Camera
-  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 80, 200);
+function makeGlowTex(col){
+  const c=document.createElement('canvas');c.width=64;c.height=64;
+  const x=c.getContext('2d');
+  const r=((col>>16)&255),g2=((col>>8)&255),b=(col&255);
+  const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,`rgba(${r},${g2},${b},0.3)`);
+  g.addColorStop(0.3,`rgba(${r},${g2},${b},0.1)`);
+  g.addColorStop(0.7,`rgba(${r},${g2},${b},0.02)`);
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g;x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
 
-  // Renderer
-  renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById('canvas'),
-    antialias: true,
-    alpha: false,
-    powerPreference: 'high-performance'
-  });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+async function init(){
+  lp(10);
+  scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0x020108,0.0025);
+  camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,2000);
+  camera.position.set(0,60,160);
 
-  updateLoad(20);
+  renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,powerPreference:'high-performance'});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.0;
 
-  // Post-processing (bloom)
-  composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    1.5,   // strength
-    0.4,   // radius
-    0.85   // threshold
-  );
+  composer=new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene,camera));
+  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),2.0,0.8,0.3);
   composer.addPass(bloom);
 
-  // Controls
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.rotateSpeed = 0.5;
-  controls.zoomSpeed = 0.8;
-  controls.minDistance = 20;
-  controls.maxDistance = 500;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.15;
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=0.04;
+  controls.rotateSpeed=0.4;controls.zoomSpeed=0.6;
+  controls.minDistance=15;controls.maxDistance=400;
+  controls.autoRotate=true;controls.autoRotateSpeed=0.1;
 
-  // Ambient light
-  scene.add(new THREE.AmbientLight(0x222244, 0.5));
+  lp(25);
+  const resp=await fetch('../data/galaxy_data.json');
+  data=await resp.json();
+  lp(40);
 
-  // Point lights
-  const light1 = new THREE.PointLight(0xc5960c, 2, 400);
-  light1.position.set(0, 50, 0);
-  scene.add(light1);
-
-  const light2 = new THREE.PointLight(0x4a90d9, 1, 300);
-  light2.position.set(-100, -30, 50);
-  scene.add(light2);
-
-  updateLoad(30);
-
-  // Load data
-  const resp = await fetch('../data/galaxy_data.json');
-  galaxyData = await resp.json();
-  updateLoad(50);
-
-  // Build the galaxy
-  createNebula();
-  updateLoad(60);
-  createStarField();
-  updateLoad(70);
+  createDeepSpace();
+  lp(55);
   createBooks();
-  updateLoad(85);
+  lp(75);
   createConnections();
-  updateLoad(95);
+  lp(90);
   createLegend();
-  updateLoad(100);
+  lp(100);
 
-  // Events
-  window.addEventListener('resize', onResize);
-  renderer.domElement.addEventListener('click', onClick);
-  renderer.domElement.addEventListener('mousemove', onMouseMove);
-  renderer.domElement.addEventListener('touchstart', onTouch, {passive: true});
+  addEventListener('resize',onResize);
+  renderer.domElement.addEventListener('click',onClick);
+  renderer.domElement.addEventListener('mousemove',onHover);
+  renderer.domElement.addEventListener('touchend',onTouchEnd,{passive:true});
 
-  // Hide loading
-  setTimeout(() => {
-    document.getElementById('loading').classList.add('fade');
-    setTimeout(() => document.getElementById('loading').style.display = 'none', 1000);
-  }, 500);
-
-  // Hide hint after 8s
-  setTimeout(() => {
-    document.getElementById('hint').style.opacity = '0';
-  }, 8000);
-
+  clock=new THREE.Clock();
+  setTimeout(()=>{document.getElementById('loading').classList.add('done')},600);
+  setTimeout(()=>{document.getElementById('hint').style.opacity='0'},6000);
   animate();
 }
 
-function updateLoad(pct) {
-  loadProgress = pct;
-  document.getElementById('loadfill').style.width = pct + '%';
-}
-
-// ═══════════════════════════════════════
-// NEBULA BACKGROUND
-// ═══════════════════════════════════════
-function createNebula() {
-  const count = 8000;
-  const positions = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-
-  for (let i = 0; i < count; i++) {
-    // Spiral distribution
-    const angle = Math.random() * Math.PI * 8;
-    const radius = Math.random() * 250 + 10;
-    const height = (Math.random() - 0.5) * 80;
-    const spread = Math.random() * 30;
-
-    positions[i*3]   = Math.cos(angle) * radius + (Math.random()-0.5) * spread;
-    positions[i*3+1] = height + Math.sin(angle * 0.3) * 20;
-    positions[i*3+2] = Math.sin(angle) * radius + (Math.random()-0.5) * spread;
-
-    // Warm nebula colors
-    const t = Math.random();
-    if (t < 0.3) {
-      colors[i*3] = 0.5 + Math.random()*0.3;
-      colors[i*3+1] = 0.3 + Math.random()*0.2;
-      colors[i*3+2] = 0.05;
-    } else if (t < 0.6) {
-      colors[i*3] = 0.2;
-      colors[i*3+1] = 0.2;
-      colors[i*3+2] = 0.5 + Math.random()*0.3;
-    } else {
-      colors[i*3] = 0.4 + Math.random()*0.3;
-      colors[i*3+1] = 0.2 + Math.random()*0.2;
-      colors[i*3+2] = 0.3 + Math.random()*0.2;
-    }
-
-    sizes[i] = Math.random() * 3 + 0.5;
+// ── DEEP SPACE ──
+function createDeepSpace(){
+  // Distant stars
+  const sc=5000,sp=new Float32Array(sc*3),ss=new Float32Array(sc);
+  for(let i=0;i<sc;i++){
+    const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=300+Math.random()*500;
+    sp[i*3]=r*Math.sin(ph)*Math.cos(th);sp[i*3+1]=r*Math.sin(ph)*Math.sin(th);sp[i*3+2]=r*Math.cos(ph);
+    ss[i]=Math.random()*1.2+0.2;
   }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-  const mat = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: {value: 0},
-      uPixelRatio: {value: renderer.getPixelRatio()},
-    },
-    vertexShader: `
-      attribute float size;
-      varying vec3 vColor;
-      uniform float uTime;
-      uniform float uPixelRatio;
-      void main() {
-        vColor = color;
-        vec3 pos = position;
-        pos.y += sin(uTime * 0.1 + position.x * 0.01) * 2.0;
-        vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-        gl_Position = projectionMatrix * mvPos;
-        gl_PointSize = size * uPixelRatio * (150.0 / -mvPos.z);
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vColor;
-      void main() {
-        float d = length(gl_PointCoord - 0.5);
-        if (d > 0.5) discard;
-        float alpha = smoothstep(0.5, 0.0, d) * 0.15;
-        gl_FragColor = vec4(vColor, alpha);
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    vertexColors: true,
+  const sg=new THREE.BufferGeometry();
+  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  sg.setAttribute('size',new THREE.BufferAttribute(ss,1));
+  const sm=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0},uPR:{value:renderer.getPixelRatio()}},
+    vertexShader:`attribute float size;uniform float uTime,uPR;varying float vA;
+      void main(){vA=sin(uTime*3.0+position.x*0.05)*0.3+0.7;
+      vec4 mv=modelViewMatrix*vec4(position,1.0);gl_Position=projectionMatrix*mv;
+      gl_PointSize=size*uPR*(60.0/-mv.z);}`,
+    fragmentShader:`varying float vA;void main(){float d=length(gl_PointCoord-0.5);
+      if(d>0.5)discard;gl_FragColor=vec4(1.0,0.98,0.93,smoothstep(0.5,0.0,d)*vA*0.6);}`,
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending
   });
+  scene.add(new THREE.Points(sg,sm));
 
-  nebulaParticles = new THREE.Points(geo, mat);
-  scene.add(nebulaParticles);
-}
-
-// ═══════════════════════════════════════
-// STAR FIELD
-// ═══════════════════════════════════════
-function createStarField() {
-  const count = 3000;
-  const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-
-  for (let i = 0; i < count; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    const r = 400 + Math.random() * 400;
-    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
-    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-    positions[i*3+2] = r * Math.cos(phi);
-    sizes[i] = Math.random() * 1.5 + 0.3;
+  // Nebula clouds
+  const nc=12000,np=new Float32Array(nc*3),ncol=new Float32Array(nc*3),nsz=new Float32Array(nc);
+  for(let i=0;i<nc;i++){
+    const a=Math.random()*Math.PI*6,r=10+Math.random()*180,h=(Math.random()-0.5)*50;
+    const spread=20+r*0.15;
+    np[i*3]=Math.cos(a)*r+(Math.random()-0.5)*spread;
+    np[i*3+1]=h+Math.sin(a*0.4)*15+(Math.random()-0.5)*20;
+    np[i*3+2]=Math.sin(a)*r+(Math.random()-0.5)*spread;
+    const t=Math.random();
+    if(t<0.4){ncol[i*3]=0.4;ncol[i*3+1]=0.2;ncol[i*3+2]=0.05;}
+    else if(t<0.7){ncol[i*3]=0.15;ncol[i*3+1]=0.12;ncol[i*3+2]=0.35;}
+    else{ncol[i*3]=0.25;ncol[i*3+1]=0.1;ncol[i*3+2]=0.15;}
+    nsz[i]=Math.random()*4+1;
   }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: {value: 0}, uPixelRatio: {value: renderer.getPixelRatio()} },
-    vertexShader: `
-      attribute float size;
-      uniform float uTime;
-      uniform float uPixelRatio;
-      varying float vTwinkle;
-      void main() {
-        vTwinkle = sin(uTime * 2.0 + position.x * 0.1 + position.y * 0.1) * 0.5 + 0.5;
-        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-        gl_Position = projectionMatrix * mvPos;
-        gl_PointSize = size * uPixelRatio * (80.0 / -mvPos.z);
-      }
-    `,
-    fragmentShader: `
-      varying float vTwinkle;
-      void main() {
-        float d = length(gl_PointCoord - 0.5);
-        if (d > 0.5) discard;
-        float alpha = smoothstep(0.5, 0.0, d) * (0.4 + vTwinkle * 0.6);
-        gl_FragColor = vec4(1.0, 0.98, 0.9, alpha);
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
+  const ng=new THREE.BufferGeometry();
+  ng.setAttribute('position',new THREE.BufferAttribute(np,3));
+  ng.setAttribute('color',new THREE.BufferAttribute(ncol,3));
+  ng.setAttribute('size',new THREE.BufferAttribute(nsz,1));
+  const nm=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0},uPR:{value:renderer.getPixelRatio()}},
+    vertexShader:`attribute float size;varying vec3 vC;uniform float uTime,uPR;
+      void main(){vC=color;vec3 p=position;p.y+=sin(uTime*0.08+position.x*0.008)*3.0;
+      vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
+      gl_PointSize=size*uPR*(200.0/-mv.z);}`,
+    fragmentShader:`varying vec3 vC;void main(){float d=length(gl_PointCoord-0.5);
+      if(d>0.5)discard;gl_FragColor=vec4(vC,smoothstep(0.5,0.1,d)*0.06);}`,
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
   });
-
-  scene.add(new THREE.Points(geo, mat));
+  const nebula=new THREE.Points(ng,nm);
+  nebula.userData.isNebula=true;
+  scene.add(nebula);
 }
 
-// ═══════════════════════════════════════
-// BOOKS (ORBS)
-// ═══════════════════════════════════════
-function createBooks() {
-  const books = galaxyData.books;
-  const sectionNames = Object.keys(galaxyData.sections);
+// ── BOOKS AS STARS ──
+function createBooks(){
+  const starTex=makeStarTex();
+  const secNames=Object.keys(data.sections);
 
-  books.forEach((book, i) => {
-    // Arrange in a spiral galaxy formation, grouped by section
-    const sectionIdx = sectionNames.indexOf(book.section);
-    const booksInSection = galaxyData.sections[book.section];
-    const indexInSection = booksInSection.indexOf(book.abbr);
-    const sectionCount = booksInSection.length;
+  data.books.forEach((book,i)=>{
+    const si=secNames.indexOf(book.section);
+    const bks=data.sections[book.section];
+    const bi=bks.indexOf(book.abbr);
+    const bn=bks.length;
 
-    // Base angle for this section (spread across full circle)
-    const sectionAngle = (sectionIdx / sectionNames.length) * Math.PI * 2;
-    // Offset within section
-    const innerAngle = (indexInSection / Math.max(sectionCount, 1)) * (Math.PI * 2 / sectionNames.length);
-    const angle = sectionAngle + innerAngle;
+    const secAngle=(si/secNames.length)*Math.PI*2;
+    const innerAngle=(bi/Math.max(bn,1))*(Math.PI*2/secNames.length*0.8);
+    const angle=secAngle+innerAngle;
+    const baseR=30+si*12+bi*2.5;
+    const y=Math.sin(angle*2.5)*12+(Math.random()-0.5)*8;
+    const x=Math.cos(angle)*baseR;
+    const z=Math.sin(angle)*baseR;
 
-    // Radius based on section (inner = Torah, outer = Revelation)
-    const baseRadius = 40 + sectionIdx * 15 + indexInSection * 3;
-    // Height variation
-    const height = Math.sin(angle * 2) * 15 + (Math.random() - 0.5) * 10;
+    // Core star size — MUCH smaller
+    const sz=Math.max(0.3,Math.pow(book.chapters,0.35)*0.35);
+    const col=SEC_COL[book.section]||0xc5960c;
 
-    const x = Math.cos(angle) * baseRadius;
-    const z = Math.sin(angle) * baseRadius;
-    const y = height;
+    // Bright core point (small sphere with emissive)
+    const coreGeo=new THREE.SphereGeometry(sz,16,16);
+    const coreMat=new THREE.MeshBasicMaterial({color:0xffffff});
+    const core=new THREE.Mesh(coreGeo,coreMat);
+    core.position.set(x,y,z);
+    core.userData={book,index:i,sz};
+    scene.add(core);
+    bookMeshes.push(core);
 
-    // Size based on chapter count
-    const size = Math.max(1, Math.sqrt(book.chapters) * 0.6);
-
-    // Color
-    const color = SECTION_COLORS[book.section] || new THREE.Color(0xffffff);
-
-    // Inner glow sphere
-    const innerGeo = new THREE.SphereGeometry(size, 32, 32);
-    const innerMat = new THREE.MeshStandardMaterial({
-      color: color,
-      emissive: color,
-      emissiveIntensity: 0.8,
-      roughness: 0.3,
-      metalness: 0.7,
+    // Star glow sprite
+    const glowMat=new THREE.SpriteMaterial({
+      map:starTex,color:col,transparent:true,blending:THREE.AdditiveBlending,
+      depthWrite:false,opacity:0.7
     });
-    const mesh = new THREE.Mesh(innerGeo, innerMat);
-    mesh.position.set(x, y, z);
-    mesh.userData = { book, index: i, baseEmissive: 0.8, baseScale: 1 };
-    scene.add(mesh);
-    bookMeshes.push(mesh);
-
-    // Outer glow (larger, transparent)
-    const glowGeo = new THREE.SphereGeometry(size * 2.5, 16, 16);
-    const glowMat = new THREE.ShaderMaterial({
-      uniforms: {
-        uColor: { value: color },
-        uTime: { value: 0 },
-        viewVector: { value: camera.position },
-      },
-      vertexShader: `
-        uniform vec3 viewVector;
-        varying float vIntensity;
-        void main() {
-          vec3 vNormal = normalize(normalMatrix * normal);
-          vec3 vNormel = normalize(normalMatrix * viewVector);
-          vIntensity = pow(0.7 - dot(vNormal, vNormel), 2.0);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uColor;
-        uniform float uTime;
-        varying float vIntensity;
-        void main() {
-          float pulse = sin(uTime * 1.5) * 0.1 + 0.9;
-          gl_FragColor = vec4(uColor, vIntensity * 0.4 * pulse);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-    });
-    const glow = new THREE.Mesh(glowGeo, glowMat);
-    glow.position.copy(mesh.position);
-    glow.userData.isGlow = true;
+    const glow=new THREE.Sprite(glowMat);
+    const glowSize=sz*8+2;
+    glow.scale.set(glowSize,glowSize,1);
+    glow.position.copy(core.position);
+    glow.userData={bookIdx:i,baseScale:glowSize,baseOp:0.7};
     scene.add(glow);
+    allGlows.push(glow);
 
-    // Text label (sprite)
-    const label = makeLabel(book.name, color);
-    label.position.set(x, y + size + 2.5, z);
-    label.userData.bookIndex = i;
+    // Label
+    const label=mkLabel(book.name);
+    label.position.set(x,y+sz*4+3,z);
+    label.material.opacity=0.0; // Hidden by default, show on hover/select
+    label.userData={bookIdx:i};
     scene.add(label);
-    bookLabels.push(label);
+    allGlows.push(label); // reuse array for updates
   });
 }
 
-function makeLabel(text, color) {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = 256;
-  canvas.height = 64;
-  ctx.clearRect(0, 0, 256, 64);
-
-  ctx.font = '600 24px Georgia, serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Shadow
-  ctx.shadowColor = 'rgba(0,0,0,0.8)';
-  ctx.shadowBlur = 6;
-  ctx.fillStyle = `rgb(${Math.round(color.r*255)},${Math.round(color.g*255)},${Math.round(color.b*255)})`;
-  ctx.fillText(text, 128, 32);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
-  const mat = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    depthWrite: false,
-    opacity: 0.7,
-  });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(12, 3, 1);
-  return sprite;
+function mkLabel(text){
+  const c=document.createElement('canvas');c.width=256;c.height=48;
+  const x=c.getContext('2d');
+  x.font='500 20px Georgia,serif';x.textAlign='center';x.textBaseline='middle';
+  x.shadowColor='rgba(0,0,0,0.9)';x.shadowBlur=4;
+  x.fillStyle='rgba(255,245,220,0.9)';x.fillText(text,128,24);
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
+  const m=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false});
+  const s=new THREE.Sprite(m);s.scale.set(10,2,1);
+  return s;
 }
 
-// ═══════════════════════════════════════
-// CONNECTIONS (LIGHT BEAMS)
-// ═══════════════════════════════════════
-function createConnections() {
-  const conns = galaxyData.connections;
-  const maxCount = conns.length > 0 ? conns[0].count : 1;
+// ── CONNECTIONS ──
+function createConnections(){
+  const conns=data.connections.slice(0,400);
+  const maxC=conns[0]?.count||1;
 
-  // Only render top 500 connections for performance (still looks dense)
-  const topConns = conns.slice(0, 500);
+  conns.forEach(conn=>{
+    const fb=data.books.find(b=>b.abbr===conn.from);
+    const tb=data.books.find(b=>b.abbr===conn.to);
+    if(!fb||!tb)return;
+    const fm=bookMeshes[fb.index],tm=bookMeshes[tb.index];
+    if(!fm||!tm)return;
 
-  topConns.forEach(conn => {
-    const fromBook = galaxyData.books.find(b => b.abbr === conn.from);
-    const toBook = galaxyData.books.find(b => b.abbr === conn.to);
-    if (!fromBook || !toBook) return;
+    const str=conn.count/maxC;
+    const s=fm.position.clone(),e=tm.position.clone();
+    const mid=s.clone().add(e).multiplyScalar(0.5);
+    mid.y+=5+str*20;
 
-    const fromMesh = bookMeshes[fromBook.index];
-    const toMesh = bookMeshes[toBook.index];
-    if (!fromMesh || !toMesh) return;
+    const curve=new THREE.QuadraticBezierCurve3(s,mid,e);
+    const pts=curve.getPoints(24);
+    const geo=new THREE.BufferGeometry().setFromPoints(pts);
 
-    const strength = conn.count / maxCount;
-
-    // Create curved line (quadratic bezier)
-    const start = fromMesh.position.clone();
-    const end = toMesh.position.clone();
-    const mid = start.clone().add(end).multiplyScalar(0.5);
-    mid.y += 10 + strength * 30;  // Arc height based on strength
-
-    const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-    const points = curve.getPoints(30);
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-
-    // Color gradient based on source book section
-    const fromColor = SECTION_COLORS[fromBook.section] || new THREE.Color(0xc5960c);
-    const toColor = SECTION_COLORS[toBook.section] || new THREE.Color(0xc5960c);
-    const vertColors = new Float32Array(points.length * 3);
-    for (let i = 0; i < points.length; i++) {
-      const t = i / (points.length - 1);
-      const c = fromColor.clone().lerp(toColor, t);
-      vertColors[i*3] = c.r;
-      vertColors[i*3+1] = c.g;
-      vertColors[i*3+2] = c.b;
+    // Color from source section
+    const fc=SEC_COL[fb.section]||0xc5960c;
+    const tc=SEC_COL[tb.section]||0xc5960c;
+    const c1=new THREE.Color(fc),c2=new THREE.Color(tc);
+    const vc=new Float32Array(pts.length*3);
+    for(let i=0;i<pts.length;i++){
+      const t=i/(pts.length-1);
+      const c=c1.clone().lerp(c2,t);
+      vc[i*3]=c.r;vc[i*3+1]=c.g;vc[i*3+2]=c.b;
     }
-    geo.setAttribute('color', new THREE.BufferAttribute(vertColors, 3));
+    geo.setAttribute('color',new THREE.BufferAttribute(vc,3));
 
-    const mat = new THREE.LineBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: Math.max(0.03, strength * 0.2),
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      linewidth: 1,
+    const baseOp=Math.max(0.015,str*0.12);
+    const mat=new THREE.LineBasicMaterial({
+      vertexColors:true,transparent:true,opacity:baseOp,
+      blending:THREE.AdditiveBlending,depthWrite:false
     });
-
-    const line = new THREE.Line(geo, mat);
-    line.userData = {
-      fromAbbr: conn.from,
-      toAbbr: conn.to,
-      count: conn.count,
-      baseOpacity: mat.opacity,
-    };
-    line.visible = true;
+    const line=new THREE.Line(geo,mat);
+    line.userData={from:conn.from,to:conn.to,count:conn.count,baseOp};
     scene.add(line);
-    connectionLines.push(line);
+    connLines.push(line);
   });
 }
 
-// ═══════════════════════════════════════
-// LEGEND
-// ═══════════════════════════════════════
-function createLegend() {
-  const legend = document.getElementById('legend');
-  for (const [name, color] of Object.entries(SECTION_COLORS)) {
-    const div = document.createElement('div');
-    const dot = document.createElement('span');
-    dot.className = 'dot';
-    dot.style.background = `#${color.getHexString()}`;
-    dot.style.boxShadow = `0 0 6px #${color.getHexString()}`;
-    const label = document.createElement('span');
-    label.className = 'label';
-    label.textContent = name;
-    div.appendChild(dot);
-    div.appendChild(label);
-    div.addEventListener('click', () => highlightSection(name));
-    legend.appendChild(div);
+// ── LEGEND ──
+function createLegend(){
+  const el=document.getElementById('legend');
+  for(const[name,col] of Object.entries(SEC_COL)){
+    const d=document.createElement('div');
+    const dot=document.createElement('span');dot.className='dot';
+    dot.style.background='#'+new THREE.Color(col).getHexString();
+    dot.style.boxShadow='0 0 4px #'+new THREE.Color(col).getHexString();
+    const lbl=document.createElement('span');lbl.className='lbl';lbl.textContent=name;
+    d.append(dot,lbl);el.appendChild(d);
   }
 }
 
-// ═══════════════════════════════════════
-// INTERACTION
-// ═══════════════════════════════════════
-function onClick(e) {
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-
-  const intersects = raycaster.intersectObjects(bookMeshes);
-  if (intersects.length > 0) {
-    const mesh = intersects[0].object;
-    selectBook(mesh.userData.index);
-  } else {
-    deselectBook();
-  }
+// ── INTERACTION ──
+function onClick(e){
+  mouse.x=(e.clientX/innerWidth)*2-1;
+  mouse.y=-(e.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  // Check glow sprites too (bigger hit area)
+  const hits=raycaster.intersectObjects(bookMeshes);
+  if(hits.length>0) selectBook(hits[0].object.userData.index);
+  else deselect();
 }
 
-function onTouch(e) {
-  if (e.touches.length !== 1) return;
-  const t = e.touches[0];
-  mouse.x = (t.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(bookMeshes);
-  if (intersects.length > 0) {
-    selectBook(intersects[0].object.userData.index);
-  }
+function onTouchEnd(e){
+  if(!e.changedTouches.length)return;
+  const t=e.changedTouches[0];
+  mouse.x=(t.clientX/innerWidth)*2-1;
+  mouse.y=-(t.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(bookMeshes);
+  if(hits.length>0) selectBook(hits[0].object.userData.index);
 }
 
-function onMouseMove(e) {
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(bookMeshes);
-
-  if (intersects.length > 0) {
-    const mesh = intersects[0].object;
-    if (hoveredBook !== mesh) {
-      if (hoveredBook && hoveredBook !== selectedBook) {
-        hoveredBook.material.emissiveIntensity = hoveredBook.userData.baseEmissive;
-        hoveredBook.scale.setScalar(1);
+let hovered=null;
+function onHover(e){
+  mouse.x=(e.clientX/innerWidth)*2-1;
+  mouse.y=-(e.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(bookMeshes);
+  if(hits.length>0){
+    const idx=hits[0].object.userData.index;
+    if(hovered!==idx){
+      // Show label
+      allGlows.forEach(g=>{
+        if(g.userData.bookIdx===idx && g.isSprite && g.material.map?.image?.width===256){
+          g.material.opacity=0.9;
+        }
+      });
+      if(hovered!==null){
+        allGlows.forEach(g=>{
+          if(g.userData.bookIdx===hovered && g.isSprite && g.material.map?.image?.width===256 && hovered!==(selected?.userData?.index)){
+            g.material.opacity=0;
+          }
+        });
       }
-      hoveredBook = mesh;
-      if (mesh !== selectedBook) {
-        mesh.material.emissiveIntensity = 1.5;
-        mesh.scale.setScalar(1.2);
-      }
-      renderer.domElement.style.cursor = 'pointer';
+      hovered=idx;
     }
+    renderer.domElement.style.cursor='pointer';
   } else {
-    if (hoveredBook && hoveredBook !== selectedBook) {
-      hoveredBook.material.emissiveIntensity = hoveredBook.userData.baseEmissive;
-      hoveredBook.scale.setScalar(1);
+    if(hovered!==null && hovered!==(selected?.userData?.index)){
+      allGlows.forEach(g=>{
+        if(g.userData.bookIdx===hovered && g.isSprite && g.material.map?.image?.width===256){
+          g.material.opacity=0;
+        }
+      });
     }
-    hoveredBook = null;
-    renderer.domElement.style.cursor = 'grab';
+    hovered=null;
+    renderer.domElement.style.cursor='grab';
   }
 }
 
-function selectBook(index) {
-  const book = galaxyData.books[index];
-  const mesh = bookMeshes[index];
+function selectBook(idx){
+  const book=data.books[idx];
+  const mesh=bookMeshes[idx];
+  selected=mesh;
+  controls.autoRotate=false;
 
-  // Reset previous
-  if (selectedBook) {
-    selectedBook.material.emissiveIntensity = selectedBook.userData.baseEmissive;
-    selectedBook.scale.setScalar(1);
-  }
+  // Fly camera
+  const tgt=mesh.position.clone();
+  const cp=tgt.clone().add(new THREE.Vector3(5,8,25));
+  animCam(cp,tgt);
 
-  selectedBook = mesh;
-  mesh.material.emissiveIntensity = 2.0;
-  mesh.scale.setScalar(1.5);
-
-  // Stop auto-rotate
-  controls.autoRotate = false;
-
-  // Animate camera toward the book
-  const target = mesh.position.clone();
-  const camOffset = target.clone().add(new THREE.Vector3(0, 15, 40));
-  animateCamera(camOffset, target);
-
-  // Get connections for this book
-  const conns = galaxyData.connections
-    .filter(c => c.from === book.abbr || c.to === book.abbr)
-    .sort((a, b) => b.count - a.count);
-
-  const totalRefs = conns.reduce((s, c) => s + c.count, 0);
+  // Get connections
+  const conns=data.connections.filter(c=>c.from===book.abbr||c.to===book.abbr).sort((a,b)=>b.count-a.count);
+  const connBooks=new Set(conns.map(c=>c.from===book.abbr?c.to:c.from));
+  const totalRefs=conns.reduce((s,c)=>s+c.count,0);
 
   // Highlight connections
-  connectionLines.forEach(line => {
-    const d = line.userData;
-    if (d.fromAbbr === book.abbr || d.toAbbr === book.abbr) {
-      line.material.opacity = Math.min(1, d.baseOpacity * 8);
-      line.visible = true;
+  connLines.forEach(l=>{
+    if(l.userData.from===book.abbr||l.userData.to===book.abbr){
+      l.material.opacity=Math.min(0.8,l.userData.baseOp*10);
     } else {
-      line.material.opacity = 0.01;
+      l.material.opacity=0.003;
     }
   });
 
-  // Dim other books
-  bookMeshes.forEach((m, i) => {
-    if (i === index) return;
-    const isConnected = conns.some(c => {
-      const other = c.from === book.abbr ? c.to : c.from;
-      return galaxyData.books[i].abbr === other;
-    });
-    m.material.emissiveIntensity = isConnected ? 0.6 : 0.1;
-    m.material.opacity = isConnected ? 1 : 0.3;
+  // Highlight connected stars, dim others
+  allGlows.forEach(g=>{
+    if(g.userData.bookIdx===undefined)return;
+    const bi=g.userData.bookIdx;
+    const bk=data.books[bi];
+    if(!bk)return;
+    if(bi===idx){
+      if(g.userData.baseScale) g.scale.setScalar(g.userData.baseScale*1.8);
+      if(g.userData.baseOp) g.material.opacity=1;
+      if(g.material.map?.image?.width===256) g.material.opacity=1; // label
+    } else if(connBooks.has(bk.abbr)){
+      if(g.userData.baseScale) g.material.opacity=g.userData.baseOp||0.7;
+      if(g.material.map?.image?.width===256) g.material.opacity=0.6;
+    } else {
+      if(g.userData.baseOp!==undefined) g.material.opacity=0.08;
+      if(g.material.map?.image?.width===256) g.material.opacity=0;
+    }
   });
 
-  // Update info panel
-  document.getElementById('bookname').textContent = book.name;
-  document.getElementById('bookdetail').textContent =
+  bookMeshes.forEach((m,i)=>{
+    if(i===idx) m.material.color.setHex(0xffffff);
+    else if(connBooks.has(data.books[i].abbr)) m.material.color.setHex(0xdddddd);
+    else m.material.color.setHex(0x333333);
+  });
+
+  // UI
+  document.getElementById('bookname').textContent=book.name;
+  document.getElementById('bookdetail').textContent=
     `${book.chapters} chapters · ${book.section} · ${totalRefs.toLocaleString()} cross-references`;
-
-  const top10 = conns.slice(0, 10).map(c => {
-    const otherAbbr = c.from === book.abbr ? c.to : c.from;
-    const otherBook = galaxyData.books.find(b => b.abbr === otherAbbr);
-    return `${otherBook ? otherBook.name : otherAbbr} (${c.count.toLocaleString()})`;
+  const top8=conns.slice(0,8).map(c=>{
+    const o=c.from===book.abbr?c.to:c.from;
+    const ob=data.books.find(b=>b.abbr===o);
+    return `${ob?ob.name:o} (${c.count.toLocaleString()})`;
   });
-  document.getElementById('connections-list').textContent =
-    'Top connections: ' + top10.join(' · ');
-
-  document.getElementById('info').classList.remove('hidden');
+  document.getElementById('connections-list').textContent='Top: '+top8.join(' · ');
+  document.getElementById('info').classList.add('show');
+  document.getElementById('hint').style.opacity='0';
 }
 
-function deselectBook() {
-  if (!selectedBook) return;
-  selectedBook.material.emissiveIntensity = selectedBook.userData.baseEmissive;
-  selectedBook.scale.setScalar(1);
-  selectedBook = null;
-
-  // Restore all
-  bookMeshes.forEach(m => {
-    m.material.emissiveIntensity = m.userData.baseEmissive;
-    m.material.opacity = 1;
+function deselect(){
+  if(!selected)return;
+  selected=null;controls.autoRotate=true;
+  connLines.forEach(l=>l.material.opacity=l.userData.baseOp);
+  allGlows.forEach(g=>{
+    if(g.userData.baseOp!==undefined) g.material.opacity=g.userData.baseOp;
+    if(g.userData.baseScale) g.scale.setScalar(g.userData.baseScale);
+    if(g.material.map?.image?.width===256) g.material.opacity=0;
   });
-  connectionLines.forEach(line => {
-    line.material.opacity = line.userData.baseOpacity;
-    line.visible = true;
-  });
-
-  controls.autoRotate = true;
-  document.getElementById('info').classList.add('hidden');
+  bookMeshes.forEach(m=>m.material.color.setHex(0xffffff));
+  document.getElementById('info').classList.remove('show');
 }
 
-function highlightSection(sectionName) {
-  deselectBook();
-  const booksInSection = galaxyData.sections[sectionName] || [];
-
-  bookMeshes.forEach((m, i) => {
-    const book = galaxyData.books[i];
-    if (booksInSection.includes(book.abbr)) {
-      m.material.emissiveIntensity = 2.0;
-      m.scale.setScalar(1.3);
-    } else {
-      m.material.emissiveIntensity = 0.1;
-    }
-  });
-
-  // Reset after 3s
-  setTimeout(() => {
-    bookMeshes.forEach(m => {
-      m.material.emissiveIntensity = m.userData.baseEmissive;
-      m.scale.setScalar(1);
-    });
-  }, 3000);
+// ── CAMERA ANIM ──
+let camAnim=null;
+function animCam(pos,look){
+  camAnim={sp:camera.position.clone(),ep:pos,st:controls.target.clone(),et:look,t0:clock.getElapsedTime(),dur:1.8};
+}
+function updateCam(t){
+  if(!camAnim)return;
+  let p=(t-camAnim.t0)/camAnim.dur;
+  if(p>=1){p=1;camAnim=null;}
+  p=1-Math.pow(1-p,3);
+  camera.position.lerpVectors(camAnim.sp,camAnim.ep,p);
+  controls.target.lerpVectors(camAnim.st,camAnim.et,p);
 }
 
-// ═══════════════════════════════════════
-// CAMERA ANIMATION
-// ═══════════════════════════════════════
-let cameraAnim = null;
-function animateCamera(targetPos, lookAt) {
-  const startPos = camera.position.clone();
-  const startTarget = controls.target.clone();
-  const startTime = clock.getElapsedTime();
-  const duration = 1.5;
-
-  cameraAnim = { startPos, targetPos, startTarget, lookAt, startTime, duration };
-}
-
-function updateCameraAnim(time) {
-  if (!cameraAnim) return;
-  const { startPos, targetPos, startTarget, lookAt, startTime, duration } = cameraAnim;
-  let t = (time - startTime) / duration;
-  if (t >= 1) {
-    t = 1;
-    cameraAnim = null;
-  }
-  // Ease out cubic
-  t = 1 - Math.pow(1 - t, 3);
-
-  camera.position.lerpVectors(startPos, targetPos, t);
-  controls.target.lerpVectors(startTarget, lookAt, t);
-}
-
-// ═══════════════════════════════════════
-// ANIMATE
-// ═══════════════════════════════════════
-function animate() {
+// ── ANIMATE ──
+function animate(){
   requestAnimationFrame(animate);
-  const time = clock.getElapsedTime();
-
-  // Update camera animation
-  updateCameraAnim(time);
-
-  // Update controls
+  const t=clock.getElapsedTime();
+  updateCam(t);
   controls.update();
 
-  // Pulse book orbs
-  bookMeshes.forEach((mesh, i) => {
-    const pulse = Math.sin(time * 1.2 + i * 0.5) * 0.1;
-    if (mesh !== selectedBook && mesh !== hoveredBook) {
-      mesh.material.emissiveIntensity = mesh.userData.baseEmissive + pulse;
+  // Pulse stars gently
+  allGlows.forEach((g,i)=>{
+    if(g.userData.baseScale && !selected){
+      const pulse=Math.sin(t*1.5+i*0.7)*0.08+1;
+      g.scale.setScalar(g.userData.baseScale*pulse);
     }
   });
 
-  // Update glow uniforms
-  scene.traverse(obj => {
-    if (obj.isMesh && obj.userData.isGlow && obj.material.uniforms) {
-      obj.material.uniforms.uTime.value = time;
-      obj.material.uniforms.viewVector.value.copy(camera.position);
-    }
+  // Rotate nebula slowly
+  scene.traverse(o=>{
+    if(o.userData.isNebula){o.material.uniforms.uTime.value=t;o.rotation.y=t*0.005;}
   });
 
-  // Update nebula
-  if (nebulaParticles) {
-    nebulaParticles.material.uniforms.uTime.value = time;
-    nebulaParticles.rotation.y = time * 0.01;
-  }
+  // Update star field twinkle
+  scene.traverse(o=>{
+    if(o.isPoints && o.material.uniforms?.uTime) o.material.uniforms.uTime.value=t;
+  });
 
-  // Render with bloom
   composer.render();
 }
 
-// ═══════════════════════════════════════
-// RESIZE
-// ═══════════════════════════════════════
-function onResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
+function onResize(){
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);
 }
 
-// GO
 init();
 </script>
 </body>
