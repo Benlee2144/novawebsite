@@ -3,1047 +3,898 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cross-Reference Galaxy Pro — The Unveiled Word</title>
-<meta name="description" content="264,000 connections. 66 books. Infinite discovery. The most advanced biblical cross-reference visualization ever created.">
+<title>Cross-Reference Galaxy — The Unveiled Word</title>
+<meta name="description" content="264,000 connections. 66 books. The most advanced biblical cross-reference visualization ever created.">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#010005;font-family:Georgia,serif}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Georgia,serif;color:#fff5dc}
 canvas{position:fixed;top:0;left:0;width:100vw!important;height:100vh!important;display:block}
 
-/* Cinematic intro with enhanced effects */
-#intro{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at center,rgba(1,0,5,0.95),rgba(0,0,0,1));
-  display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 2s}
+/* === INTRO === */
+#intro{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 2.5s ease-out}
 #intro.gone{opacity:0;pointer-events:none}
-#verse{color:rgba(197,150,12,0);font-style:italic;font-size:1.2rem;max-width:600px;text-align:center;
-  line-height:1.9;transition:color 3s;letter-spacing:0.03em;text-shadow:0 0 20px rgba(197,150,12,0.3)}
+#verse{color:rgba(197,150,12,0);font-style:italic;font-size:1.25rem;max-width:560px;text-align:center;line-height:2;transition:color 3s;letter-spacing:0.04em}
 #verse.show{color:rgba(197,150,12,0.85)}
-#verse cite{display:block;margin-top:15px;font-size:0.8rem;font-style:normal;color:rgba(197,150,12,0.5);
-  letter-spacing:0.2em;text-transform:uppercase}
-#intro-subtitle{color:rgba(255,245,220,0);margin-top:30px;font-size:0.9rem;letter-spacing:0.15em;
-  text-transform:uppercase;transition:color 2s 1s}
-#intro-subtitle.show{color:rgba(255,245,220,0.4)}
-#skipbtn{position:fixed;bottom:30px;right:30px;z-index:301;color:rgba(255,245,220,0.3);font-size:0.7rem;
-  cursor:pointer;letter-spacing:0.1em;border:none;background:none;font-family:Georgia,serif;
-  transition:color 0.3s;text-transform:uppercase}
+#verse cite{display:block;margin-top:18px;font-size:0.75rem;font-style:normal;color:rgba(197,150,12,0.45);letter-spacing:0.25em;text-transform:uppercase}
+#intro-sub{color:rgba(255,245,220,0);margin-top:35px;font-size:0.85rem;letter-spacing:0.18em;text-transform:uppercase;transition:color 2s 1.2s}
+#intro-sub.show{color:rgba(255,245,220,0.35)}
+#skipbtn{position:fixed;bottom:30px;right:30px;z-index:301;color:rgba(255,245,220,0.25);font-size:0.68rem;cursor:pointer;letter-spacing:0.12em;border:none;background:none;font-family:Georgia;transition:color 0.3s;text-transform:uppercase}
 #skipbtn:hover{color:rgba(255,245,220,0.7)}
 
-/* Enhanced HUD with more information */
-#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;
-  padding:20px 25px;display:flex;justify-content:space-between;align-items:flex-start;
-  opacity:0;transition:opacity 2s;background:linear-gradient(180deg,rgba(0,0,0,0.2) 0%,transparent 100%)}
+/* === HUD === */
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start;opacity:0;transition:opacity 2s;background:linear-gradient(180deg,rgba(0,0,0,0.35) 0%,transparent 100%)}
 #hud.show{opacity:1}
 #hud *{pointer-events:auto}
-#hud a{color:rgba(197,150,12,0.5);text-decoration:none;font-size:0.75rem;transition:color 0.3s}
+#hud a{color:rgba(197,150,12,0.45);text-decoration:none;font-size:0.72rem;transition:color 0.3s}
 #hud a:hover{color:rgba(197,150,12,0.9)}
-#htitle{color:rgba(197,150,12,0.6);font-size:0.8rem;letter-spacing:0.3em;text-transform:uppercase;
-  font-family:'Cinzel',Georgia,serif;text-shadow:0 0 10px rgba(197,150,12,0.2)}
-#hstats{color:rgba(255,245,220,0.3);font-size:0.6rem;letter-spacing:0.1em;text-align:right;line-height:1.4}
+#htitle{color:rgba(197,150,12,0.55);font-size:0.78rem;letter-spacing:0.3em;text-transform:uppercase}
+#hstats{color:rgba(255,245,220,0.28);font-size:0.58rem;letter-spacing:0.08em;text-align:right;line-height:1.5}
 
-/* Advanced search with AI suggestions */
-#search-wrap{position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:150;opacity:0;transition:opacity 2s}
+/* === SEARCH === */
+#search-wrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:150;opacity:0;transition:opacity 2s}
 #search-wrap.show{opacity:1}
-#search{background:rgba(255,245,220,0.08);border:2px solid rgba(197,150,12,0.2);color:#fff5dc;
-  font-family:Georgia,serif;font-size:0.8rem;padding:8px 18px;border-radius:25px;width:220px;
-  outline:none;transition:all 0.3s;backdrop-filter:blur(10px)}
-#search:focus{border-color:rgba(197,150,12,0.6);width:320px;box-shadow:0 0 20px rgba(197,150,12,0.2)}
-#search::placeholder{color:rgba(255,245,220,0.3)}
-#search-results{position:absolute;top:45px;left:0;right:0;background:rgba(1,0,5,0.98);
-  border:1px solid rgba(197,150,12,0.2);border-radius:12px;display:none;max-height:350px;overflow-y:auto;
-  backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.6)}
+#search{background:rgba(255,245,220,0.06);border:1px solid rgba(197,150,12,0.18);color:#fff5dc;font-family:Georgia;font-size:0.78rem;padding:8px 20px;border-radius:25px;width:200px;outline:none;transition:all 0.4s;backdrop-filter:blur(12px)}
+#search:focus{border-color:rgba(197,150,12,0.5);width:300px;background:rgba(255,245,220,0.1);box-shadow:0 0 25px rgba(197,150,12,0.15)}
+#search::placeholder{color:rgba(255,245,220,0.25)}
+#search-results{position:absolute;top:42px;left:0;right:0;background:rgba(2,1,8,0.97);border:1px solid rgba(197,150,12,0.15);border-radius:10px;display:none;max-height:300px;overflow-y:auto;backdrop-filter:blur(20px);box-shadow:0 12px 40px rgba(0,0,0,0.7)}
 #search-results.show{display:block}
-#search-results div{padding:10px 18px;color:rgba(255,245,220,0.8);font-size:0.75rem;cursor:pointer;
-  display:flex;justify-content:space-between;align-items:center;transition:all 0.2s;border-bottom:1px solid rgba(197,150,12,0.05)}
-#search-results div:hover{background:rgba(197,150,12,0.15);color:#fff5dc}
-#search-results div span.sec{color:rgba(197,150,12,0.4);font-size:0.65rem}
-#ai-hint{margin-top:8px;color:rgba(197,150,12,0.3);font-size:0.6rem;font-style:italic;text-align:center}
+#search-results div{padding:9px 16px;color:rgba(255,245,220,0.75);font-size:0.72rem;cursor:pointer;display:flex;justify-content:space-between;transition:all 0.15s;border-bottom:1px solid rgba(197,150,12,0.04)}
+#search-results div:hover{background:rgba(197,150,12,0.12);color:#fff5dc}
+#search-results .sec{color:rgba(197,150,12,0.35);font-size:0.6rem}
 
-/* Enhanced info panel with analytics */
-#panel{position:fixed;bottom:0;left:0;right:0;z-index:100;text-align:center;
-  background:linear-gradient(0deg,rgba(1,0,5,0.98) 0%,rgba(1,0,5,0.9) 70%,rgba(1,0,5,0.5) 90%,transparent 100%);
-  padding:35px 30px 30px;transform:translateY(110%);transition:transform 0.7s cubic-bezier(0.25,1,0.5,1);
-  max-height:60vh;overflow-y:auto;backdrop-filter:blur(15px);border-top:1px solid rgba(197,150,12,0.1)}
-#panel.show{transform:translateY(0)}
-#panel-close{position:absolute;top:12px;right:18px;background:none;border:none;color:rgba(255,245,220,0.4);
-  font-size:1.4rem;cursor:pointer;transition:color 0.2s;font-family:Georgia}
-#panel-close:hover{color:rgba(255,245,220,0.8)}
-#bname{color:#c5960c;font-size:1.6rem;font-family:'Cinzel',Georgia,serif;margin-bottom:6px;
-  text-shadow:0 0 30px rgba(197,150,12,0.4)}
-#bdetail{color:rgba(255,245,220,0.6);font-size:0.8rem;margin-bottom:8px}
-#bdesc{color:rgba(255,245,220,0.4);font-size:0.72rem;line-height:1.7;max-width:700px;margin:0 auto 15px;font-style:italic}
-
-/* Enhanced analytics section */
-#analytics{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0;max-width:600px;margin-left:auto;margin-right:auto}
-#strength-section,#network-section{background:rgba(197,150,12,0.05);border:1px solid rgba(197,150,12,0.1);
-  border-radius:8px;padding:15px;text-align:left}
-.metric-title{color:rgba(197,150,12,0.5);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px}
-#strength-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-#strength-bar .bar{width:140px;height:4px;background:rgba(255,245,220,0.08);border-radius:3px;overflow:hidden}
-#strength-bar .fill{height:100%;background:linear-gradient(90deg,rgba(197,150,12,0.4),rgba(197,150,12,0.9));transition:width 0.8s}
-#strength-bar .lbl{color:rgba(255,245,220,0.3);font-size:0.6rem}
-.network-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stat-item{color:rgba(255,245,220,0.4);font-size:0.6rem;line-height:1.3}
-.stat-value{color:rgba(197,150,12,0.7);font-weight:bold}
-
-/* Enhanced connections with categories */
-#bconns-title{color:rgba(197,150,12,0.5);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px}
-#bconns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:15px}
-.conn-chip{background:rgba(197,150,12,0.1);border:1px solid rgba(197,150,12,0.2);border-radius:20px;
-  padding:6px 15px;font-size:0.65rem;color:rgba(255,245,220,0.7);cursor:pointer;transition:all 0.3s;
-  white-space:nowrap;position:relative;overflow:hidden}
-.conn-chip:hover{background:rgba(197,150,12,0.25);border-color:rgba(197,150,12,0.5);color:#fff5dc;transform:translateY(-1px)}
-.conn-chip .cnt{color:rgba(197,150,12,0.6);margin-left:6px;font-size:0.58rem}
-.conn-chip::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
-  transition:left 0.5s;pointer-events:none}
-.conn-chip:hover::before{left:100%}
-
-/* Advanced controls */
-#advanced-controls{position:fixed;bottom:20px;left:20px;z-index:99;opacity:0;transition:opacity 2s 3s}
-#advanced-controls.show{opacity:0.6}
-#advanced-controls:hover{opacity:1}
-.control-group{margin-bottom:15px}
-.control-title{color:rgba(197,150,12,0.4);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
-.control-btn{background:rgba(197,150,12,0.1);border:1px solid rgba(197,150,12,0.2);color:rgba(255,245,220,0.6);
-  font-size:0.6rem;padding:4px 10px;border-radius:12px;cursor:pointer;transition:all 0.2s;margin-right:6px;margin-bottom:4px}
-.control-btn:hover{background:rgba(197,150,12,0.25);color:#fff5dc}
-.control-btn.active{background:rgba(197,150,12,0.4);color:#fff5dc;border-color:rgba(197,150,12,0.6)}
-
-/* Enhanced legend with more information */
-#legend{position:fixed;top:60px;right:20px;z-index:100;opacity:0;transition:opacity 2s 2s;
-  background:rgba(1,0,5,0.4);border:1px solid rgba(197,150,12,0.1);border-radius:8px;padding:12px;backdrop-filter:blur(10px)}
-#legend.show{opacity:0.7}
+/* === LEGEND === */
+#legend{position:fixed;top:55px;right:18px;z-index:100;opacity:0;transition:opacity 2s 2s;background:rgba(2,1,8,0.5);border:1px solid rgba(197,150,12,0.08);border-radius:8px;padding:10px 12px;backdrop-filter:blur(12px)}
+#legend.show{opacity:0.65}
 #legend:hover{opacity:1}
-.legend-title{color:rgba(197,150,12,0.5);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;text-align:center}
-#legend div{display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;transition:all 0.2s;padding:3px 6px;border-radius:4px}
-#legend div:hover{background:rgba(197,150,12,0.1)}
-.ldot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}
-.llbl{color:rgba(255,245,220,0.7);font-size:0.55rem;letter-spacing:0.05em}
-.lcount{color:rgba(197,150,12,0.4);font-size:0.5rem;margin-left:auto}
+.legend-title{color:rgba(197,150,12,0.45);font-size:0.52rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;text-align:center}
+.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:3px;cursor:pointer;padding:2px 5px;border-radius:3px;transition:background 0.2s}
+.leg-row:hover{background:rgba(197,150,12,0.08)}
+.ldot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 6px currentColor;flex-shrink:0}
+.llbl{color:rgba(255,245,220,0.6);font-size:0.52rem;letter-spacing:0.04em}
+.lcnt{color:rgba(197,150,12,0.3);font-size:0.48rem;margin-left:auto}
 
-/* Enhanced connection legend */
-#conn-legend{position:fixed;bottom:20px;right:20px;z-index:99;opacity:0;transition:opacity 2s 3s;
-  background:rgba(1,0,5,0.4);border:1px solid rgba(197,150,12,0.1);border-radius:8px;padding:10px;backdrop-filter:blur(10px)}
-#conn-legend.show{opacity:0.5}
+/* === CONNECTION LEGEND === */
+#conn-legend{position:fixed;bottom:18px;right:18px;z-index:99;opacity:0;transition:opacity 2s 3s;background:rgba(2,1,8,0.45);border:1px solid rgba(197,150,12,0.08);border-radius:8px;padding:8px 12px;backdrop-filter:blur(12px)}
+#conn-legend.show{opacity:0.45}
 #conn-legend:hover{opacity:0.9}
-.cl-title{color:rgba(197,150,12,0.5);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
-.cl-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
-.cl-line{height:3px;width:35px;border-radius:2px}
-.cl-lbl{color:rgba(255,245,220,0.5);font-size:0.5rem}
+.cl-title{color:rgba(197,150,12,0.4);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px}
+.cl-row{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.cl-line{height:2px;width:30px;border-radius:1px}
+.cl-lbl{color:rgba(255,245,220,0.4);font-size:0.48rem}
 
-/* AI Analysis Panel */
-#ai-panel{position:fixed;left:20px;top:50%;transform:translateY(-50%);z-index:90;
-  background:rgba(1,0,5,0.85);border:1px solid rgba(197,150,12,0.2);border-radius:10px;
-  padding:15px;width:280px;opacity:0;pointer-events:none;transition:all 0.3s;backdrop-filter:blur(15px)}
-#ai-panel.show{opacity:1;pointer-events:auto}
-.ai-title{color:rgba(197,150,12,0.6);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;text-align:center}
-.ai-section{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(197,150,12,0.1)}
-.ai-section:last-child{border-bottom:none}
-.ai-subtitle{color:rgba(255,245,220,0.5);font-size:0.6rem;margin-bottom:5px;font-weight:bold}
-.ai-content{color:rgba(255,245,220,0.4);font-size:0.55rem;line-height:1.4}
-.theme-tag{display:inline-block;background:rgba(197,150,12,0.15);border:1px solid rgba(197,150,12,0.3);
-  border-radius:10px;padding:2px 8px;font-size:0.5rem;margin:2px;color:rgba(197,150,12,0.8)}
+/* === INFO PANEL === */
+#panel{position:fixed;bottom:0;left:0;right:0;z-index:100;text-align:center;background:linear-gradient(0deg,rgba(2,1,8,0.98) 0%,rgba(2,1,8,0.92) 75%,rgba(2,1,8,0.5) 92%,transparent 100%);padding:30px 25px 25px;transform:translateY(110%);transition:transform 0.7s cubic-bezier(0.25,1,0.5,1);max-height:55vh;overflow-y:auto;backdrop-filter:blur(18px);border-top:1px solid rgba(197,150,12,0.08)}
+#panel.show{transform:translateY(0)}
+#panel-close{position:absolute;top:10px;right:16px;background:none;border:none;color:rgba(255,245,220,0.35);font-size:1.3rem;cursor:pointer;transition:color 0.2s;font-family:Georgia}
+#panel-close:hover{color:rgba(255,245,220,0.8)}
+#bname{color:#c5960c;font-size:1.5rem;margin-bottom:5px;text-shadow:0 0 25px rgba(197,150,12,0.35)}
+#bdetail{color:rgba(255,245,220,0.55);font-size:0.75rem;margin-bottom:7px}
+#bdesc{color:rgba(255,245,220,0.38);font-size:0.7rem;line-height:1.7;max-width:650px;margin:0 auto 14px;font-style:italic}
+#analytics{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px auto;max-width:550px}
+.metric-box{background:rgba(197,150,12,0.04);border:1px solid rgba(197,150,12,0.08);border-radius:7px;padding:12px;text-align:left}
+.metric-title{color:rgba(197,150,12,0.45);font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:7px}
+#str-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+#str-bar .bar{flex:1;height:3px;background:rgba(255,245,220,0.06);border-radius:2px;overflow:hidden}
+#str-bar .fill{height:100%;background:linear-gradient(90deg,rgba(197,150,12,0.35),rgba(197,150,12,0.85));transition:width 0.8s}
+#str-bar .lbl{color:rgba(255,245,220,0.25);font-size:0.5rem;white-space:nowrap}
+#str-num{text-align:center;color:rgba(197,150,12,0.65);font-size:0.68rem;font-weight:bold}
+.net-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.stat-item{color:rgba(255,245,220,0.38);font-size:0.55rem;line-height:1.3}
+.stat-val{color:rgba(197,150,12,0.65);font-weight:bold}
+#bconns-title{color:rgba(197,150,12,0.4);font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:8px}
+#bconns{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:12px}
+.conn-chip{background:rgba(197,150,12,0.08);border:1px solid rgba(197,150,12,0.15);border-radius:18px;padding:5px 13px;font-size:0.6rem;color:rgba(255,245,220,0.65);cursor:pointer;transition:all 0.25s;white-space:nowrap}
+.conn-chip:hover{background:rgba(197,150,12,0.22);border-color:rgba(197,150,12,0.45);color:#fff5dc;transform:translateY(-1px)}
+.conn-chip .cnt{color:rgba(197,150,12,0.5);margin-left:5px;font-size:0.52rem}
+#blink{margin-top:5px}
+#blink a{color:rgba(197,150,12,0.4);text-decoration:none;font-size:0.65rem;transition:color 0.3s}
+#blink a:hover{color:rgba(197,150,12,0.8)}
 
-/* Audio controls */
-#audio-controls{position:fixed;bottom:80px;left:20px;z-index:99;opacity:0;transition:opacity 2s 4s}
-#audio-controls.show{opacity:0.4}
-#audio-controls:hover{opacity:0.9}
-.audio-btn{background:rgba(197,150,12,0.1);border:1px solid rgba(197,150,12,0.2);color:rgba(255,245,220,0.6);
-  font-size:0.6rem;padding:6px 12px;border-radius:15px;cursor:pointer;transition:all 0.2s;margin-right:8px}
-.audio-btn:hover{background:rgba(197,150,12,0.3);color:#fff5dc}
-.audio-btn.active{background:rgba(197,150,12,0.4);border-color:rgba(197,150,12,0.6)}
+/* === AUDIO TOGGLE === */
+#audio-btn{position:fixed;bottom:18px;left:18px;z-index:99;opacity:0;transition:opacity 2s 3.5s;background:rgba(197,150,12,0.08);border:1px solid rgba(197,150,12,0.15);color:rgba(255,245,220,0.5);font-size:0.58rem;padding:5px 12px;border-radius:14px;cursor:pointer;font-family:Georgia;backdrop-filter:blur(10px)}
+#audio-btn.show{opacity:0.5}
+#audio-btn:hover{opacity:1;background:rgba(197,150,12,0.2)}
+#audio-btn.active{color:rgba(197,150,12,0.8);border-color:rgba(197,150,12,0.4)}
 
-/* Tooltip enhancements */
-#tooltip{position:fixed;z-index:200;pointer-events:none;background:rgba(1,0,5,0.95);
-  border:1px solid rgba(197,150,12,0.3);border-radius:8px;padding:8px 15px;
-  color:rgba(255,245,220,0.9);font-size:0.7rem;display:none;white-space:nowrap;
-  box-shadow:0 6px 25px rgba(0,0,0,0.6);backdrop-filter:blur(15px)}
-#tooltip .tt-name{color:#c5960c;font-weight:bold;font-size:0.75rem}
-#tooltip .tt-detail{color:rgba(255,245,220,0.5);font-size:0.6rem;margin-top:3px}
-#tooltip .tt-themes{color:rgba(197,150,12,0.4);font-size:0.55rem;margin-top:2px;font-style:italic}
+/* === TOOLTIP === */
+#tooltip{position:fixed;z-index:200;pointer-events:none;background:rgba(2,1,8,0.95);border:1px solid rgba(197,150,12,0.25);border-radius:7px;padding:7px 13px;display:none;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,0.6);backdrop-filter:blur(15px)}
+.tt-name{color:#c5960c;font-weight:bold;font-size:0.72rem}
+.tt-detail{color:rgba(255,245,220,0.45);font-size:0.58rem;margin-top:2px}
 
-/* Hint with animation */
-#hint{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);z-index:99;
-  color:rgba(255,245,220,0);font-size:0.65rem;letter-spacing:0.15em;
-  transition:color 2s 4s;pointer-events:none;text-align:center}
-#hint.show{color:rgba(255,245,220,0.3);animation:hintPulse 3s ease-in-out infinite}
-@keyframes hintPulse{0%,100%{opacity:0.3}50%{opacity:0.6}}
+/* === HINT === */
+#hint{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:99;color:rgba(255,245,220,0);font-size:0.6rem;letter-spacing:0.14em;transition:color 2s 4.5s;pointer-events:none;text-align:center}
+#hint.show{color:rgba(255,245,220,0.22);animation:pulse 4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.22}50%{opacity:0.45}}
 
-/* Loading overlay */
-#loading{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;opacity:1;transition:opacity 1s}
+/* === LOADING === */
+#loading{position:fixed;inset:0;z-index:400;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1.2s}
 #loading.gone{opacity:0;pointer-events:none}
-.loading-spinner{width:60px;height:60px;border:3px solid rgba(197,150,12,0.2);border-top:3px solid rgba(197,150,12,0.8);
-  border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px}
-@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-.loading-text{color:rgba(197,150,12,0.6);font-size:0.8rem;letter-spacing:0.2em;text-transform:uppercase}
+.ld-spin{width:50px;height:50px;border:2px solid rgba(197,150,12,0.15);border-top:2px solid rgba(197,150,12,0.7);border-radius:50%;animation:spin 0.9s linear infinite;margin-bottom:18px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-text{color:rgba(197,150,12,0.5);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase}
+
+/* === VERSE COUNT BADGE === */
+#verse-count{position:fixed;top:55px;left:18px;z-index:99;opacity:0;transition:opacity 0.5s;color:rgba(197,150,12,0.5);font-size:0.55rem;letter-spacing:0.08em;background:rgba(2,1,8,0.5);padding:4px 10px;border-radius:10px;border:1px solid rgba(197,150,12,0.1);backdrop-filter:blur(8px)}
+#verse-count.show{opacity:0.7}
 
 @media(max-width:768px){
-  #verse{font-size:1rem;padding:0 30px}
-  #legend,#conn-legend,#advanced-controls,#ai-panel{display:none}
-  #bname{font-size:1.3rem}
-  #search{width:180px}
-  #search:focus{width:240px}
-  #panel{max-height:70vh}
-  #analytics{grid-template-columns:1fr;gap:15px}
-  #audio-controls{position:relative;text-align:center;margin:10px 0}
+  #legend,#conn-legend{display:none}
+  #search{width:160px}#search:focus{width:220px}
+  #panel{max-height:65vh}
+  #analytics{grid-template-columns:1fr}
+  #bname{font-size:1.2rem}
 }
 </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">Initializing Cross-Reference Galaxy Pro</div>
-</div>
+<div id="loading"><div class="ld-spin"></div><div class="ld-text">Initializing Galaxy</div></div>
 
 <div id="intro">
-  <p id="verse">
-    &ldquo;In the beginning God created the heaven and the earth.
-    And God said, Let there be light: and there was light.&rdquo;
-    <cite>Genesis 1:1, 3</cite>
-  </p>
-  <div id="intro-subtitle">Advanced Biblical Cross-Reference Analytics</div>
+  <p id="verse">&ldquo;The heavens declare the glory of God; and the firmament sheweth his handywork.&rdquo;<cite>Psalm 19:1</cite></p>
+  <div id="intro-sub">Cross-Reference Galaxy</div>
 </div>
-<button id="skipbtn" onclick="skipIntro()">skip intro →</button>
+<button id="skipbtn" onclick="skipIntro()">skip →</button>
 
 <div id="hud">
   <a href="../">← The Unveiled Word</a>
-  <div id="htitle">Cross-Reference Galaxy Pro</div>
-  <div id="hstats">
-    66 Books · 264,673 References<br>
-    <span style="font-size:0.5rem;opacity:0.6">Enhanced Analytics · AI-Powered Discovery</span>
-  </div>
+  <div id="htitle">Cross-Reference Galaxy</div>
+  <div id="hstats">66 Books · 264,673 References</div>
 </div>
 
 <div id="search-wrap">
-  <input type="text" id="search" placeholder="Search books, themes, or concepts..." autocomplete="off">
+  <input type="text" id="search" placeholder="Search books..." autocomplete="off">
   <div id="search-results"></div>
-  <div id="ai-hint">Try: "salvation", "covenant", "prophecy", or any biblical theme</div>
 </div>
 
-<!-- Enhanced Legend -->
-<div id="legend">
-  <div class="legend-title">BIBLICAL SECTIONS</div>
-</div>
+<div id="legend"></div>
 
-<!-- Advanced Controls -->
-<div id="advanced-controls">
-  <div class="control-group">
-    <div class="control-title">VIEW MODE</div>
-    <button class="control-btn active" data-mode="galaxy">Galaxy</button>
-    <button class="control-btn" data-mode="network">Network</button>
-    <button class="control-btn" data-mode="timeline">Timeline</button>
-  </div>
-  <div class="control-group">
-    <div class="control-title">ANALYSIS</div>
-    <button class="control-btn" data-analysis="themes">Themes</button>
-    <button class="control-btn" data-analysis="authors">Authors</button>
-    <button class="control-btn" data-analysis="chronology">Chronology</button>
-  </div>
-  <div class="control-group">
-    <div class="control-title">FILTERS</div>
-    <button class="control-btn" data-filter="strong">Strong Only</button>
-    <button class="control-btn" data-filter="prophetic">Prophetic</button>
-    <button class="control-btn" data-filter="messianic">Messianic</button>
-  </div>
-</div>
-
-<!-- Audio Controls -->
-<div id="audio-controls">
-  <button class="audio-btn" id="ambient-toggle">Ambient</button>
-  <button class="audio-btn" id="spatial-toggle">3D Audio</button>
-  <button class="audio-btn" id="chimes-toggle">Chimes</button>
-</div>
-
-<!-- Enhanced Connection Legend -->
 <div id="conn-legend">
-  <div class="cl-title">CONNECTION STRENGTH</div>
-  <div class="cl-row"><div class="cl-line" style="background:rgba(255,245,220,0.9);height:4px;box-shadow:0 0 8px rgba(255,245,220,0.4)"></div><span class="cl-lbl">1000+ refs</span></div>
-  <div class="cl-row"><div class="cl-line" style="background:rgba(255,245,220,0.5);height:3px"></div><span class="cl-lbl">500-999</span></div>
-  <div class="cl-row"><div class="cl-line" style="background:rgba(255,245,220,0.2);height:2px"></div><span class="cl-lbl">&lt;500</span></div>
+  <div class="cl-title">Connection Strength</div>
+  <div class="cl-row"><div class="cl-line" style="background:rgba(255,245,220,0.85);height:3px;box-shadow:0 0 6px rgba(255,245,220,0.3)"></div><span class="cl-lbl">1000+ refs</span></div>
+  <div class="cl-row"><div class="cl-line" style="background:rgba(255,245,220,0.4)"></div><span class="cl-lbl">500–999</span></div>
+  <div class="cl-row"><div class="cl-line" style="background:rgba(255,245,220,0.15)"></div><span class="cl-lbl">&lt;500</span></div>
 </div>
 
-<!-- AI Analysis Panel -->
-<div id="ai-panel">
-  <div class="ai-title">AI Analysis</div>
-  <div class="ai-section">
-    <div class="ai-subtitle">Key Themes</div>
-    <div class="ai-content" id="ai-themes">Analyzing thematic connections...</div>
-  </div>
-  <div class="ai-section">
-    <div class="ai-subtitle">Network Position</div>
-    <div class="ai-content" id="ai-position">Computing network centrality...</div>
-  </div>
-  <div class="ai-section">
-    <div class="ai-subtitle">Related Concepts</div>
-    <div class="ai-content" id="ai-concepts">Discovering semantic relationships...</div>
-  </div>
-</div>
+<div id="verse-count"></div>
+
+<button id="audio-btn" onclick="toggleAudio()">♪ Audio</button>
 
 <canvas id="c"></canvas>
 
-<!-- Enhanced Info Panel -->
 <div id="panel">
   <button id="panel-close" onclick="deselect()">✕</button>
   <div id="bname"></div>
   <div id="bdetail"></div>
   <div id="bdesc"></div>
-  
   <div id="analytics">
-    <div id="strength-section">
-      <div class="metric-title">Connectivity Strength</div>
-      <div id="strength-bar">
-        <span class="lbl">Weak</span>
-        <div class="bar"><div class="fill" id="str-fill"></div></div>
-        <span class="lbl">Strong</span>
-      </div>
-      <div style="text-align:center;color:rgba(197,150,12,0.7);font-size:0.7rem;font-weight:bold" id="str-num"></div>
+    <div class="metric-box">
+      <div class="metric-title">Connectivity</div>
+      <div id="str-bar"><span class="lbl">Low</span><div class="bar"><div class="fill" id="str-fill"></div></div><span class="lbl">High</span></div>
+      <div id="str-num"></div>
     </div>
-    
-    <div id="network-section">
-      <div class="metric-title">Network Analysis</div>
-      <div class="network-stats">
-        <div class="stat-item">Centrality: <span class="stat-value" id="centrality">--</span></div>
-        <div class="stat-item">Influence: <span class="stat-value" id="influence">--</span></div>
-        <div class="stat-item">Connections: <span class="stat-value" id="connections">--</span></div>
-        <div class="stat-item">Ranking: <span class="stat-value" id="ranking">--</span></div>
+    <div class="metric-box">
+      <div class="metric-title">Network</div>
+      <div class="net-stats">
+        <div class="stat-item">Centrality: <span class="stat-val" id="s-cent">—</span></div>
+        <div class="stat-item">Influence: <span class="stat-val" id="s-infl">—</span></div>
+        <div class="stat-item">Connections: <span class="stat-val" id="s-conn">—</span></div>
+        <div class="stat-item">Rank: <span class="stat-val" id="s-rank">—</span></div>
       </div>
     </div>
   </div>
-  
-  <div id="bconns-title">STRONGEST CONNECTIONS</div>
+  <div id="bconns-title">Strongest Connections</div>
   <div id="bconns"></div>
-  
   <div id="blink"></div>
 </div>
 
-<div id="tooltip">
-  <div class="tt-name"></div>
-  <div class="tt-detail"></div>
-  <div class="tt-themes"></div>
-</div>
-
-<div id="hint">drag to orbit · scroll to zoom · click a star · press Esc to deselect · use advanced controls</div>
+<div id="tooltip"><div class="tt-name"></div><div class="tt-detail"></div></div>
+<div id="hint">drag to orbit · scroll to zoom · click a star · Esc to deselect</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
-import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
-import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
-import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
-import {SMAAPass} from 'three/addons/postprocessing/SMAAPass.js';
+import*as THREE from'three';
+import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+import{EffectComposer}from'three/addons/postprocessing/EffectComposer.js';
+import{RenderPass}from'three/addons/postprocessing/RenderPass.js';
+import{UnrealBloomPass}from'three/addons/postprocessing/UnrealBloomPass.js';
+import{ShaderPass}from'three/addons/postprocessing/ShaderPass.js';
 
-// Enhanced book information with AI-powered themes
-const BOOK_INFO = {
-  Gen:"The beginning of everything — creation, the fall, the flood, and God's covenant with Abraham. Foundation of all biblical theology.",
-  Exod:"Israel's liberation from Egypt, the giving of the Law at Sinai, and the construction of the Tabernacle. The defining event of the Old Testament.",
-  Lev:"Instructions for worship, sacrifice, and holiness. The priesthood manual that shaped Israel's identity as a holy nation.",
-  Num:"Israel's 40 years wandering the wilderness. Census records, rebellion, and the journey toward the Promised Land.",
-  Deut:"Moses' farewell speeches. A second giving of the Law and a covenant renewal before Israel enters Canaan.",
-  Josh:"The conquest and settlement of Canaan. Joshua leads Israel into the land God promised Abraham.",
-  Judg:"A cycle of rebellion, oppression, and deliverance. Israel's darkest period before the monarchy.",
-  Ruth:"A Moabite widow's loyalty leads her into the lineage of King David — and ultimately Jesus.",
-  '1Sam':"The transition from judges to kings. Samuel, Saul's tragic reign, and David's rise.",
-  '2Sam':"David's reign over united Israel — military victories, the Bathsheba affair, and family turmoil.",
-  '1Kgs':"Solomon's glory and the kingdom's division. Elijah confronts Baal worship in the northern kingdom.",
-  '2Kgs':"The decline of both kingdoms. Elisha's ministry, Assyria conquers Israel, Babylon conquers Judah.",
-  '1Chr':"Israel's history retold from a priestly perspective, focusing on David's preparations for the Temple.",
-  '2Chr':"Solomon's Temple, Judah's kings, and the exile to Babylon. Ends with Cyrus' decree to rebuild.",
-  Ezra:"The return from exile. Rebuilding the Temple and restoring proper worship in Jerusalem.",
-  Neh:"Rebuilding Jerusalem's walls. Nehemiah's leadership and spiritual reforms after exile.",
-  Esth:"A Jewish queen saves her people from genocide. God's hidden providence in a pagan empire.",
-  Job:"The problem of suffering explored through poetry. God answers from the whirlwind.",
-  Ps:"150 songs and prayers covering every human emotion — worship, lament, praise, and prophecy.",
-  Prov:"Practical wisdom for daily life. The fear of the LORD is the beginning of knowledge.",
-  Eccl:"The Preacher's search for meaning. 'Vanity of vanities' — life under the sun without God.",
-  Song:"A love poem celebrating the beauty of romantic love. Read as human love and divine allegory.",
-  Isa:"The prophet of salvation. Messianic prophecies, judgment oracles, and the Suffering Servant songs.",
-  Jer:"The weeping prophet warns Judah of coming destruction. Calls for repentance; promises a new covenant.",
-  Lam:"Five poems mourning Jerusalem's destruction by Babylon. Raw grief and stubborn hope.",
-  Ezek:"Visions of God's glory, judgment on nations, and the valley of dry bones. A future Temple described.",
-  Dan:"Faithfulness in exile. Apocalyptic visions of empires rising and falling, and God's eternal kingdom.",
-  Hos:"God's love for unfaithful Israel, illustrated through Hosea's marriage to Gomer.",
-  Joel:"The Day of the LORD — locust plague as warning, and the promise of the Spirit poured out.",
-  Amos:"A shepherd-prophet denounces social injustice. 'Let justice roll down like waters.'",
-  Obad:"The shortest Old Testament book. Judgment against Edom for betraying Israel.",
-  Jonah:"A reluctant prophet, a great fish, and God's mercy extending to Israel's enemies.",
-  Mic:"Justice, mercy, and walking humbly with God. Predicts the Messiah's birth in Bethlehem.",
-  Nah:"The fall of Nineveh — God's judgment on Assyria's cruelty.",
-  Hab:"A prophet questions God about evil and injustice. 'The righteous shall live by faith.'",
-  Zeph:"The coming Day of the LORD — universal judgment and a promised remnant.",
-  Hag:"After exile: rebuild the Temple. Stop neglecting God's house for your own.",
-  Zech:"Apocalyptic visions and Messianic prophecies. The coming King rides on a donkey.",
-  Mal:"The last Old Testament prophet. Corruption in worship, the coming messenger, and 400 years of silence.",
-  Matt:"Jesus as the promised Jewish Messiah. The Sermon on the Mount, parables, and the Great Commission.",
-  Mark:"The action Gospel — Jesus as the suffering servant. Fast-paced, vivid, written for Roman readers.",
-  Luke:"The most detailed Gospel. Jesus for all people — outcasts, women, Gentiles, the poor.",
-  John:"The theological Gospel. 'In the beginning was the Word.' Seven signs pointing to Jesus as God.",
-  Acts:"The birth and spread of the early church. The Holy Spirit, Peter, Paul, and the gospel going global.",
-  Rom:"Paul's theological masterpiece. Justification by faith, the human condition, and life in the Spirit.",
-  '1Cor':"Paul addresses a divided, morally compromised church. Love, gifts, resurrection, and unity.",
-  '2Cor':"Paul defends his apostleship. Weakness as strength, generosity, and the ministry of reconciliation.",
-  Gal:"Freedom from the Law. Justification by faith alone — Paul's most passionate letter.",
-  Eph:"The cosmic Christ, the church as his body, spiritual warfare, and unity in diversity.",
-  Phil:"Joy in all circumstances. Written from prison — 'to live is Christ, to die is gain.'",
-  Col:"Christ is supreme over all creation. Don't be captured by hollow philosophy.",
-  '1Thess':"Encouragement to a young church. The return of Christ and living in readiness.",
-  '2Thess':"Clarifying the Day of the Lord. Stand firm; don't be idle.",
-  '1Tim':"Instructions for church leadership. Fight the good fight of faith.",
-  '2Tim':"Paul's final letter. 'I have fought the good fight, I have finished the race.'",
-  Titus:"Organizing the church in Crete. Sound doctrine and good works.",
-  Phlm:"A personal letter about a runaway slave. Forgiveness, reconciliation, and Christian brotherhood.",
-  Heb:"Christ is superior to everything — angels, Moses, the priesthood, the old covenant.",
-  Jas:"Faith without works is dead. Practical Christian living — taming the tongue, caring for the poor.",
-  '1Pet':"Suffering with hope. Elect exiles living as strangers in a hostile world.",
-  '2Pet':"Warning against false teachers. The Day of the Lord is coming — live holy lives.",
-  '1John':"God is light, God is love. Tests for authentic faith — belief, love, and obedience.",
-  '2John':"A brief letter warning against false teachers. Walk in truth and love.",
-  '3John':"Commending hospitality and condemning Diotrephes' pride.",
-  Jude:"Contend for the faith. Warning against infiltrators who distort grace.",
-  Rev:"The apocalyptic vision — Christ's ultimate victory, the fall of evil, and the new heaven and earth."
+/* ══════════════════════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════════════════════ */
+const BOOK_INFO={
+Gen:"The beginning of everything — creation, the fall, the flood, and God's covenant with Abraham.",
+Exod:"Israel's liberation from Egypt, the giving of the Law at Sinai, and the construction of the Tabernacle.",
+Lev:"Instructions for worship, sacrifice, and holiness — the priesthood manual.",
+Num:"Israel's 40 years wandering the wilderness. Census records, rebellion, and the journey toward Canaan.",
+Deut:"Moses' farewell speeches — a second giving of the Law and covenant renewal.",
+Josh:"The conquest and settlement of Canaan under Joshua's leadership.",
+Judg:"A cycle of rebellion, oppression, and deliverance — Israel's darkest period before the monarchy.",
+Ruth:"A Moabite widow's loyalty leads her into the lineage of David and ultimately Jesus.",
+'1Sam':"The transition from judges to kings — Samuel, Saul's tragic reign, and David's rise.",
+'2Sam':"David's reign — military victories, the Bathsheba affair, and family turmoil.",
+'1Kgs':"Solomon's glory and the kingdom's division. Elijah confronts Baal worship.",
+'2Kgs':"The decline of both kingdoms — Assyria conquers Israel, Babylon conquers Judah.",
+'1Chr':"Israel's history retold from a priestly perspective, focusing on David's Temple preparations.",
+'2Chr':"Solomon's Temple, Judah's kings, exile to Babylon. Ends with Cyrus' decree to rebuild.",
+Ezra:"The return from exile — rebuilding the Temple and restoring worship.",
+Neh:"Rebuilding Jerusalem's walls. Nehemiah's leadership and spiritual reforms.",
+Esth:"A Jewish queen saves her people from genocide. God's hidden providence.",
+Job:"The problem of suffering explored through poetry. God answers from the whirlwind.",
+Ps:"150 songs and prayers covering every human emotion — worship, lament, praise, and prophecy.",
+Prov:"Practical wisdom for daily life. The fear of the LORD is the beginning of knowledge.",
+Eccl:"The Preacher's search for meaning — 'Vanity of vanities' under the sun.",
+Song:"A love poem celebrating romantic love, read as human love and divine allegory.",
+Isa:"The prophet of salvation — Messianic prophecies, judgment oracles, and the Suffering Servant.",
+Jer:"The weeping prophet warns Judah, calls for repentance, and promises a new covenant.",
+Lam:"Five poems mourning Jerusalem's destruction. Raw grief and stubborn hope.",
+Ezek:"Visions of God's glory, the valley of dry bones, and a future Temple described.",
+Dan:"Faithfulness in exile. Apocalyptic visions of empires and God's eternal kingdom.",
+Hos:"God's love for unfaithful Israel through Hosea's marriage to Gomer.",
+Joel:"The Day of the LORD — locust plague as warning, and the promise of the Spirit.",
+Amos:"A shepherd-prophet denounces social injustice. 'Let justice roll down like waters.'",
+Obad:"Judgment against Edom for betraying Israel — the shortest OT book.",
+Jonah:"A reluctant prophet, a great fish, and God's mercy for Israel's enemies.",
+Mic:"Justice, mercy, and humility. Predicts the Messiah's birth in Bethlehem.",
+Nah:"The fall of Nineveh — God's judgment on Assyria's cruelty.",
+Hab:"A prophet questions God about evil. 'The righteous shall live by faith.'",
+Zeph:"The coming Day of the LORD — universal judgment and a promised remnant.",
+Hag:"After exile: rebuild the Temple. Stop neglecting God's house.",
+Zech:"Apocalyptic visions and Messianic prophecies. The coming King rides on a donkey.",
+Mal:"The last OT prophet. Corruption in worship, the coming messenger, 400 years of silence.",
+Matt:"Jesus as the promised Jewish Messiah. Sermon on the Mount and the Great Commission.",
+Mark:"The action Gospel — Jesus as suffering servant, fast-paced and vivid.",
+Luke:"The most detailed Gospel. Jesus for all people — outcasts, women, Gentiles, the poor.",
+John:"The theological Gospel. 'In the beginning was the Word.' Seven signs revealing Jesus as God.",
+Acts:"The birth and spread of the early church. The Spirit, Peter, Paul, and the gospel going global.",
+Rom:"Paul's theological masterpiece — justification by faith, the human condition, life in the Spirit.",
+'1Cor':"Paul addresses a divided church. Love, gifts, resurrection, and unity.",
+'2Cor':"Paul defends his apostleship. Weakness as strength, generosity, reconciliation.",
+Gal:"Freedom from the Law. Justification by faith alone — Paul's most passionate letter.",
+Eph:"The cosmic Christ, the church as his body, spiritual warfare, and unity.",
+Phil:"Joy in all circumstances, written from prison — 'to live is Christ, to die is gain.'",
+Col:"Christ supreme over all creation. Don't be captured by hollow philosophy.",
+'1Thess':"Encouragement to a young church. The return of Christ and living in readiness.",
+'2Thess':"Clarifying the Day of the Lord. Stand firm; don't be idle.",
+'1Tim':"Instructions for church leadership. Fight the good fight of faith.",
+'2Tim':"Paul's final letter. 'I have fought the good fight, I have finished the race.'",
+Titus:"Organizing the church in Crete — sound doctrine and good works.",
+Phlm:"A personal letter about a runaway slave. Forgiveness and reconciliation.",
+Heb:"Christ is superior to everything — angels, Moses, the priesthood, the old covenant.",
+Jas:"Faith without works is dead. Practical living — taming the tongue, caring for the poor.",
+'1Pet':"Suffering with hope. Elect exiles living as strangers in a hostile world.",
+'2Pet':"Warning against false teachers. The Day of the Lord is coming.",
+'1John':"God is light, God is love. Tests for authentic faith — belief, love, obedience.",
+'2John':"Walk in truth and love. Warning against false teachers.",
+'3John':"Commending hospitality and condemning Diotrephes' pride.",
+Jude:"Contend for the faith. Warning against infiltrators who distort grace.",
+Rev:"The apocalyptic vision — Christ's ultimate victory, the fall of evil, new heaven and earth."
 };
 
-// Enhanced thematic data for AI analysis
-const THEMES = {
-  Gen: ["Creation", "Covenant", "Sin", "Judgment", "Promise", "Faith"],
-  Exod: ["Deliverance", "Law", "Worship", "Rebellion", "Glory", "Covenant"],
-  Matt: ["Kingdom", "Messiah", "Fulfillment", "Teaching", "Miracles", "Crucifixion"],
-  Rom: ["Salvation", "Faith", "Sin", "Grace", "Justification", "Spirit"],
-  Rev: ["Prophecy", "Judgment", "Victory", "Worship", "End Times", "New Creation"],
-  Ps: ["Worship", "Lament", "Praise", "Trust", "Protection", "Messianic"],
-  Isa: ["Prophecy", "Messiah", "Judgment", "Salvation", "Comfort", "Glory"],
-  John: ["Love", "Light", "Life", "Truth", "Eternal Life", "Divine Nature"]
-};
+const VERSES={Gen:1533,Exod:1213,Lev:859,Num:1288,Deut:959,Josh:658,Judg:618,Ruth:85,'1Sam':810,'2Sam':695,'1Kgs':816,'2Kgs':719,'1Chr':942,'2Chr':822,Ezra:280,Neh:406,Esth:167,Job:1070,Ps:2461,Prov:915,Eccl:222,Song:117,Isa:1292,Jer:1364,Lam:154,Ezek:1273,Dan:357,Hos:197,Joel:73,Amos:146,Obad:21,Jonah:48,Mic:105,Nah:47,Hab:56,Zeph:53,Hag:38,Zech:211,Mal:55,Matt:1071,Mark:678,Luke:1151,John:879,Acts:1007,Rom:433,'1Cor':437,'2Cor':257,Gal:149,Eph:155,Phil:104,Col:95,'1Thess':89,'2Thess':47,'1Tim':113,'2Tim':83,Titus:46,Phlm:25,Heb:303,Jas:108,'1Pet':105,'2Pet':61,'1John':105,'2John':13,'3John':15,Jude:25,Rev:404};
 
-// Verse counts
-const VERSES={Gen:1533,Exod:1213,Lev:859,Num:1288,Deut:959,Josh:658,Judg:618,Ruth:85,'1Sam':810,'2Sam':695,
-'1Kgs':816,'2Kgs':719,'1Chr':942,'2Chr':822,Ezra:280,Neh:406,Esth:167,Job:1070,Ps:2461,Prov:915,Eccl:222,
-Song:117,Isa:1292,Jer:1364,Lam:154,Ezek:1273,Dan:357,Hos:197,Joel:73,Amos:146,Obad:21,Jonah:48,Mic:105,
-Nah:47,Hab:56,Zeph:53,Hag:38,Zech:211,Mal:55,Matt:1071,Mark:678,Luke:1151,John:879,Acts:1007,Rom:433,
-'1Cor':437,'2Cor':257,Gal:149,Eph:155,Phil:104,Col:95,'1Thess':89,'2Thess':47,'1Tim':113,'2Tim':83,Titus:46,
-Phlm:25,Heb:303,Jas:108,'1Pet':105,'2Pet':61,'1John':105,'2John':13,'3John':15,Jude:25,Rev:404};
-
-// Enhanced color scheme
-const C={
+const SEC_COLORS={
   'Torah':0xd4a843,'History':0x9e7a2e,'Poetry':0x6bb5ff,
   'Major Prophets':0xef5555,'Minor Prophets':0xe08850,
   'Gospels':0xfff0c8,'Church History':0x4dd88a,
   "Paul's Letters":0xb16dea,'General Letters':0x3dd88a,'Apocalyptic':0xff4444
 };
 
-// Global variables
-let scene,camera,renderer,composer,controls,clock;
-let books=[],glows=[],labels=[],conns=[];
-let flowParticles=[], themeParticles=[];
-let shootingStars, nebulaClouds;
-let selected=null,selectedIdx=-1,hovered=null;
-let raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
-let data,introPhase=0,introTime=0;
-let audioCtx,masterGain,spatialAudio=false;
-let hitSpheres=[];
-let viewMode='galaxy',analysisMode='',filterMode='';
-let ambientEnabled=true,chimesEnabled=true;
+const MAJOR=['Gen','Ps','Isa','Matt','John','Rom','Rev','Exod','Jer','Ezek','Heb','Acts'];
 
-// AI Analysis engine
-const AI_ENGINE = {
-  analyzeBook(bookData) {
-    const themes = THEMES[bookData.abbr] || ["Scripture", "Faith", "Truth"];
-    const connections = data.connections.filter(c => c.from === bookData.abbr || c.to === bookData.abbr);
-    const totalRefs = connections.reduce((sum, c) => sum + c.count, 0);
-    
-    // Calculate network centrality (simplified)
-    const centrality = Math.min(100, Math.round((totalRefs / 100) * 100));
-    const influence = Math.min(100, Math.round((connections.length / 30) * 100));
-    const ranking = this.calculateRanking(bookData.abbr);
-    
-    return {
-      themes,
-      centrality,
-      influence,
-      connections: connections.length,
-      ranking,
-      concepts: this.findRelatedConcepts(bookData.abbr)
-    };
+/* ══════════════════════════════════════════════════════════
+   GLOBALS
+   ══════════════════════════════════════════════════════════ */
+let scene,camera,renderer,composer,controls,clock;
+let bookMeshes=[],glowSprites=[],labelSprites=[],hitSpheres=[],connLines=[];
+let flowParts=[],verseLineGroup=null;
+let selected=null,selectedIdx=-1,hovered=null;
+let ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+let data,introPhase=0,introTime=0;
+let audioCtx,masterGain,audioOn=false;
+let camAnim=null;
+let godRayMesh,auroraMeshes=[];
+
+/* ══════════════════════════════════════════════════════════
+   POST-PROCESSING SHADERS
+   ══════════════════════════════════════════════════════════ */
+
+// Combined cinematic shader: vignette + film grain + chromatic aberration + caustics + color grading
+const cinematicShader={
+  uniforms:{
+    tDiffuse:{value:null},
+    uTime:{value:0},
+    uVignette:{value:0.45},
+    uGrain:{value:0.012},
+    uChroma:{value:0.003},
+    uCausticStr:{value:0.025}
   },
-  
-  calculateRanking(bookAbbr) {
-    const allBooks = data.books.map(b => {
-      const conns = data.connections.filter(c => c.from === b.abbr || c.to === b.abbr);
-      return {abbr: b.abbr, total: conns.reduce((sum, c) => sum + c.count, 0)};
-    }).sort((a, b) => b.total - a.total);
-    
-    const rank = allBooks.findIndex(b => b.abbr === bookAbbr) + 1;
-    return `${rank} of 66`;
-  },
-  
-  findRelatedConcepts(bookAbbr) {
-    const themes = THEMES[bookAbbr] || [];
-    const related = [];
-    
-    for (const [otherBook, otherThemes] of Object.entries(THEMES)) {
-      if (otherBook === bookAbbr) continue;
-      const overlap = themes.filter(t => otherThemes.includes(t)).length;
-      if (overlap > 0) {
-        related.push({book: otherBook, overlap, themes: otherThemes.filter(t => themes.includes(t))});
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`
+    uniform sampler2D tDiffuse;
+    uniform float uTime,uVignette,uGrain,uChroma,uCausticStr;
+    varying vec2 vUv;
+
+    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+
+    float caustic(vec2 uv,float t){
+      vec2 p=uv*8.0;
+      float a=0.0;
+      for(int i=0;i<3;i++){
+        float fi=float(i);
+        a+=sin(p.x*3.0+t*(1.0+fi*0.3)+fi*1.3)*sin(p.y*3.0+t*(0.8+fi*0.2)+fi*0.7)*0.33;
       }
+      return a*0.5+0.5;
     }
-    
-    return related.sort((a, b) => b.overlap - a.overlap).slice(0, 5);
-  }
+
+    void main(){
+      // Chromatic aberration
+      vec2 dir=vUv-0.5;
+      float d=length(dir);
+      vec2 offset=dir*d*uChroma;
+      float r=texture2D(tDiffuse,vUv+offset).r;
+      float g=texture2D(tDiffuse,vUv).g;
+      float b=texture2D(tDiffuse,vUv-offset).b;
+      vec3 col=vec3(r,g,b);
+
+      // Caustics overlay
+      float c=caustic(vUv,uTime*0.4);
+      col+=vec3(0.85,0.75,0.5)*c*uCausticStr;
+
+      // Film grain
+      float grain=hash(vUv*uTime)*uGrain;
+      col+=grain-uGrain*0.5;
+
+      // Vignette
+      float vig=smoothstep(0.85,0.25,d*uVignette*2.0);
+      col*=vig;
+
+      // Warm color grade
+      col.r+=col.r*0.025;
+      col.b*=0.97;
+
+      // Contrast
+      col=(col-0.5)*1.06+0.5;
+
+      gl_FragColor=vec4(col,1.0);
+    }
+  `
 };
 
-// ═══════════════════════════════════════════════
-// ENHANCED SHADERS
-// ═══════════════════════════════════════════════
-
-// Volumetric star shader
-const volumetricStarShader = {
-  uniforms: {
-    uTime: { value: 0 },
-    uIntensity: { value: 1.0 },
-    uColor: { value: new THREE.Color(0xfff0c8) }
+// God ray shader
+const godRayShader={
+  uniforms:{
+    uTime:{value:0},
+    uColor:{value:new THREE.Color(0xc5960c)},
+    uIntensity:{value:0.12}
   },
-  vertexShader: `
-    uniform float uTime;
+  vertexShader:`
     varying vec2 vUv;
-    varying vec3 vPosition;
-    
-    void main() {
-      vUv = uv;
-      vPosition = position;
-      
-      vec3 pos = position;
-      pos += sin(uTime * 2.0 + position.y * 0.5) * 0.1;
-      
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    varying vec3 vPos;
+    void main(){
+      vUv=uv;
+      vPos=position;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
     }
   `,
-  fragmentShader: `
-    uniform float uTime;
-    uniform float uIntensity;
+  fragmentShader:`
+    uniform float uTime,uIntensity;
     uniform vec3 uColor;
     varying vec2 vUv;
-    varying vec3 vPosition;
-    
-    void main() {
-      vec2 center = vec2(0.5);
-      float dist = distance(vUv, center);
-      
-      float alpha = 1.0 - smoothstep(0.2, 0.5, dist);
-      alpha *= sin(uTime * 3.0 + vPosition.x * 0.1) * 0.3 + 0.7;
-      alpha *= uIntensity;
-      
-      vec3 color = uColor * (2.0 - dist);
-      gl_FragColor = vec4(color, alpha);
+    varying vec3 vPos;
+
+    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+
+    void main(){
+      float angle=atan(vPos.z,vPos.x);
+      float dist=length(vPos.xz);
+
+      // Multiple ray layers
+      float rays=0.0;
+      for(int i=0;i<4;i++){
+        float fi=float(i);
+        float freq=6.0+fi*4.0;
+        float speed=0.15+fi*0.08;
+        float w=0.4-fi*0.08;
+        rays+=pow(max(0.0,sin(angle*freq+uTime*speed+fi*1.7)),12.0)*w;
+      }
+
+      // Falloff from center
+      float falloff=1.0/(1.0+dist*0.015);
+      falloff*=smoothstep(250.0,30.0,dist);
+
+      // Vertical falloff
+      float yFade=exp(-abs(vPos.y)*0.04);
+
+      float alpha=rays*falloff*yFade*uIntensity;
+      gl_FragColor=vec4(uColor*1.5,alpha);
     }
   `
 };
 
-// Nebula shader for atmospheric effects
-const nebulaShader = {
-  uniforms: {
-    uTime: { value: 0 },
-    uOpacity: { value: 0.3 },
-    uColor1: { value: new THREE.Color(0x4a5568) },
-    uColor2: { value: new THREE.Color(0x2d3748) }
+// Aurora ribbon shader
+const auroraShader={
+  uniforms:{
+    uTime:{value:0},
+    uColor1:{value:new THREE.Color(0x4dd88a)},
+    uColor2:{value:new THREE.Color(0xb16dea)},
+    uOpacity:{value:0.08}
   },
-  vertexShader: `
+  vertexShader:`
     uniform float uTime;
     varying vec2 vUv;
-    varying vec3 vPosition;
-    
-    void main() {
-      vUv = uv;
-      vPosition = position;
-      
-      vec3 pos = position;
-      pos.y += sin(uTime * 0.5 + position.x * 0.02) * 5.0;
-      pos.x += cos(uTime * 0.3 + position.z * 0.01) * 3.0;
-      
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    varying vec3 vPos;
+    void main(){
+      vUv=uv;
+      vec3 p=position;
+      p.y+=sin(uTime*0.3+position.x*0.01)*8.0+cos(uTime*0.2+position.z*0.015)*5.0;
+      p.x+=sin(uTime*0.15+position.z*0.008)*6.0;
+      vPos=p;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
     }
   `,
-  fragmentShader: `
-    uniform float uTime;
-    uniform float uOpacity;
-    uniform vec3 uColor1;
-    uniform vec3 uColor2;
+  fragmentShader:`
+    uniform float uTime,uOpacity;
+    uniform vec3 uColor1,uColor2;
     varying vec2 vUv;
-    varying vec3 vPosition;
-    
-    float noise(vec2 st) {
-      return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-    }
-    
-    void main() {
-      vec2 st = vUv * 3.0 + uTime * 0.1;
-      float n = noise(st);
-      n = mix(n, noise(st * 2.0), 0.5);
-      n = mix(n, noise(st * 4.0), 0.25);
-      
-      vec3 color = mix(uColor1, uColor2, n);
-      float alpha = n * uOpacity;
-      
-      gl_FragColor = vec4(color, alpha);
+    varying vec3 vPos;
+
+    void main(){
+      float t=sin(vUv.x*6.28+uTime*0.5)*0.5+0.5;
+      vec3 col=mix(uColor1,uColor2,t);
+
+      // Shimmer
+      float shimmer=sin(vUv.x*30.0+uTime*2.0)*0.3+0.7;
+
+      // Edge fade
+      float edge=smoothstep(0.0,0.15,vUv.y)*smoothstep(1.0,0.85,vUv.y);
+
+      float alpha=edge*shimmer*uOpacity;
+      gl_FragColor=vec4(col*1.3,alpha);
     }
   `
 };
 
-// ═══════════════════════════════════════════════
-// ENHANCED AUDIO SYSTEM
-// ═══════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════
+   TEXTURE GENERATORS
+   ══════════════════════════════════════════════════════════ */
+function makeStarTex(){
+  const c=document.createElement('canvas'),s=512;
+  c.width=c.height=s;
+  const x=c.getContext('2d'),h=s/2;
+  const g=x.createRadialGradient(h,h,0,h,h,h);
+  g.addColorStop(0,'rgba(255,255,255,0.8)');
+  g.addColorStop(0.01,'rgba(255,250,235,0.6)');
+  g.addColorStop(0.04,'rgba(255,240,200,0.35)');
+  g.addColorStop(0.1,'rgba(240,210,140,0.15)');
+  g.addColorStop(0.25,'rgba(200,160,80,0.05)');
+  g.addColorStop(0.5,'rgba(100,80,40,0.01)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g;x.fillRect(0,0,s,s);
+
+  // Cross spikes
+  x.globalCompositeOperation='lighter';
+  [0,Math.PI/4,Math.PI/2,Math.PI*3/4].forEach(a=>{
+    x.save();x.translate(h,h);x.rotate(a);
+    const sg=x.createLinearGradient(-h,0,h,0);
+    sg.addColorStop(0,'rgba(255,255,255,0)');
+    sg.addColorStop(0.46,'rgba(255,245,220,0.04)');
+    sg.addColorStop(0.5,'rgba(255,255,255,0.08)');
+    sg.addColorStop(0.54,'rgba(255,245,220,0.04)');
+    sg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=sg;x.fillRect(-h,-1.5,s,3);
+    x.restore();
+  });
+
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;return t;
+}
+
+function makeLensFlare(){
+  const c=document.createElement('canvas'),s=256;
+  c.width=s;c.height=32;
+  const x=c.getContext('2d');
+  // Horizontal anamorphic streak
+  const g=x.createLinearGradient(0,16,s,16);
+  g.addColorStop(0,'rgba(255,245,220,0)');
+  g.addColorStop(0.2,'rgba(255,245,220,0.02)');
+  g.addColorStop(0.4,'rgba(255,250,240,0.06)');
+  g.addColorStop(0.5,'rgba(255,255,255,0.12)');
+  g.addColorStop(0.6,'rgba(255,250,240,0.06)');
+  g.addColorStop(0.8,'rgba(255,245,220,0.02)');
+  g.addColorStop(1,'rgba(255,245,220,0)');
+  x.fillStyle=g;x.fillRect(0,0,s,32);
+
+  // Vertical falloff
+  const vg=x.createLinearGradient(0,0,0,32);
+  vg.addColorStop(0,'rgba(0,0,0,1)');
+  vg.addColorStop(0.35,'rgba(0,0,0,0)');
+  vg.addColorStop(0.65,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(0,0,0,1)');
+  x.globalCompositeOperation='destination-in';
+  x.fillStyle=vg;x.fillRect(0,0,s,32);
+
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;return t;
+}
+
+function makeLabel(text,isMajor){
+  const c=document.createElement('canvas');
+  c.width=1024;c.height=128;
+  const x=c.getContext('2d');
+
+  const sz=isMajor?52:42;
+  x.font=`${isMajor?'800':'600'} ${sz}px Georgia,serif`;
+  x.textAlign='center';x.textBaseline='middle';
+
+  // Multiple shadow passes for maximum readability
+  x.strokeStyle='rgba(0,0,0,1)';
+  x.lineWidth=10;x.lineJoin='round';
+  x.strokeText(text,512,64);
+
+  x.shadowColor='rgba(0,0,0,1)';x.shadowBlur=25;
+  x.fillStyle='rgba(0,0,0,0.9)';
+  x.fillText(text,512,64);x.fillText(text,512,64);
+
+  x.shadowColor='rgba(197,150,12,0.6)';x.shadowBlur=isMajor?20:10;
+  x.fillStyle=isMajor?'#fff5dc':'#ffe8b0';
+  x.fillText(text,512,64);
+
+  if(isMajor){
+    x.shadowColor='rgba(197,150,12,0.4)';x.shadowBlur=30;
+    x.fillStyle='rgba(255,245,220,0.2)';
+    x.fillText(text,512,64);
+  }
+
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));
+  sp.scale.set(isMajor?20:15,isMajor?3.2:2.4,1);
+  return sp;
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUDIO
+   ══════════════════════════════════════════════════════════ */
 function initAudio(){
+  if(audioCtx)return;
   try{
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     masterGain=audioCtx.createGain();
     masterGain.gain.value=0;
     masterGain.connect(audioCtx.destination);
-    
-    // Enhanced ambient layers
-    const frequencies = [55, 82.5, 110, 165, 220];
-    frequencies.forEach((freq,i)=>{
-      const osc=audioCtx.createOscillator();
-      const g=audioCtx.createGain();
-      osc.type='sine';
-      osc.frequency.value=freq;
-      g.gain.value=[0.04,0.02,0.015,0.01,0.005][i];
-      
-      // Add subtle detuning for richness
-      const detune = (Math.random() - 0.5) * 10;
-      osc.detune.value = detune;
-      
-      osc.connect(g);
-      g.connect(masterGain);
-      osc.start();
+
+    // Layered drone: fundamental + octave + fifth
+    [55,82.5,110,165].forEach((f,i)=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.type='sine';o.frequency.value=f;
+      o.detune.value=(Math.random()-0.5)*8;
+      g.gain.value=[0.035,0.018,0.012,0.006][i];
+      o.connect(g);g.connect(masterGain);o.start();
     });
-    
-    if(ambientEnabled) {
-      masterGain.gain.linearRampToValueAtTime(0.3,audioCtx.currentTime+8);
-    }
-  }catch(e){
-    console.log('Audio initialization failed:', e);
-  }
+
+    masterGain.gain.linearRampToValueAtTime(0.25,audioCtx.currentTime+6);
+    audioOn=true;
+    document.getElementById('audio-btn').classList.add('active');
+  }catch(e){}
 }
 
-function playSpatialChime(freq, position){
-  if(!audioCtx || !chimesEnabled) return;
-  
+function playChime(freq,pos){
+  if(!audioCtx||!audioOn)return;
   try{
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    gain.gain.value = 0.06;
-    
-    if(spatialAudio && audioCtx.createPanner) {
-      const panner = audioCtx.createPanner();
-      panner.positionX.value = position.x * 0.01;
-      panner.positionY.value = position.y * 0.01;
-      panner.positionZ.value = position.z * 0.01;
-      
-      osc.connect(gain);
-      gain.connect(panner);
-      panner.connect(masterGain);
-    } else {
-      osc.connect(gain);
-      gain.connect(masterGain);
-    }
-    
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 2.5);
-  }catch(e){
-    console.log('Chime playback failed:', e);
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='sine';o.frequency.value=freq;
+    g.gain.value=0.05;
+    o.connect(g);g.connect(masterGain);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+2.5);
+    o.start();o.stop(audioCtx.currentTime+2.5);
+  }catch(e){}
+}
+
+window.toggleAudio=function(){
+  if(!audioCtx)initAudio();
+  else{
+    audioOn=!audioOn;
+    masterGain.gain.linearRampToValueAtTime(audioOn?0.25:0,audioCtx.currentTime+0.5);
+    document.getElementById('audio-btn').classList.toggle('active',audioOn);
   }
-}
+};
 
-// ═══════════════════════════════════════════════
-// ADVANCED PARTICLE SYSTEMS
-// ═══════════════════════════════════════════════
-function createThemeParticles(bookPosition, themes) {
-  clearThemeParticles();
-  
-  themes.forEach((theme, i) => {
-    const particleCount = 20 + Math.random() * 10;
-    const themeColor = new THREE.Color().setHSL((i * 0.15) % 1, 0.7, 0.6);
-    
-    for(let j = 0; j < particleCount; j++) {
-      const geo = new THREE.SphereGeometry(0.1, 6, 6);
-      const mat = new THREE.MeshBasicMaterial({
-        color: themeColor,
-        transparent: true,
-        opacity: 0.6,
-        blending: THREE.AdditiveBlending
-      });
-      
-      const particle = new THREE.Mesh(geo, mat);
-      
-      // Position around the book
-      const angle = (j / particleCount) * Math.PI * 2;
-      const radius = 8 + i * 3;
-      const height = (Math.random() - 0.5) * 4;
-      
-      particle.position.set(
-        bookPosition.x + Math.cos(angle) * radius,
-        bookPosition.y + height,
-        bookPosition.z + Math.sin(angle) * radius
-      );
-      
-      particle.userData = {
-        originalPos: particle.position.clone(),
-        angle: angle,
-        radius: radius,
-        speed: 0.2 + Math.random() * 0.3,
-        theme: theme,
-        layer: i
-      };
-      
-      scene.add(particle);
-      themeParticles.push(particle);
-    }
-  });
-}
-
-function clearThemeParticles() {
-  themeParticles.forEach(p => {
-    scene.remove(p);
-    p.geometry.dispose();
-    p.material.dispose();
-  });
-  themeParticles = [];
-}
-
-function updateThemeParticles(dt) {
-  themeParticles.forEach(p => {
-    p.userData.angle += dt * p.userData.speed;
-    
-    const x = p.userData.originalPos.x + Math.cos(p.userData.angle) * p.userData.radius;
-    const z = p.userData.originalPos.z + Math.sin(p.userData.angle) * p.userData.radius;
-    const y = p.userData.originalPos.y + Math.sin(p.userData.angle * 2) * 2;
-    
-    p.position.set(x, y, z);
-    
-    // Pulsing effect
-    const pulse = Math.sin(p.userData.angle * 3) * 0.3 + 0.7;
-    p.material.opacity = 0.4 + pulse * 0.3;
-  });
-}
-
-// ═══════════════════════════════════════════════
-// INITIALIZATION
-// ═══════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════
+   INITIALIZATION
+   ══════════════════════════════════════════════════════════ */
 async function init(){
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,4000);
   camera.position.set(0,0,0.1);
 
   renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,powerPreference:'high-performance'});
-  const dpr=Math.min(devicePixelRatio,2.5);
+  const dpr=Math.min(devicePixelRatio,2);
   renderer.setPixelRatio(dpr);
-  renderer.setSize(window.innerWidth,window.innerHeight,false);
-  renderer.domElement.style.width=window.innerWidth+'px';
-  renderer.domElement.style.height=window.innerHeight+'px';
+  renderer.setSize(innerWidth,innerHeight,false);
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=0.6;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMappingExposure=0.55;
 
-  // Enhanced post-processing pipeline
+  // Post-processing
   composer=new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene,camera));
 
-  // Enhanced bloom with better parameters
-  const bloom=new UnrealBloomPass(
-    new THREE.Vector2(innerWidth,innerHeight),
-    0.8,  // strength (was 2.2 — way too bright)
-    0.4,  // radius  
-    0.3   // threshold
-  );
+  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.7,0.5,0.25);
   composer.addPass(bloom);
 
-  // Anti-aliasing
-  composer.addPass(new SMAAPass(innerWidth, innerHeight));
-
-  // Enhanced film shader with color grading
-  const filmShader={
-    uniforms:{
-      tDiffuse:{value:null},
-      uTime:{value:0},
-      uVignette:{value:0.4},
-      uSaturation:{value:1.1},
-      uContrast:{value:1.05}
-    },
-    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-    fragmentShader:`
-      uniform sampler2D tDiffuse;
-      uniform float uTime,uVignette,uSaturation,uContrast;
-      varying vec2 vUv;
-      
-      float rand(vec2 co){return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453);}
-      
-      vec3 adjustSaturation(vec3 color, float saturation) {
-        float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-        return mix(vec3(luminance), color, saturation);
-      }
-      
-      void main(){
-        vec4 col=texture2D(tDiffuse,vUv);
-        
-        // Enhanced film grain
-        float grain=rand(vUv*uTime)*0.015;
-        col.rgb+=grain-0.0075;
-        
-        // Vignette with warmer edges
-        float d=distance(vUv,vec2(0.5));
-        float vignette=smoothstep(0.9,0.2,d*uVignette*2.2);
-        col.rgb*=vignette;
-        
-        // Color grading
-        col.rgb = adjustSaturation(col.rgb, uSaturation);
-        col.rgb = (col.rgb - 0.5) * uContrast + 0.5;
-        
-        // Subtle warm tint
-        col.r+=col.r*0.03;
-        col.b+=max(0.0,(0.12-col.r))*0.06;
-        
-        gl_FragColor=col;
-      }
-    `
-  };
-  composer.addPass(new ShaderPass(filmShader));
+  const cinematic=new ShaderPass(cinematicShader);
+  composer.addPass(cinematic);
 
   controls=new OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true;
-  controls.dampingFactor=0.025;
-  controls.rotateSpeed=0.25;
-  controls.zoomSpeed=0.4;
-  controls.minDistance=6;
-  controls.maxDistance=500;
-  controls.autoRotate=true;
-  controls.autoRotateSpeed=0.06;
+  controls.enableDamping=true;controls.dampingFactor=0.03;
+  controls.rotateSpeed=0.3;controls.zoomSpeed=0.5;
+  controls.minDistance=8;controls.maxDistance=450;
+  controls.autoRotate=true;controls.autoRotateSpeed=0.05;
   controls.enabled=false;
 
   // Load data
-  try {
-    const resp=await fetch('../data/galaxy_data.json');
-    data=await resp.json();
-  } catch(e) {
-    console.error('Failed to load galaxy data:', e);
-    // Create fallback data structure
-    data = {
-      books: [],
-      connections: [],
-      sections: {}
-    };
-  }
+  try{
+    const r=await fetch('../data/galaxy_data.json');
+    data=await r.json();
+  }catch(e){data={books:[],connections:[],sections:{}};}
 
-  await buildEnhancedSpace();
-  buildEnhancedBooks();
-  buildEnhancedConnections();
-  buildAdvancedEffects();
-  buildEnhancedLegend();
-  initEnhancedSearch();
-  initAdvancedControls();
-  initAudioControls();
+  buildStarfield();
+  buildNebula();
+  buildGodRays();
+  buildAurora();
+  buildDustLanes();
+  buildBooks();
+  buildConnections();
+  buildLegend();
+  initSearch();
 
-  // Event listeners
   addEventListener('resize',onResize);
-  addEventListener('orientationchange',()=>setTimeout(onResize,300));
-  setTimeout(onResize,150);
-  addEventListener('keydown',onKey);
+  addEventListener('keydown',e=>{if(e.key==='Escape')deselect();});
   renderer.domElement.addEventListener('click',onClick);
   renderer.domElement.addEventListener('mousemove',onHover);
   renderer.domElement.addEventListener('touchend',onTouch,{passive:true});
 
   clock=new THREE.Clock();
   introPhase=1;
-  
-  // Hide loading screen
   document.getElementById('loading').classList.add('gone');
-  
   requestAnimationFrame(animate);
 }
 
-// ═══════════════════════════════════════════════
-// ENHANCED SPACE CONSTRUCTION
-// ═══════════════════════════════════════════════
-async function buildEnhancedSpace(){
-  // Enhanced starfield with multiple layers
-  const layers = [
-    { count: 6000, minSize: 0.3, maxSize: 1.8, minDist: 500, maxDist: 1200, opacity: 0.8 },
-    { count: 3000, minSize: 0.8, maxSize: 2.5, minDist: 300, maxDist: 800, opacity: 0.6 },
-    { count: 1500, minSize: 1.2, maxSize: 3.0, minDist: 200, maxDist: 600, opacity: 0.4 }
+/* ══════════════════════════════════════════════════════════
+   STARFIELD — 4-layer parallax
+   ══════════════════════════════════════════════════════════ */
+function buildStarfield(){
+  const layers=[
+    {n:8000,sMin:0.2,sMax:1.2,rMin:600,rMax:1400,op:0.9},
+    {n:5000,sMin:0.5,sMax:2.0,rMin:400,rMax:900,op:0.7},
+    {n:2500,sMin:0.8,sMax:2.8,rMin:250,rMax:650,op:0.5},
+    {n:1000,sMin:1.5,sMax:3.5,rMin:150,rMax:500,op:0.35}
   ];
-  
-  layers.forEach((layer, layerIndex) => {
-    const p=new Float32Array(layer.count*3);
-    const s=new Float32Array(layer.count);
-    const c=new Float32Array(layer.count*3);
-    
-    for(let i=0;i<layer.count;i++){
-      const th=Math.random()*Math.PI*2;
-      const ph=Math.acos(2*Math.random()-1);
-      const r=layer.minDist+Math.random()*(layer.maxDist-layer.minDist);
-      
+
+  layers.forEach(L=>{
+    const p=new Float32Array(L.n*3),s=new Float32Array(L.n),c=new Float32Array(L.n*3);
+    for(let i=0;i<L.n;i++){
+      const th=Math.random()*6.283,ph=Math.acos(2*Math.random()-1);
+      const r=L.rMin+Math.random()*(L.rMax-L.rMin);
       p[i*3]=r*Math.sin(ph)*Math.cos(th);
       p[i*3+1]=r*Math.sin(ph)*Math.sin(th);
       p[i*3+2]=r*Math.cos(ph);
-      s[i]=layer.minSize+Math.random()*(layer.maxSize-layer.minSize);
-      
-      const temp=Math.random();
-      const warmth = 0.1 + layerIndex * 0.05;
-      c[i*3]=0.85+temp*0.15+warmth;
-      c[i*3+1]=0.8+temp*0.15+warmth*0.5;
-      c[i*3+2]=0.75+temp*0.2;
+      s[i]=L.sMin+Math.random()*(L.sMax-L.sMin);
+      const t=Math.random();
+      c[i*3]=0.88+t*0.12;c[i*3+1]=0.82+t*0.15;c[i*3+2]=0.78+t*0.2;
     }
-    
-    const bg=new THREE.BufferGeometry();
-    bg.setAttribute('position',new THREE.BufferAttribute(p,3));
-    bg.setAttribute('size',new THREE.BufferAttribute(s,1));
-    bg.setAttribute('color',new THREE.BufferAttribute(c,3));
-    
-    const bm=new THREE.ShaderMaterial({
-      uniforms:{
-        uTime:{value:0},
-        uPR:{value:renderer.getPixelRatio()},
-        uOpacity:{value:layer.opacity}
-      },
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.BufferAttribute(p,3));
+    g.setAttribute('size',new THREE.BufferAttribute(s,1));
+    g.setAttribute('color',new THREE.BufferAttribute(c,3));
+
+    const m=new THREE.ShaderMaterial({
+      uniforms:{uTime:{value:0},uPR:{value:dpr},uOp:{value:L.op}},
       vertexShader:`
-        attribute float size;
-        varying vec3 vC;
-        varying float vTw;
+        attribute float size;varying vec3 vC;varying float vTw;
         uniform float uTime,uPR;
-        
         void main(){
           vC=color;
-          vTw=sin(uTime*1.5+position.x*0.02+position.z*0.02)*0.4+0.6;
+          vTw=sin(uTime*1.2+position.x*0.015+position.z*0.015)*0.35+0.65;
           vec4 mv=modelViewMatrix*vec4(position,1.0);
           gl_Position=projectionMatrix*mv;
-          gl_PointSize=size*uPR*(120.0/-mv.z);
+          gl_PointSize=size*uPR*(100.0/-mv.z);
         }
       `,
       fragmentShader:`
-        varying vec3 vC;
-        varying float vTw;
-        uniform float uOpacity;
-        
+        varying vec3 vC;varying float vTw;uniform float uOp;
         void main(){
           float d=length(gl_PointCoord-0.5);
           if(d>0.5)discard;
-          float alpha=smoothstep(0.5,0.0,d)*vTw*uOpacity;
-          gl_FragColor=vec4(vC,alpha);
+          float a=smoothstep(0.5,0.0,d)*vTw*uOp;
+          gl_FragColor=vec4(vC,a);
         }
       `,
-      transparent:true,
-      depthWrite:false,
-      blending:THREE.AdditiveBlending,
-      vertexColors:true
+      transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
     });
-    
-    scene.add(new THREE.Points(bg,bm));
+    scene.add(new THREE.Points(g,m));
   });
+}
 
-  // Enhanced nebula with volumetric effects
-  const nebulaPoints = 20000;
-  const np=new Float32Array(nebulaPoints*3);
-  const nc=new Float32Array(nebulaPoints*3);
-  const ns=new Float32Array(nebulaPoints);
-  
-  for(let i=0;i<nebulaPoints;i++){
-    // Create spiral arm structure
-    const arm=Math.floor(Math.random()*4);
-    const armOff=arm*(Math.PI*2/4);
-    const dist=Math.random()*250+10;
-    const angle=armOff+dist*0.02+Math.random()*0.6;
-    const spread=15+dist*0.08;
-    
-    np[i*3]=Math.cos(angle)*dist+(Math.random()-0.5)*spread;
-    np[i*3+1]=(Math.random()-0.5)*30*Math.exp(-dist*0.004);
-    np[i*3+2]=Math.sin(angle)*dist+(Math.random()-0.5)*spread;
-    
-    // Enhanced color varieties
+/* ══════════════════════════════════════════════════════════
+   NEBULA — section-colored clouds
+   ══════════════════════════════════════════════════════════ */
+function buildNebula(){
+  const N=25000;
+  const p=new Float32Array(N*3),c=new Float32Array(N*3),s=new Float32Array(N);
+
+  for(let i=0;i<N;i++){
+    // Spiral arm structure
+    const arm=Math.floor(Math.random()*3);
+    const armOff=arm*(6.283/3);
+    const dist=Math.random()*220+15;
+    const angle=armOff+dist*0.02+Math.random()*0.5;
+    const spread=12+dist*0.07;
+
+    p[i*3]=Math.cos(angle)*dist+(Math.random()-0.5)*spread;
+    p[i*3+1]=(Math.random()-0.5)*25*Math.exp(-dist*0.005);
+    p[i*3+2]=Math.sin(angle)*dist+(Math.random()-0.5)*spread;
+
     const t=Math.random();
-    const dustAngle=Math.atan2(np[i*3+2],np[i*3]);
-    const dustFactor=Math.abs(Math.sin(dustAngle*1.5))<0.2?0.15:1;
-    
-    if(t<0.3){
-      // Blue regions
-      nc[i*3]=0.1*dustFactor;nc[i*3+1]=0.15*dustFactor;nc[i*3+2]=0.4*dustFactor;
-    } else if(t<0.6){
-      // Purple regions
-      nc[i*3]=0.25*dustFactor;nc[i*3+1]=0.1*dustFactor;nc[i*3+2]=0.35*dustFactor;
-    } else if(t<0.85){
-      // Golden dust lanes
-      nc[i*3]=0.3*dustFactor;nc[i*3+1]=0.2*dustFactor;nc[i*3+2]=0.05*dustFactor;
-    } else {
-      // Red emission regions
-      nc[i*3]=0.35*dustFactor;nc[i*3+1]=0.08*dustFactor;nc[i*3+2]=0.1*dustFactor;
-    }
-    
-    ns[i]=Math.random()*7+1;
+    if(t<0.25){c[i*3]=0.08;c[i*3+1]=0.12;c[i*3+2]=0.35;}
+    else if(t<0.5){c[i*3]=0.22;c[i*3+1]=0.08;c[i*3+2]=0.3;}
+    else if(t<0.75){c[i*3]=0.28;c[i*3+1]=0.18;c[i*3+2]=0.05;}
+    else{c[i*3]=0.3;c[i*3+1]=0.06;c[i*3+2]=0.08;}
+
+    s[i]=Math.random()*6+1;
   }
-  
-  const ng=new THREE.BufferGeometry();
-  ng.setAttribute('position',new THREE.BufferAttribute(np,3));
-  ng.setAttribute('color',new THREE.BufferAttribute(nc,3));
-  ng.setAttribute('size',new THREE.BufferAttribute(ns,1));
-  
-  const nm=new THREE.ShaderMaterial({
-    uniforms:{
-      uTime:{value:0},
-      uPR:{value:renderer.getPixelRatio()}
-    },
+
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  g.setAttribute('color',new THREE.BufferAttribute(c,3));
+  g.setAttribute('size',new THREE.BufferAttribute(s,1));
+
+  const m=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0},uPR:{value:Math.min(devicePixelRatio,2)}},
     vertexShader:`
-      attribute float size;
-      varying vec3 vC;
-      uniform float uTime,uPR;
-      
+      attribute float size;varying vec3 vC;uniform float uTime,uPR;
       void main(){
         vC=color;
         vec3 p=position;
-        p.y+=sin(uTime*0.04+position.x*0.003)*3.0;
+        p.y+=sin(uTime*0.035+position.x*0.003)*3.0;
         p.x+=cos(uTime*0.02+position.z*0.002)*2.0;
-        p.z+=sin(uTime*0.03+position.x*0.001)*1.5;
-        
         vec4 mv=modelViewMatrix*vec4(p,1.0);
         gl_Position=projectionMatrix*mv;
-        gl_PointSize=size*uPR*(400.0/-mv.z);
+        gl_PointSize=size*uPR*(350.0/-mv.z);
       }
     `,
     fragmentShader:`
       varying vec3 vC;
-      
       void main(){
         float d=length(gl_PointCoord-0.5);
         if(d>0.5)discard;
-        float alpha=smoothstep(0.5,0.1,d)*0.03;
-        gl_FragColor=vec4(vC,alpha);
+        float a=smoothstep(0.5,0.1,d)*0.025;
+        gl_FragColor=vec4(vC,a);
       }
     `,
-    transparent:true,
-    depthWrite:false,
-    blending:THREE.AdditiveBlending,
-    vertexColors:true
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
   });
-  
-  const nebula=new THREE.Points(ng,nm);
-  nebula.userData.type='nebula';
-  scene.add(nebula);
+  scene.add(new THREE.Points(g,m));
 }
 
-// ═══════════════════════════════════════════════
-// ENHANCED BOOKS
-// ═══════════════════════════════════════════════
-function buildEnhancedBooks(){
-  if(!data.books || data.books.length === 0) return;
-  
-  const tex = createEnhancedStarTexture();
+/* ══════════════════════════════════════════════════════════
+   GOD RAYS — volumetric light from galactic center
+   ══════════════════════════════════════════════════════════ */
+function buildGodRays(){
+  const geo=new THREE.CylinderGeometry(250,5,15,64,1,true);
+  const mat=new THREE.ShaderMaterial({
+    ...godRayShader,
+    transparent:true,
+    blending:THREE.AdditiveBlending,
+    depthWrite:false,
+    side:THREE.DoubleSide
+  });
+  godRayMesh=new THREE.Mesh(geo,mat);
+  godRayMesh.rotation.x=Math.PI/2;
+  scene.add(godRayMesh);
+
+  // Second layer rotated
+  const geo2=new THREE.CylinderGeometry(200,8,12,48,1,true);
+  const mat2=mat.clone();
+  mat2.uniforms={...godRayShader.uniforms};
+  mat2.uniforms.uTime={value:0};
+  mat2.uniforms.uIntensity={value:0.06};
+  mat2.uniforms.uColor={value:new THREE.Color(0xfff0c8)};
+  const gr2=new THREE.Mesh(geo2,mat2);
+  gr2.rotation.x=Math.PI/2;
+  gr2.rotation.y=Math.PI/6;
+  scene.add(gr2);
+}
+
+/* ══════════════════════════════════════════════════════════
+   AURORA RIBBONS — flowing light between OT and NT
+   ══════════════════════════════════════════════════════════ */
+function buildAurora(){
+  // Create flowing ribbon planes
+  for(let i=0;i<3;i++){
+    const w=300,h=30,segW=80,segH=4;
+    const geo=new THREE.PlaneGeometry(w,h,segW,segH);
+    const mat=new THREE.ShaderMaterial({
+      ...auroraShader,
+      transparent:true,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false,
+      side:THREE.DoubleSide
+    });
+    mat.uniforms={
+      uTime:{value:0},
+      uColor1:{value:new THREE.Color([0x4dd88a,0xb16dea,0x6bb5ff][i])},
+      uColor2:{value:new THREE.Color([0xb16dea,0xd4a843,0xef5555][i])},
+      uOpacity:{value:0.04-i*0.008}
+    };
+
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set(0,40+i*15,0);
+    mesh.rotation.x=Math.PI*0.4+i*0.15;
+    mesh.rotation.y=i*Math.PI*0.25;
+    scene.add(mesh);
+    auroraMeshes.push(mesh);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   DUST LANES — dark bands through the galaxy
+   ══════════════════════════════════════════════════════════ */
+function buildDustLanes(){
+  const N=8000;
+  const p=new Float32Array(N*3),s=new Float32Array(N);
+
+  for(let i=0;i<N;i++){
+    const arm=Math.floor(Math.random()*3);
+    const armOff=arm*(6.283/3)+Math.PI/6; // Offset from bright arms
+    const dist=Math.random()*180+20;
+    const angle=armOff+dist*0.02;
+    const spread=4+dist*0.03;
+
+    p[i*3]=Math.cos(angle)*dist+(Math.random()-0.5)*spread;
+    p[i*3+1]=(Math.random()-0.5)*3;
+    p[i*3+2]=Math.sin(angle)*dist+(Math.random()-0.5)*spread;
+    s[i]=Math.random()*10+3;
+  }
+
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  g.setAttribute('size',new THREE.BufferAttribute(s,1));
+
+  const m=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0},uPR:{value:Math.min(devicePixelRatio,2)}},
+    vertexShader:`
+      attribute float size;uniform float uPR,uTime;
+      void main(){
+        vec3 p=position;
+        p.y+=sin(uTime*0.02+position.x*0.005)*1.5;
+        vec4 mv=modelViewMatrix*vec4(p,1.0);
+        gl_Position=projectionMatrix*mv;
+        gl_PointSize=size*uPR*(300.0/-mv.z);
+      }
+    `,
+    fragmentShader:`
+      void main(){
+        float d=length(gl_PointCoord-0.5);
+        if(d>0.5)discard;
+        float a=smoothstep(0.5,0.15,d)*0.08;
+        gl_FragColor=vec4(0.0,0.0,0.0,a);
+      }
+    `,
+    transparent:true,depthWrite:false,blending:THREE.NormalBlending
+  });
+  scene.add(new THREE.Points(g,m));
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOOKS — volumetric spheres with pulsing shaders
+   ══════════════════════════════════════════════════════════ */
+const dpr=Math.min(devicePixelRatio,2);
+
+function buildBooks(){
+  if(!data.books.length)return;
+  const starTex=makeStarTex();
+  const flareTex=makeLensFlare();
   const secs=Object.keys(data.sections);
-  const majorBooks=['Gen','Ps','Isa','Matt','Rev','Rom','Exod','Jer','Ezek','John','Heb'];
 
   data.books.forEach((bk,i)=>{
     const si=secs.indexOf(bk.section);
@@ -1051,1554 +902,665 @@ function buildEnhancedBooks(){
     const bi=arr.indexOf(bk.abbr);
     const bn=arr.length;
 
+    // Spiral galaxy positioning
     const arm=si%3;
-    const armBase=arm*(Math.PI*2/3);
-    const progress=(si*bn+bi)/(data.books.length);
-    const dist=30+progress*140;
-    const angle=armBase+progress*Math.PI*4+(bi/bn)*0.8;
-    const y=Math.sin(angle*1.6)*12+(Math.random()-0.5)*8;
+    const armBase=arm*(6.283/3);
+    const progress=(si*bn+bi)/data.books.length;
+    const dist=28+progress*145;
+    const angle=armBase+progress*Math.PI*4.2+(bi/bn)*0.75;
+    const y=Math.sin(angle*1.5)*10+(Math.random()-0.5)*6;
     const x=Math.cos(angle)*dist;
     const z=Math.sin(angle)*dist;
 
-    const sz=Math.max(0.4,Math.pow(bk.chapters,0.35)*0.4);
-    const col=C[bk.section]||0xc5960c;
+    const col=SEC_COLORS[bk.section]||0xc5960c;
+    const isMajor=MAJOR.includes(bk.abbr);
+    const sz=Math.max(0.5,Math.pow(bk.chapters,0.35)*0.45);
 
-    // Enhanced core with pulsing material
-    const coreGeo = new THREE.SphereGeometry(sz*0.6,16,16);
-    const coreMat = new THREE.ShaderMaterial({
-      uniforms: volumetricStarShader.uniforms,
-      vertexShader: volumetricStarShader.vertexShader,
-      fragmentShader: volumetricStarShader.fragmentShader,
-      transparent: true,
-      blending: THREE.AdditiveBlending
+    // Volumetric sphere with custom shader
+    const coreGeo=new THREE.SphereGeometry(sz*0.7,20,20);
+    const coreMat=new THREE.ShaderMaterial({
+      uniforms:{uTime:{value:0},uColor:{value:new THREE.Color(col)},uInt:{value:0.7}},
+      vertexShader:`
+        uniform float uTime;varying vec2 vUv;varying vec3 vN,vPos;
+        void main(){
+          vUv=uv;vN=normal;vPos=position;
+          vec3 p=position;
+          p+=normal*sin(uTime*2.5+position.y*3.0)*0.06;
+          gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
+        }
+      `,
+      fragmentShader:`
+        uniform float uTime,uInt;uniform vec3 uColor;
+        varying vec2 vUv;varying vec3 vN,vPos;
+        void main(){
+          float fresnel=1.0-abs(dot(normalize(vN),vec3(0,0,1)));
+          fresnel=pow(fresnel,2.0);
+          float pulse=sin(uTime*2.0+vPos.y*4.0)*0.15+0.85;
+          // Surface noise
+          float n=sin(vPos.x*10.0+uTime)*sin(vPos.y*10.0+uTime*0.7)*sin(vPos.z*10.0+uTime*0.5);
+          n=n*0.1+0.9;
+          vec3 col=uColor*(1.2+fresnel*0.8)*pulse*n;
+          float a=(0.7+fresnel*0.5)*uInt;
+          gl_FragColor=vec4(col,a);
+        }
+      `,
+      transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
     });
-    coreMat.uniforms.uColor.value = new THREE.Color(col);
-    coreMat.uniforms.uIntensity.value = 0.7;
-    
-    const core = new THREE.Mesh(coreGeo, coreMat);
-    core.position.set(x,y,z);
-    core.userData={bk,idx:i,sz,originalMaterial:coreMat};
-    scene.add(core);
-    books.push(core);
 
-    // Enhanced hit sphere
-    const hitSphere=new THREE.Mesh(
+    const core=new THREE.Mesh(coreGeo,coreMat);
+    core.position.set(x,y,z);
+    core.userData={bk,idx:i,sz,mat:coreMat};
+    scene.add(core);
+    bookMeshes.push(core);
+
+    // Hit sphere for raycasting
+    const hs=new THREE.Mesh(
       new THREE.SphereGeometry(sz*5,8,8),
       new THREE.MeshBasicMaterial({visible:false})
     );
-    hitSphere.position.copy(core.position);
-    hitSphere.userData={idx:i,isHit:true};
-    scene.add(hitSphere);
-    hitSpheres.push(hitSphere);
+    hs.position.copy(core.position);
+    hs.userData={idx:i};
+    scene.add(hs);
+    hitSpheres.push(hs);
 
-    // Enhanced glow with better texture
-    const gm=new THREE.SpriteMaterial({
-      map:tex,
-      color:col,
-      transparent:true,
-      opacity:0.35,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    });
+    // Glow sprite
+    const gm=new THREE.SpriteMaterial({map:starTex,color:col,transparent:true,opacity:0.35,blending:THREE.AdditiveBlending,depthWrite:false});
     const glow=new THREE.Sprite(gm);
     const gs=sz*6+2;
     glow.scale.set(gs,gs,1);
     glow.position.copy(core.position);
     glow.userData={idx:i,bs:gs,bo:0.35};
     scene.add(glow);
-    glows.push(glow);
+    glowSprites.push(glow);
 
-    // Enhanced orbital rings for major books
-    if(majorBooks.includes(bk.abbr)){
-      createOrbitalRing(core.position, sz, col, i);
+    // Anamorphic lens flare for major books
+    if(isMajor){
+      const fm=new THREE.SpriteMaterial({map:flareTex,color:col,transparent:true,opacity:0.25,blending:THREE.AdditiveBlending,depthWrite:false});
+      const flare=new THREE.Sprite(fm);
+      flare.scale.set(sz*25,sz*3,1);
+      flare.position.copy(core.position);
+      flare.userData={type:'flare',idx:i};
+      scene.add(flare);
     }
 
-    // Enhanced labels
-    const lbl=createEnhancedLabel(bk.name, majorBooks.includes(bk.abbr));
-    lbl.position.set(x,y+sz*6+3,z);
-    lbl.material.opacity=majorBooks.includes(bk.abbr)?0.85:0.5;
-    lbl.userData={idx:i,type:'label',isMajor:majorBooks.includes(bk.abbr)};
+    // Section-colored nebula cloud around each book
+    if(Math.random()<0.5||isMajor){
+      const cloudN=isMajor?60:25;
+      const cp=new Float32Array(cloudN*3),cs=new Float32Array(cloudN),cc=new Float32Array(cloudN*3);
+      const secCol=new THREE.Color(col);
+      for(let j=0;j<cloudN;j++){
+        const a=Math.random()*6.283,r=Math.random()*(isMajor?12:7)+2;
+        const hh=(Math.random()-0.5)*(isMajor?8:4);
+        cp[j*3]=x+Math.cos(a)*r;cp[j*3+1]=y+hh;cp[j*3+2]=z+Math.sin(a)*r;
+        cs[j]=Math.random()*4+1;
+        cc[j*3]=secCol.r*0.3;cc[j*3+1]=secCol.g*0.3;cc[j*3+2]=secCol.b*0.3;
+      }
+      const cg=new THREE.BufferGeometry();
+      cg.setAttribute('position',new THREE.BufferAttribute(cp,3));
+      cg.setAttribute('size',new THREE.BufferAttribute(cs,1));
+      cg.setAttribute('color',new THREE.BufferAttribute(cc,3));
+      const cm=new THREE.ShaderMaterial({
+        uniforms:{uPR:{value:dpr}},
+        vertexShader:`attribute float size;varying vec3 vC;uniform float uPR;void main(){vC=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_Position=projectionMatrix*mv;gl_PointSize=size*uPR*(200.0/-mv.z);}`,
+        fragmentShader:`varying vec3 vC;void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;gl_FragColor=vec4(vC,smoothstep(0.5,0.1,d)*0.04);}`,
+        transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
+      });
+      scene.add(new THREE.Points(cg,cm));
+    }
+
+    // Label
+    const lbl=makeLabel(bk.name,isMajor);
+    lbl.position.set(x,y+sz*6+3.5,z);
+    lbl.material.opacity=isMajor?0.9:0.5;
+    lbl.userData={idx:i,isMajor};
     scene.add(lbl);
-    labels.push(lbl);
+    labelSprites.push(lbl);
   });
 }
 
-function createEnhancedStarTexture() {
-  const canvas = document.createElement('canvas');
-  const size = 512;
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const center = size / 2;
+/* ══════════════════════════════════════════════════════════
+   CONNECTIONS — book-level with animated shaders
+   ══════════════════════════════════════════════════════════ */
+function buildConnections(){
+  if(!data.connections.length)return;
+  const max=data.connections[0]?.count||1;
 
-  // Create main radial gradient
-  let gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
-  gradient.addColorStop(0, 'rgba(255,255,255,0.7)');
-  gradient.addColorStop(0.01, 'rgba(255,250,235,0.6)');
-  gradient.addColorStop(0.03, 'rgba(255,245,220,0.4)');
-  gradient.addColorStop(0.08, 'rgba(255,235,180,0.2)');
-  gradient.addColorStop(0.2, 'rgba(240,200,120,0.08)');
-  gradient.addColorStop(0.4, 'rgba(180,140,60,0.02)');
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  data.connections.forEach(cn=>{
+    const fb=data.books.find(b=>b.abbr===cn.from);
+    const tb=data.books.find(b=>b.abbr===cn.to);
+    if(!fb||!tb)return;
+    const fm=bookMeshes[fb.index],tm=bookMeshes[tb.index];
+    if(!fm||!tm)return;
 
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
+    const str=cn.count/max;
+    const s=fm.position.clone(),e=tm.position.clone();
+    const m=s.clone().add(e).multiplyScalar(0.5);
+    m.y+=5+str*15;
+    const curve=new THREE.QuadraticBezierCurve3(s,m,e);
+    const pts=curve.getPoints(28);
 
-  // Add star spikes
-  ctx.globalCompositeOperation = 'lighter';
-  for(let spike = 0; spike < 8; spike++) {
-    const angle = (spike / 8) * Math.PI * 2;
-    ctx.save();
-    ctx.translate(center, center);
-    ctx.rotate(angle);
-
-    let spikeGradient = ctx.createLinearGradient(-center, 0, center, 0);
-    spikeGradient.addColorStop(0, 'rgba(255,255,255,0)');
-    spikeGradient.addColorStop(0.4, 'rgba(255,245,220,0.05)');
-    spikeGradient.addColorStop(0.485, 'rgba(255,255,255,0.08)');
-    spikeGradient.addColorStop(0.5, 'rgba(255,255,255,0.1)');
-    spikeGradient.addColorStop(0.515, 'rgba(255,255,255,0.08)');
-    spikeGradient.addColorStop(0.6, 'rgba(255,245,220,0.05)');
-    spikeGradient.addColorStop(1, 'rgba(255,255,255,0)');
-
-    ctx.fillStyle = spikeGradient;
-    ctx.fillRect(-center, -2, size, 4);
-    ctx.restore();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
-  return texture;
-}
-
-function createOrbitalRing(position, size, color, index) {
-  const ringGeo = new THREE.RingGeometry(size*5, size*5.5, 64);
-  const ringMat = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: { value: 0 },
-      uColor: { value: new THREE.Color(color) },
-      uIndex: { value: index }
-    },
-    vertexShader: `
-      uniform float uTime;
-      uniform float uIndex;
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float uTime;
-      uniform float uIndex;
-      uniform vec3 uColor;
-      varying vec2 vUv;
-      
-      void main() {
-        float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
-        float pulse = sin(uTime * 2.0 + uIndex * 0.5 + angle * 4.0) * 0.5 + 0.5;
-        float alpha = 0.1 + pulse * 0.15;
-        gl_FragColor = vec4(uColor, alpha);
-      }
-    `,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
-    depthWrite: false
-  });
-
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.position.copy(position);
-  ring.rotation.x = Math.PI * 0.3 + index * 0.1;
-  ring.userData = {type: 'ring', idx: index};
-  scene.add(ring);
-}
-
-function createEnhancedLabel(text, isMajor) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 128;
-  const ctx = canvas.getContext('2d');
-  
-  // Heavy black outline for contrast
-  ctx.font = (isMajor ? '700' : '600') + ' 48px Georgia, serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  // Draw black outline/stroke for readability
-  ctx.strokeStyle = 'rgba(0,0,0,1)';
-  ctx.lineWidth = 8;
-  ctx.lineJoin = 'round';
-  ctx.strokeText(text, 512, 64);
-  
-  // Draw dark shadow layer
-  ctx.shadowColor = 'rgba(0,0,0,1)';
-  ctx.shadowBlur = 20;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 0;
-  ctx.fillStyle = 'rgba(0,0,0,0.8)';
-  ctx.fillText(text, 512, 64);
-  
-  // Draw bright text on top
-  ctx.shadowColor = 'rgba(197,150,12,0.8)';
-  ctx.shadowBlur = 15;
-  ctx.fillStyle = isMajor ? '#fff5dc' : '#ffe8b0';
-  ctx.fillText(text, 512, 64);
-  
-  // Extra glow pass for major books
-  if(isMajor) {
-    ctx.shadowColor = 'rgba(197,150,12,0.5)';
-    ctx.shadowBlur = 25;
-    ctx.fillStyle = 'rgba(255,245,220,0.3)';
-    ctx.fillText(text, 512, 64);
-  }
-  
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
-  
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    depthWrite: false
-  }));
-  
-  sprite.scale.set(isMajor ? 18 : 14, isMajor ? 3 : 2.2, 1);
-  return sprite;
-}
-
-// Continue with enhanced connections and effects...
-function buildEnhancedConnections(){
-  if(!data.connections || data.connections.length === 0) return;
-  
-  const all = data.connections;
-  const max = all[0]?.count || 1;
-
-  all.forEach(cn => {
-    const fb = data.books.find(b => b.abbr === cn.from);
-    const tb = data.books.find(b => b.abbr === cn.to);
-    if(!fb || !tb) return;
-    
-    const fm = books[fb.index];
-    const tm = books[tb.index];
-    if(!fm || !tm) return;
-
-    const str = cn.count / max;
-    const s = fm.position.clone();
-    const e = tm.position.clone();
-    const m = s.clone().add(e).multiplyScalar(0.5);
-    m.y += 6 + str * 18;
-
-    const curve = new THREE.QuadraticBezierCurve3(s, m, e);
-    const pts = curve.getPoints(32);
-
-    const c1 = new THREE.Color(C[fb.section] || 0xc5960c);
-    const c2 = new THREE.Color(C[tb.section] || 0xc5960c);
+    const c1=new THREE.Color(SEC_COLORS[fb.section]||0xc5960c);
+    const c2=new THREE.Color(SEC_COLORS[tb.section]||0xc5960c);
 
     let line;
-    if(str > 0.12) {
-      // Enhanced tube geometry for strong connections
-      const thickness = 0.06 + str * 0.25;
-      const opacity = 0.2 + str * 0.7;
-      const catmull = new THREE.CatmullRomCurve3(pts);
-      const tubeGeo = new THREE.TubeGeometry(catmull, 24, thickness, 6, false);
-      const col = c1.clone().lerp(c2, 0.5);
-      
-      const mat = new THREE.ShaderMaterial({
-        uniforms: {
-          uTime: { value: 0 },
-          uColor: { value: col },
-          uOpacity: { value: opacity },
-          uStrength: { value: str }
-        },
-        vertexShader: `
-          uniform float uTime;
-          varying vec3 vPosition;
-          void main() {
-            vPosition = position;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    if(str>0.1){
+      // Animated tube for strong connections
+      const catm=new THREE.CatmullRomCurve3(pts);
+      const tubeGeo=new THREE.TubeGeometry(catm,20,0.05+str*0.22,5,false);
+      const col=c1.clone().lerp(c2,0.5);
+      const op=0.15+str*0.6;
+      const mat=new THREE.ShaderMaterial({
+        uniforms:{uTime:{value:0},uColor:{value:col},uOp:{value:op},uStr:{value:str}},
+        vertexShader:`uniform float uTime;varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+        fragmentShader:`
+          uniform float uTime,uOp,uStr;uniform vec3 uColor;varying vec3 vP;
+          void main(){
+            // Energy pulse traveling along the line
+            float pulse=sin(uTime*1.8+length(vP)*0.08)*0.3+0.7;
+            float energy=sin(uTime*3.0-length(vP)*0.2)*0.5+0.5;
+            energy=pow(energy,3.0)*0.4;
+            vec3 col=uColor*(1.0+uStr*0.5+energy);
+            gl_FragColor=vec4(col,uOp*pulse+energy*0.2);
           }
         `,
-        fragmentShader: `
-          uniform float uTime;
-          uniform vec3 uColor;
-          uniform float uOpacity;
-          uniform float uStrength;
-          varying vec3 vPosition;
-          
-          void main() {
-            float pulse = sin(uTime * 1.5 + vPosition.x * 0.1) * 0.3 + 0.7;
-            float alpha = uOpacity * pulse;
-            gl_FragColor = vec4(uColor * (1.0 + uStrength), alpha);
-          }
-        `,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
+        transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
       });
-      
-      line = new THREE.Mesh(tubeGeo, mat);
-    } else {
-      // Enhanced line material for weaker connections
-      const geo = new THREE.BufferGeometry().setFromPoints(pts);
-      const vc = new Float32Array(pts.length * 3);
-      
-      for(let j = 0; j < pts.length; j++) {
-        const t = j / (pts.length - 1);
-        const cc = c1.clone().lerp(c2, t);
-        vc[j*3] = cc.r;
-        vc[j*3+1] = cc.g;
-        vc[j*3+2] = cc.b;
+      line=new THREE.Mesh(tubeGeo,mat);
+    }else{
+      // Simple line for weak connections
+      const geo=new THREE.BufferGeometry().setFromPoints(pts);
+      const vc=new Float32Array(pts.length*3);
+      for(let j=0;j<pts.length;j++){
+        const t=j/(pts.length-1);
+        const cc=c1.clone().lerp(c2,t);
+        vc[j*3]=cc.r;vc[j*3+1]=cc.g;vc[j*3+2]=cc.b;
       }
-      
-      geo.setAttribute('color', new THREE.BufferAttribute(vc, 3));
-      
-      const mat = new THREE.LineBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.05 + str * 0.4,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      });
-      
-      line = new THREE.Line(geo, mat);
+      geo.setAttribute('color',new THREE.BufferAttribute(vc,3));
+      const mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.04+str*0.35,blending:THREE.AdditiveBlending,depthWrite:false});
+      line=new THREE.Line(geo,mat);
     }
-    
-    line.userData = {
-      from: cn.from,
-      to: cn.to,
-      count: cn.count,
-      bo: line.material.opacity || line.material.uniforms?.uOpacity?.value,
-      curve,
-      str
-    };
-    
+
+    line.userData={from:cn.from,to:cn.to,count:cn.count,bo:line.material.opacity||line.material.uniforms?.uOp?.value||0.1,curve,str};
     scene.add(line);
-    conns.push(line);
+    connLines.push(line);
   });
 }
 
-// Enhanced effects and controls...
-function buildAdvancedEffects() {
-  // Enhanced shooting stars with trails
-  const starCount = 8;
-  const geo = new THREE.BufferGeometry();
-  const pos = new Float32Array(starCount * 18); // 6 points per star for trail
-  const vel = [];
-  
-  for(let i = 0; i < starCount; i++) {
-    const baseIdx = i * 18;
-    // Initialize all points to same position
-    for(let j = 0; j < 6; j++) {
-      pos[baseIdx + j*3] = (Math.random() - 0.5) * 800;
-      pos[baseIdx + j*3 + 1] = Math.random() * 300 + 100;
-      pos[baseIdx + j*3 + 2] = (Math.random() - 0.5) * 800;
-    }
-    
-    vel.push({
-      x: (Math.random() - 0.5) * 12,
-      y: -(Math.random() * 4 + 3),
-      z: (Math.random() - 0.5) * 12,
-      life: 0,
-      maxLife: Math.random() * 2 + 1,
-      cooldown: Math.random() * 20 + 8
-    });
-  }
-  
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  
-  const mat = new THREE.LineBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-  
-  shootingStars = {
-    geo, pos, vel,
-    mesh: new THREE.LineSegments(geo, mat)
-  };
-  
-  scene.add(shootingStars.mesh);
-}
-
-function buildEnhancedLegend() {
-  const el = document.getElementById('legend');
-  const legendTitle = document.createElement('div');
-  legendTitle.className = 'legend-title';
-  legendTitle.textContent = 'BIBLICAL SECTIONS';
-  el.appendChild(legendTitle);
-  
-  for(const [name, color] of Object.entries(C)) {
-    const div = document.createElement('div');
-    const dot = document.createElement('span');
-    dot.className = 'ldot';
-    
-    const hex = '#' + new THREE.Color(color).getHexString();
-    dot.style.background = hex;
-    dot.style.color = hex;
-    
-    const label = document.createElement('span');
-    label.className = 'llbl';
-    label.textContent = name;
-    
-    // Add book count
-    const count = document.createElement('span');
-    count.className = 'lcount';
-    const sectionBooks = data.sections[name] || [];
-    count.textContent = sectionBooks.length;
-    
-    div.appendChild(dot);
-    div.appendChild(label);
-    div.appendChild(count);
-    
-    div.onclick = () => highlightSection(name);
-    el.appendChild(div);
+/* ══════════════════════════════════════════════════════════
+   UI: LEGEND, SEARCH
+   ══════════════════════════════════════════════════════════ */
+function buildLegend(){
+  const el=document.getElementById('legend');
+  el.innerHTML='<div class="legend-title">Biblical Sections</div>';
+  for(const[name,color]of Object.entries(SEC_COLORS)){
+    const hex='#'+new THREE.Color(color).getHexString();
+    const cnt=(data.sections[name]||[]).length;
+    const d=document.createElement('div');d.className='leg-row';
+    d.innerHTML=`<span class="ldot" style="background:${hex};color:${hex}"></span><span class="llbl">${name}</span><span class="lcnt">${cnt}</span>`;
+    d.onclick=()=>highlightSection(name);
+    el.appendChild(d);
   }
 }
 
-function initEnhancedSearch() {
-  const input = document.getElementById('search');
-  const results = document.getElementById('search-results');
-  
-  input.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    if(!query) {
-      results.classList.remove('show');
-      return;
-    }
-    
-    // Enhanced search including themes
-    const matches = [];
-    
-    // Search books
-    data.books.forEach(book => {
-      if(book.name.toLowerCase().includes(query) || book.abbr.toLowerCase().includes(query)) {
-        matches.push({type: 'book', data: book, relevance: 3});
-      }
+function initSearch(){
+  const inp=document.getElementById('search'),res=document.getElementById('search-results');
+  inp.addEventListener('input',e=>{
+    const q=e.target.value.toLowerCase().trim();
+    if(!q){res.classList.remove('show');return;}
+    const matches=data.books.filter(b=>b.name.toLowerCase().includes(q)||b.abbr.toLowerCase().includes(q));
+    if(!matches.length){res.classList.remove('show');return;}
+    res.innerHTML='';
+    matches.slice(0,8).forEach(bk=>{
+      const d=document.createElement('div');
+      d.innerHTML=`${bk.name}<span class="sec">${bk.section}</span>`;
+      d.onclick=()=>{selectBook(bk.index);inp.value='';res.classList.remove('show');inp.blur();};
+      res.appendChild(d);
     });
-    
-    // Search themes
-    for(const [bookAbbr, themes] of Object.entries(THEMES)) {
-      const matchingThemes = themes.filter(theme => theme.toLowerCase().includes(query));
-      if(matchingThemes.length > 0) {
-        const book = data.books.find(b => b.abbr === bookAbbr);
-        if(book) {
-          matches.push({type: 'theme', data: book, themes: matchingThemes, relevance: 2});
-        }
-      }
-    }
-    
-    // Sort by relevance
-    matches.sort((a, b) => b.relevance - a.relevance);
-    
-    if(!matches.length) {
-      results.classList.remove('show');
-      return;
-    }
-    
-    results.innerHTML = '';
-    matches.slice(0, 8).forEach(match => {
-      const div = document.createElement('div');
-      if(match.type === 'book') {
-        div.innerHTML = `${match.data.name}<span class="sec">${match.data.section}</span>`;
-      } else {
-        div.innerHTML = `${match.data.name} <em>(${match.themes.join(', ')})</em><span class="sec">${match.data.section}</span>`;
-      }
-      
-      div.onclick = () => {
-        selectBook(match.data.index);
-        input.value = '';
-        results.classList.remove('show');
-        input.blur();
-      };
-      
-      results.appendChild(div);
-    });
-    
-    results.classList.add('show');
+    res.classList.add('show');
   });
-  
-  input.addEventListener('blur', () => setTimeout(() => results.classList.remove('show'), 200));
-  input.addEventListener('keydown', e => {
-    if(e.key === 'Escape') {
-      input.value = '';
-      results.classList.remove('show');
-      input.blur();
-    }
-  });
+  inp.addEventListener('blur',()=>setTimeout(()=>res.classList.remove('show'),200));
+  inp.addEventListener('keydown',e=>{if(e.key==='Escape'){inp.value='';res.classList.remove('show');inp.blur();}});
 }
 
-function initAdvancedControls() {
-  // View mode controls
-  document.querySelectorAll('[data-mode]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      viewMode = btn.dataset.mode;
-      updateViewMode();
-    });
-  });
-  
-  // Analysis controls
-  document.querySelectorAll('[data-analysis]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const wasActive = btn.classList.contains('active');
-      document.querySelectorAll('[data-analysis]').forEach(b => b.classList.remove('active'));
-      
-      if(!wasActive) {
-        btn.classList.add('active');
-        analysisMode = btn.dataset.analysis;
-      } else {
-        analysisMode = '';
-      }
-      
-      updateAnalysisMode();
-    });
-  });
-  
-  // Filter controls
-  document.querySelectorAll('[data-filter]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const wasActive = btn.classList.contains('active');
-      document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-      
-      if(!wasActive) {
-        btn.classList.add('active');
-        filterMode = btn.dataset.filter;
-      } else {
-        filterMode = '';
-      }
-      
-      updateFilterMode();
-    });
-  });
-}
+/* ══════════════════════════════════════════════════════════
+   SELECTION & INTERACTION
+   ══════════════════════════════════════════════════════════ */
+function selectBook(idx){
+  if(!bookMeshes[idx])return;
+  if(selectedIdx===idx)return;
+  if(selected)deselect(true);
 
-function initAudioControls() {
-  document.getElementById('ambient-toggle').addEventListener('click', (e) => {
-    ambientEnabled = !ambientEnabled;
-    e.target.classList.toggle('active');
-    
-    if(audioCtx && masterGain) {
-      if(ambientEnabled) {
-        masterGain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1);
-      } else {
-        masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-      }
-    }
-  });
-  
-  document.getElementById('spatial-toggle').addEventListener('click', (e) => {
-    spatialAudio = !spatialAudio;
-    e.target.classList.toggle('active');
-  });
-  
-  document.getElementById('chimes-toggle').addEventListener('click', (e) => {
-    chimesEnabled = !chimesEnabled;
-    e.target.classList.toggle('active');
-  });
-  
-  // Set initial states
-  document.getElementById('ambient-toggle').classList.add('active');
-  document.getElementById('chimes-toggle').classList.add('active');
-}
+  const bk=data.books[idx];
+  const mesh=bookMeshes[idx];
+  selected=mesh;selectedIdx=idx;
+  controls.autoRotate=false;
 
-// Enhanced mode functions
-function updateViewMode() {
-  switch(viewMode) {
-    case 'galaxy':
-      // Default spiral galaxy layout
-      break;
-    case 'network':
-      // Arrange books in network layout based on connections
-      arrangeNetworkLayout();
-      break;
-    case 'timeline':
-      // Arrange books chronologically
-      arrangeTimelineLayout();
-      break;
-  }
-}
+  // Camera fly
+  const tp=mesh.position.clone();
+  const dir=tp.clone().sub(controls.target).normalize();
+  const camPos=tp.clone().add(dir.multiplyScalar(-32)).add(new THREE.Vector3(0,8,0));
+  animateCamera(camPos,tp);
 
-function updateAnalysisMode() {
-  switch(analysisMode) {
-    case 'themes':
-      highlightThematicConnections();
-      break;
-    case 'authors':
-      highlightAuthorConnections();
-      break;
-    case 'chronology':
-      highlightChronologicalConnections();
-      break;
-    default:
-      resetAnalysis();
-      break;
-  }
-}
+  // Audio
+  const notes=[261.6,293.7,329.6,392.0,440.0,523.2];
+  playChime(notes[idx%notes.length],mesh.position);
 
-function updateFilterMode() {
-  switch(filterMode) {
-    case 'strong':
-      filterStrongConnections();
-      break;
-    case 'prophetic':
-      filterPropheticBooks();
-      break;
-    case 'messianic':
-      filterMessianicReferences();
-      break;
-    default:
-      resetFilters();
-      break;
-  }
-}
-
-// Enhanced interaction and animation functions...
-function selectBook(idx) {
-  if(!books[idx]) return;
-  
-  const bk = data.books[idx];
-  const mesh = books[idx];
-  
-  if(selectedIdx === idx) return;
-  if(selected) deselect(true);
-  
-  selected = mesh;
-  selectedIdx = idx;
-  controls.autoRotate = false;
-
-  // Enhanced camera animation
-  const targetPos = mesh.position.clone();
-  const camDist = 35;
-  const dir = targetPos.clone().sub(controls.target).normalize();
-  const camPos = targetPos.clone().add(dir.multiplyScalar(-camDist)).add(new THREE.Vector3(0, 10, 0));
-  
-  animateCamera(camPos, targetPos);
-
-  // Enhanced audio feedback
-  const noteFreqs = [261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9, 523.2];
-  playSpatialChime(noteFreqs[idx % 8], mesh.position);
-
-  // AI Analysis
-  const analysis = AI_ENGINE.analyzeBook(bk);
-  
   // Find connections
-  const connections = data.connections.filter(c => c.from === bk.abbr || c.to === bk.abbr);
-  const connectedBooks = new Set(connections.map(c => c.from === bk.abbr ? c.to : c.from));
-  const totalRefs = connections.reduce((sum, c) => sum + c.count, 0);
+  const connsData=data.connections.filter(c=>c.from===bk.abbr||c.to===bk.abbr);
+  const connSet=new Set(connsData.map(c=>c.from===bk.abbr?c.to:c.from));
+  const totalRefs=connsData.reduce((s,c)=>s+c.count,0);
 
-  // Enhanced visual feedback
-  enhanceBookSelection(idx, connectedBooks, analysis);
-  
-  // Create theme particles
-  if(analysis.themes) {
-    createThemeParticles(mesh.position, analysis.themes);
-  }
-
-  // Update UI
-  updateBookPanel(bk, analysis, connections);
-  updateAIPanel(analysis);
-  
-  // Load verse-level cross-references (every verse as a line)
-  loadVerseReferences(bk.abbr);
-  
-  // Enhanced flow particles
-  spawnEnhancedFlow(bk.abbr, connections.slice(0, 25));
-}
-
-function enhanceBookSelection(bookIdx, connectedBooks, analysis) {
-  // Enhanced glow effects
-  glows.forEach((g, i) => {
-    if(i === bookIdx) {
-      g.material.opacity = 0.6;
-      g.scale.setScalar(g.userData.bs * 1.8);
-    } else if(connectedBooks.has(data.books[i]?.abbr)) {
-      g.material.opacity = 0.4;
-      g.scale.setScalar(g.userData.bs * 1.2);
-    } else {
-      g.material.opacity = 0.05;
-    }
+  // Visual enhancements
+  glowSprites.forEach((g,i)=>{
+    if(i===idx){g.material.opacity=0.65;g.scale.setScalar(g.userData.bs*1.8);}
+    else if(connSet.has(data.books[i]?.abbr)){g.material.opacity=0.4;g.scale.setScalar(g.userData.bs*1.15);}
+    else{g.material.opacity=0.04;}
   });
 
-  // Enhanced connection highlighting
-  conns.forEach(line => {
-    const isConnected = line.userData.from === data.books[bookIdx].abbr || 
-                       line.userData.to === data.books[bookIdx].abbr;
-    
-    if(isConnected) {
-      if(line.material.uniforms) {
-        line.material.uniforms.uOpacity.value = Math.min(0.95, line.userData.bo * 6);
-      } else {
-        line.material.opacity = Math.min(0.95, line.userData.bo * 6);
-      }
-    } else {
-      if(line.material.uniforms) {
-        line.material.uniforms.uOpacity.value = 0.003;
-      } else {
-        line.material.opacity = 0.003;
-      }
-    }
+  bookMeshes.forEach((b,i)=>{
+    const int=i===idx?1.3:connSet.has(data.books[i]?.abbr)?0.8:0.15;
+    b.userData.mat.uniforms.uInt.value=int;
   });
 
-  // Enhanced book highlighting
-  books.forEach((book, i) => {
-    if(i === bookIdx) {
-      book.userData.originalMaterial.uniforms.uIntensity.value = 1.2;
-    } else if(connectedBooks.has(data.books[i]?.abbr)) {
-      book.userData.originalMaterial.uniforms.uIntensity.value = 0.8;
-    } else {
-      book.userData.originalMaterial.uniforms.uIntensity.value = 0.2;
-    }
+  connLines.forEach(l=>{
+    const hit=l.userData.from===bk.abbr||l.userData.to===bk.abbr;
+    const v=hit?Math.min(0.9,l.userData.bo*5):0.003;
+    if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=v;
+    else l.material.opacity=v;
   });
 
-  // Enhanced labels
-  labels.forEach((label, i) => {
-    if(i === bookIdx) {
-      label.material.opacity = 1;
-    } else if(connectedBooks.has(data.books[i]?.abbr)) {
-      label.material.opacity = 0.8;
-    } else {
-      label.material.opacity = 0;
-    }
-  });
-}
-
-function updateBookPanel(book, analysis, connections) {
-  const verses = VERSES[book.abbr] || 0;
-  const totalRefs = connections.reduce((sum, c) => sum + c.count, 0);
-
-  document.getElementById('bname').textContent = book.name;
-  document.getElementById('bdetail').textContent = 
-    `${book.chapters} chapters · ${verses.toLocaleString()} verses · ${book.section} · ${totalRefs.toLocaleString()} cross-references`;
-  document.getElementById('bdesc').textContent = BOOK_INFO[book.abbr] || '';
-
-  // Enhanced analytics
-  document.getElementById('str-fill').style.width = Math.min(100, analysis.centrality) + '%';
-  document.getElementById('str-num').textContent = `${totalRefs.toLocaleString()} references`;
-  
-  document.getElementById('centrality').textContent = analysis.centrality + '%';
-  document.getElementById('influence').textContent = analysis.influence + '%';
-  document.getElementById('connections').textContent = analysis.connections;
-  document.getElementById('ranking').textContent = analysis.ranking;
-
-  // Enhanced connection chips
-  const connsEl = document.getElementById('bconns');
-  connsEl.innerHTML = '';
-  
-  connections.sort((a, b) => b.count - a.count).slice(0, 12).forEach(c => {
-    const other = c.from === book.abbr ? c.to : c.from;
-    const otherBook = data.books.find(b => b.abbr === other);
-    if(!otherBook) return;
-    
-    const chip = document.createElement('span');
-    chip.className = 'conn-chip';
-    chip.innerHTML = `${otherBook.name}<span class="cnt">${c.count.toLocaleString()}</span>`;
-    chip.style.borderColor = '#' + new THREE.Color(C[otherBook.section] || 0xc5960c).getHexString() + '66';
-    chip.onclick = () => selectBook(otherBook.index);
-    connsEl.appendChild(chip);
+  labelSprites.forEach((l,i)=>{
+    l.material.opacity=i===idx?1:connSet.has(data.books[i]?.abbr)?0.85:0;
   });
 
-  // Enhanced link
-  document.getElementById('blink').innerHTML = 
-    `<a href="../interlinear/${book.abbr.toLowerCase()}/1.html">Read ${book.name} →</a>`;
+  // Spawn flow particles
+  spawnFlow(bk.abbr,connsData.slice(0,20));
 
+  // Load verse-level refs
+  loadVerseRefs(bk.abbr);
+
+  // Update panel
+  const ranks=data.books.map(b=>{
+    const c=data.connections.filter(cn=>cn.from===b.abbr||cn.to===b.abbr);
+    return{a:b.abbr,t:c.reduce((s,cn)=>s+cn.count,0)};
+  }).sort((a,b)=>b.t-a.t);
+  const rank=ranks.findIndex(r=>r.a===bk.abbr)+1;
+  const cent=Math.min(100,Math.round(totalRefs/100));
+  const infl=Math.min(100,Math.round(connsData.length/30*100));
+
+  document.getElementById('bname').textContent=bk.name;
+  document.getElementById('bdetail').textContent=`${bk.chapters} chapters · ${(VERSES[bk.abbr]||0).toLocaleString()} verses · ${bk.section} · ${totalRefs.toLocaleString()} cross-references`;
+  document.getElementById('bdesc').textContent=BOOK_INFO[bk.abbr]||'';
+  document.getElementById('str-fill').style.width=cent+'%';
+  document.getElementById('str-num').textContent=totalRefs.toLocaleString()+' references';
+  document.getElementById('s-cent').textContent=cent+'%';
+  document.getElementById('s-infl').textContent=infl+'%';
+  document.getElementById('s-conn').textContent=connsData.length;
+  document.getElementById('s-rank').textContent=`#${rank} of 66`;
+
+  const chips=document.getElementById('bconns');chips.innerHTML='';
+  connsData.sort((a,b)=>b.count-a.count).slice(0,10).forEach(c=>{
+    const other=c.from===bk.abbr?c.to:c.from;
+    const ob=data.books.find(b=>b.abbr===other);if(!ob)return;
+    const ch=document.createElement('span');ch.className='conn-chip';
+    ch.innerHTML=`${ob.name}<span class="cnt">${c.count.toLocaleString()}</span>`;
+    ch.onclick=()=>selectBook(ob.index);
+    chips.appendChild(ch);
+  });
+
+  document.getElementById('blink').innerHTML=`<a href="../interlinear/${bk.abbr.toLowerCase()}/1.html">Read ${bk.name} →</a>`;
   document.getElementById('panel').classList.add('show');
-  document.getElementById('hint').style.opacity = '0';
+  document.getElementById('hint').style.opacity='0';
 }
 
-function updateAIPanel(analysis) {
-  // Update themes
-  const themesEl = document.getElementById('ai-themes');
-  themesEl.innerHTML = '';
-  analysis.themes.forEach(theme => {
-    const tag = document.createElement('span');
-    tag.className = 'theme-tag';
-    tag.textContent = theme;
-    themesEl.appendChild(tag);
+window.deselect=function(silent){
+  if(selectedIdx===-1)return;
+  selected=null;selectedIdx=-1;
+  controls.autoRotate=true;
+
+  connLines.forEach(l=>{
+    if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=l.userData.bo;
+    else l.material.opacity=l.userData.bo;
   });
+  glowSprites.forEach(g=>{g.material.opacity=g.userData.bo;g.scale.setScalar(g.userData.bs);});
+  bookMeshes.forEach(b=>b.userData.mat.uniforms.uInt.value=0.7);
+  labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.9:0.5);
 
-  // Update network position
-  document.getElementById('ai-position').textContent = 
-    `High connectivity book with ${analysis.influence}% network influence. Ranks ${analysis.ranking} in cross-reference density.`;
+  clearFlow();clearVerseLines();
 
-  // Update related concepts
-  const conceptsEl = document.getElementById('ai-concepts');
-  if(analysis.concepts.length > 0) {
-    const conceptText = analysis.concepts.slice(0, 3).map(c => 
-      `${c.book} (${c.themes.join(', ')})`
-    ).join('; ');
-    conceptsEl.textContent = `Shares themes with: ${conceptText}`;
-  } else {
-    conceptsEl.textContent = 'Unique thematic profile in the biblical corpus.';
-  }
-
-  document.getElementById('ai-panel').classList.add('show');
-}
-
-// ═══════════════════════════════════════════════
-// VERSE-LEVEL CROSS-REFERENCE LINES
-// ═══════════════════════════════════════════════
-let verseLines = [];
-let verseLineGroup = null;
-
-async function loadVerseReferences(bookAbbr) {
-  clearVerseLines();
-  
-  try {
-    const resp = await fetch('../data/crossrefs/' + bookAbbr + '.json');
-    if(!resp.ok) return;
-    const verseData = await resp.json();
-    
-    // Build a mapping of book abbreviation -> mesh position
-    const bookPositions = {};
-    data.books.forEach((bk, i) => {
-      bookPositions[bk.abbr] = books[i]?.position;
-    });
-    
-    // Map OSIS-style references to our abbreviations
-    const osisToAbbr = {
-      'Gen':'Gen','Exod':'Exod','Lev':'Lev','Num':'Num','Deut':'Deut',
-      'Josh':'Josh','Judg':'Judg','Ruth':'Ruth','1Sam':'1Sam','2Sam':'2Sam',
-      '1Kgs':'1Kgs','2Kgs':'2Kgs','1Chr':'1Chr','2Chr':'2Chr','Ezra':'Ezra',
-      'Neh':'Neh','Esth':'Esth','Job':'Job','Ps':'Ps','Prov':'Prov',
-      'Eccl':'Eccl','Song':'Song','Isa':'Isa','Jer':'Jer','Lam':'Lam',
-      'Ezek':'Ezek','Dan':'Dan','Hos':'Hos','Joel':'Joel','Amos':'Amos',
-      'Obad':'Obad','Jonah':'Jonah','Mic':'Mic','Nah':'Nah','Hab':'Hab',
-      'Zeph':'Zeph','Hag':'Hag','Zech':'Zech','Mal':'Mal',
-      'Matt':'Matt','Mark':'Mark','Luke':'Luke','John':'John','Acts':'Acts',
-      'Rom':'Rom','1Cor':'1Cor','2Cor':'2Cor','Gal':'Gal','Eph':'Eph',
-      'Phil':'Phil','Col':'Col','1Thess':'1Thess','2Thess':'2Thess',
-      '1Tim':'1Tim','2Tim':'2Tim','Titus':'Titus','Phlm':'Phlm','Heb':'Heb',
-      'Jas':'Jas','1Pet':'1Pet','2Pet':'2Pet','1John':'1John','2John':'2John',
-      '3John':'3John','Jude':'Jude','Rev':'Rev'
-    };
-    
-    // Get source book position
-    const srcPos = bookPositions[bookAbbr];
-    if(!srcPos) return;
-    
-    // Get source book color
-    const srcBook = data.books.find(b => b.abbr === bookAbbr);
-    const srcColor = new THREE.Color(C[srcBook?.section] || 0xc5960c);
-    
-    // Create a group for all verse lines
-    verseLineGroup = new THREE.Group();
-    
-    // Collect all unique target books and their ref counts
-    const targetCounts = {};
-    
-    for(const [verseRef, refs] of Object.entries(verseData)) {
-      for(const ref of refs) {
-        // Extract target book from reference like "Exod.3.21" or "Acts.7.9-Acts.7.10"
-        const targetRef = ref.r.split('.')[0];
-        const targetAbbr = osisToAbbr[targetRef];
-        if(!targetAbbr || targetAbbr === bookAbbr) continue; // skip self-refs
-        
-        const targetPos = bookPositions[targetAbbr];
-        if(!targetPos) continue;
-        
-        if(!targetCounts[targetAbbr]) targetCounts[targetAbbr] = 0;
-        targetCounts[targetAbbr]++;
-      }
-    }
-    
-    // Now draw individual lines for each verse-to-verse connection
-    // Use instanced approach: group lines by target book for efficiency
-    let lineCount = 0;
-    const MAX_LINES = 15000; // performance cap
-    
-    const allPoints = [];
-    const allColors = [];
-    
-    for(const [verseRef, refs] of Object.entries(verseData)) {
-      if(lineCount >= MAX_LINES) break;
-      
-      // Parse source verse to get a slight offset from center of source book
-      const srcParts = verseRef.split('.');
-      const srcChapter = parseInt(srcParts[1]) || 1;
-      const srcVerse = parseInt(srcParts[2]) || 1;
-      
-      // Create slight positional variation based on chapter/verse
-      const srcChapterCount = srcBook?.chapters || 50;
-      const srcVerseCount = VERSES[bookAbbr] || 1000;
-      const srcOffset = new THREE.Vector3(
-        Math.sin(srcChapter * 0.8) * 3,
-        ((srcVerse / srcVerseCount) - 0.5) * 6,
-        Math.cos(srcChapter * 0.8) * 3
-      );
-      
-      const adjustedSrc = srcPos.clone().add(srcOffset);
-      
-      for(const ref of refs) {
-        if(lineCount >= MAX_LINES) break;
-        
-        const targetRef = ref.r.split('.')[0];
-        const targetAbbr = osisToAbbr[targetRef];
-        if(!targetAbbr || targetAbbr === bookAbbr) continue;
-        
-        const targetPos = bookPositions[targetAbbr];
-        if(!targetPos) continue;
-        
-        // Get target verse offset
-        const tgtParts = ref.r.split('.');
-        const tgtChapter = parseInt(tgtParts[1]) || 1;
-        const tgtVerse = parseInt(tgtParts[2]) || 1;
-        const tgtBook = data.books.find(b => b.abbr === targetAbbr);
-        const tgtChapterCount = tgtBook?.chapters || 50;
-        const tgtVerseCount = VERSES[targetAbbr] || 1000;
-        
-        const tgtOffset = new THREE.Vector3(
-          Math.sin(tgtChapter * 0.8) * 3,
-          ((tgtVerse / tgtVerseCount) - 0.5) * 6,
-          Math.cos(tgtChapter * 0.8) * 3
-        );
-        
-        const adjustedTgt = targetPos.clone().add(tgtOffset);
-        
-        // Add start and end points
-        allPoints.push(adjustedSrc.x, adjustedSrc.y, adjustedSrc.z);
-        allPoints.push(adjustedTgt.x, adjustedTgt.y, adjustedTgt.z);
-        
-        // Color: blend from source color to target book color
-        const tgtColor = new THREE.Color(C[tgtBook?.section] || 0xc5960c);
-        const strength = Math.min(1, (ref.v || 1) / 10);
-        
-        allColors.push(srcColor.r, srcColor.g, srcColor.b);
-        allColors.push(tgtColor.r, tgtColor.g, tgtColor.b);
-        
-        lineCount++;
-      }
-    }
-    
-    if(allPoints.length > 0) {
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(allPoints, 3));
-      geo.setAttribute('color', new THREE.Float32BufferAttribute(allColors, 3));
-      
-      const mat = new THREE.LineBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.12,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      });
-      
-      const lines = new THREE.LineSegments(geo, mat);
-      verseLineGroup.add(lines);
-      scene.add(verseLineGroup);
-      verseLines.push(verseLineGroup);
-      
-      console.log(`Loaded ${lineCount} verse-level cross-references for ${bookAbbr}`);
-    }
-    
-  } catch(e) {
-    console.log('Failed to load verse refs for', bookAbbr, e);
-  }
-}
-
-function clearVerseLines() {
-  verseLines.forEach(group => {
-    group.traverse(obj => {
-      if(obj.geometry) obj.geometry.dispose();
-      if(obj.material) obj.material.dispose();
-    });
-    scene.remove(group);
-  });
-  verseLines = [];
-  verseLineGroup = null;
-}
-
-function spawnEnhancedFlow(bookAbbr, connections) {
-  clearFlow();
-  
-  connections.forEach((conn, i) => {
-    const line = conns.find(l => 
-      (l.userData.from === conn.from && l.userData.to === conn.to) ||
-      (l.userData.from === conn.to && l.userData.to === conn.from)
-    );
-    
-    if(!line || !line.userData.curve) return;
-    
-    const color = new THREE.Color(C[data.books.find(b => b.abbr === bookAbbr)?.section] || 0xc5960c);
-    const particleCount = Math.min(15, 6 + Math.floor(conn.count / 50));
-    
-    for(let j = 0; j < particleCount; j++) {
-      const geo = new THREE.SphereGeometry(0.15, 8, 8);
-      const mat = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-      });
-      
-      const particle = new THREE.Mesh(geo, mat);
-      particle.userData = {
-        curve: line.userData.curve,
-        t: Math.random(),
-        speed: 0.15 + Math.random() * 0.35,
-        reverse: line.userData.to === bookAbbr,
-        baseOpacity: 0.8,
-        pulseOffset: Math.random() * Math.PI * 2
-      };
-      
-      scene.add(particle);
-      flowParticles.push(particle);
-    }
-  });
-}
-
-function clearFlow() {
-  flowParticles.forEach(p => {
-    scene.remove(p);
-    p.geometry.dispose();
-    p.material.dispose();
-  });
-  flowParticles = [];
-}
-
-function updateEnhancedFlow(dt) {
-  flowParticles.forEach(p => {
-    p.userData.t += dt * p.userData.speed * (p.userData.reverse ? -1 : 1);
-    if(p.userData.t > 1) p.userData.t -= 1;
-    if(p.userData.t < 0) p.userData.t += 1;
-    
-    const point = p.userData.curve.getPoint(p.userData.t);
-    p.position.copy(point);
-    
-    // Enhanced pulsing and motion effects
-    const pulse = Math.sin(clock.getElapsedTime() * 2 + p.userData.pulseOffset) * 0.4 + 0.6;
-    p.material.opacity = p.userData.baseOpacity * pulse;
-    
-    // Add slight vertical bobbing
-    p.position.y += Math.sin(clock.getElapsedTime() * 1.5 + p.userData.t * Math.PI * 2) * 0.5;
-  });
-}
-
-window.deselect = function(silent) {
-  if(selectedIdx === -1 && !selected) return;
-  
-  selected = null;
-  selectedIdx = -1;
-  controls.autoRotate = true;
-  
-  // Reset all visual enhancements
-  conns.forEach(line => {
-    if(line.material.uniforms) {
-      line.material.uniforms.uOpacity.value = line.userData.bo;
-    } else {
-      line.material.opacity = line.userData.bo;
-    }
-  });
-  
-  glows.forEach(g => {
-    g.material.opacity = g.userData.bo;
-    g.scale.setScalar(g.userData.bs);
-  });
-  
-  books.forEach(book => {
-    book.userData.originalMaterial.uniforms.uIntensity.value = 0.7;
-  });
-  
-  labels.forEach(l => {
-    l.material.opacity = l.userData.isMajor ? 0.85 : 0.5;
-  });
-  
-  clearFlow();
-  clearThemeParticles();
-  clearVerseLines();
-  
-  if(!silent) {
+  if(!silent){
     document.getElementById('panel').classList.remove('show');
-    document.getElementById('ai-panel').classList.remove('show');
   }
 };
 
-// Enhanced intro sequence
-function updateIntro(t) {
-  if(introPhase === 0) return;
-  
-  if(introPhase === 1) {
-    if(t > 0.8) {
-      document.getElementById('verse').classList.add('show');
-      document.getElementById('intro-subtitle').classList.add('show');
+/* ══════════════════════════════════════════════════════════
+   FLOW PARTICLES — energy along connections
+   ══════════════════════════════════════════════════════════ */
+function spawnFlow(abbr,connsData){
+  clearFlow();
+  const col=new THREE.Color(SEC_COLORS[data.books.find(b=>b.abbr===abbr)?.section]||0xc5960c);
+
+  connsData.forEach(cn=>{
+    const line=connLines.find(l=>(l.userData.from===cn.from&&l.userData.to===cn.to)||(l.userData.from===cn.to&&l.userData.to===cn.from));
+    if(!line?.userData.curve)return;
+
+    const n=Math.min(12,5+Math.floor(cn.count/80));
+    for(let j=0;j<n;j++){
+      const geo=new THREE.SphereGeometry(0.12,6,6);
+      const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.7,blending:THREE.AdditiveBlending});
+      const p=new THREE.Mesh(geo,mat);
+      p.userData={curve:line.userData.curve,t:Math.random(),speed:0.12+Math.random()*0.3,rev:line.userData.to===abbr,po:Math.random()*6.283};
+      scene.add(p);flowParts.push(p);
     }
-    if(t > 5) {
-      introPhase = 2;
-      introTime = t;
-    }
+  });
+}
+function clearFlow(){flowParts.forEach(p=>{scene.remove(p);p.geometry.dispose();p.material.dispose();});flowParts=[];}
+
+/* ══════════════════════════════════════════════════════════
+   VERSE-LEVEL CROSS-REFERENCE LINES
+   ══════════════════════════════════════════════════════════ */
+function clearVerseLines(){
+  if(verseLineGroup){
+    verseLineGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});
+    scene.remove(verseLineGroup);verseLineGroup=null;
   }
-  
-  if(introPhase === 2) {
-    if(t - introTime > 3) {
-      introPhase = 3;
-      introTime = t;
+  document.getElementById('verse-count').classList.remove('show');
+}
+
+async function loadVerseRefs(abbr){
+  clearVerseLines();
+  try{
+    const r=await fetch(`../data/crossrefs/${abbr}.json`);
+    if(!r.ok)return;
+    const vd=await r.json();
+
+    const bookPos={};
+    data.books.forEach((b,i)=>{bookPos[b.abbr]=bookMeshes[i]?.position;});
+    const srcPos=bookPos[abbr];if(!srcPos)return;
+    const srcBook=data.books.find(b=>b.abbr===abbr);
+    const srcCol=new THREE.Color(SEC_COLORS[srcBook?.section]||0xc5960c);
+
+    // Collect all refs with vote scores, sort by vote, take top N
+    const allRefs=[];
+    for(const[vRef,refs]of Object.entries(vd)){
+      for(const ref of refs){
+        const tBook=ref.r.split('.')[0];
+        if(tBook===abbr)continue;
+        if(!bookPos[tBook])continue;
+        allRefs.push({vRef,ref,tBook,v:ref.v||0});
+      }
     }
+    allRefs.sort((a,b)=>b.v-a.v);
+    const capped=allRefs.slice(0,12000);
+
+    if(!capped.length)return;
+
+    const pts=new Float32Array(capped.length*6);
+    const cols=new Float32Array(capped.length*6);
+    const srcVCount=VERSES[abbr]||1000;
+
+    capped.forEach((item,i)=>{
+      const sp=item.vRef.split('.');
+      const sCh=parseInt(sp[1])||1,sV=parseInt(sp[2])||1;
+      const sOff=new THREE.Vector3(Math.sin(sCh*0.8)*3,(sV/srcVCount-0.5)*6,Math.cos(sCh*0.8)*3);
+
+      const tp=bookPos[item.tBook];
+      const tParts=item.ref.r.split('.');
+      const tCh=parseInt(tParts[1])||1,tV=parseInt(tParts[2])||1;
+      const tBook=data.books.find(b=>b.abbr===item.tBook);
+      const tVCount=VERSES[item.tBook]||1000;
+      const tOff=new THREE.Vector3(Math.sin(tCh*0.8)*3,(tV/tVCount-0.5)*6,Math.cos(tCh*0.8)*3);
+
+      const si=i*6;
+      pts[si]=srcPos.x+sOff.x;pts[si+1]=srcPos.y+sOff.y;pts[si+2]=srcPos.z+sOff.z;
+      pts[si+3]=tp.x+tOff.x;pts[si+4]=tp.y+tOff.y;pts[si+5]=tp.z+tOff.z;
+
+      const tCol=new THREE.Color(SEC_COLORS[tBook?.section]||0xc5960c);
+      cols[si]=srcCol.r;cols[si+1]=srcCol.g;cols[si+2]=srcCol.b;
+      cols[si+3]=tCol.r;cols[si+4]=tCol.g;cols[si+5]=tCol.b;
+    });
+
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+    const mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.1,blending:THREE.AdditiveBlending,depthWrite:false});
+
+    verseLineGroup=new THREE.Group();
+    verseLineGroup.add(new THREE.LineSegments(geo,mat));
+    scene.add(verseLineGroup);
+
+    const vc=document.getElementById('verse-count');
+    vc.textContent=`${capped.length.toLocaleString()} verse-level connections`;
+    vc.classList.add('show');
+  }catch(e){console.log('Verse refs failed:',abbr,e);}
+}
+
+/* ══════════════════════════════════════════════════════════
+   SECTION HIGHLIGHT
+   ══════════════════════════════════════════════════════════ */
+function highlightSection(name){
+  if(selected)deselect();
+  const set=new Set(data.sections[name]||[]);
+
+  glowSprites.forEach((g,i)=>{
+    const bk=data.books[i];
+    g.material.opacity=set.has(bk.abbr)?1:0.06;
+    g.scale.setScalar(g.userData.bs*(set.has(bk.abbr)?1.6:1));
+  });
+  labelSprites.forEach((l,i)=>{
+    l.material.opacity=set.has(data.books[i].abbr)?1:0;
+  });
+  connLines.forEach(l=>{
+    const hf=set.has(l.userData.from),ht=set.has(l.userData.to);
+    const v=hf&&ht?l.userData.bo*3:hf||ht?l.userData.bo*0.6:0.004;
+    if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=v;
+    else l.material.opacity=v;
+  });
+
+  setTimeout(()=>{
+    if(!selected){
+      glowSprites.forEach(g=>{g.material.opacity=g.userData.bo;g.scale.setScalar(g.userData.bs);});
+      labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.9:0.5);
+      connLines.forEach(l=>{
+        if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=l.userData.bo;
+        else l.material.opacity=l.userData.bo;
+      });
+    }
+  },7000);
+}
+
+/* ══════════════════════════════════════════════════════════
+   CAMERA ANIMATION
+   ══════════════════════════════════════════════════════════ */
+function animateCamera(pos,target){
+  camAnim={sP:camera.position.clone(),eP:pos,sT:controls.target.clone(),eT:target,t0:clock.getElapsedTime(),dur:2.0};
+}
+
+function updateCamAnim(time){
+  if(!camAnim)return;
+  let p=Math.min(1,(time-camAnim.t0)/camAnim.dur);
+  if(p>=1){p=1;camAnim=null;}
+  const e=1-Math.pow(1-p,4);
+  camera.position.lerpVectors(camAnim.sP,camAnim.eP,e);
+  controls.target.lerpVectors(camAnim.sT,camAnim.eT,e);
+}
+
+/* ══════════════════════════════════════════════════════════
+   INPUT HANDLERS
+   ══════════════════════════════════════════════════════════ */
+function onClick(e){
+  if(introPhase)return;
+  mouse.x=(e.clientX/innerWidth)*2-1;
+  mouse.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse,camera);
+  const h=ray.intersectObjects(hitSpheres);
+  if(h.length){const i=h[0].object.userData.idx;selectedIdx===i?deselect():selectBook(i);}
+  else deselect();
+}
+
+function onTouch(e){
+  if(introPhase||!e.changedTouches.length)return;
+  const t=e.changedTouches[0];
+  mouse.x=(t.clientX/innerWidth)*2-1;
+  mouse.y=-(t.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse,camera);
+  const h=ray.intersectObjects(hitSpheres);
+  if(h.length){const i=h[0].object.userData.idx;selectedIdx===i?deselect():selectBook(i);}
+  else deselect();
+}
+
+function onHover(e){
+  if(introPhase)return;
+  mouse.x=(e.clientX/innerWidth)*2-1;
+  mouse.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse,camera);
+  const h=ray.intersectObjects(hitSpheres);
+  const tt=document.getElementById('tooltip');
+
+  if(h.length){
+    const i=h[0].object.userData.idx;
+    if(hovered!==null&&hovered!==selectedIdx&&!labelSprites[hovered]?.userData.isMajor)labelSprites[hovered].material.opacity=selectedIdx===-1?0.5:0;
+    if(selectedIdx===-1||i===selectedIdx)labelSprites[i].material.opacity=1;
+    hovered=i;
+
+    const bk=data.books[i];
+    const cn=data.connections.filter(c=>c.from===bk.abbr||c.to===bk.abbr);
+    const tr=cn.reduce((s,c)=>s+c.count,0);
+    tt.querySelector('.tt-name').textContent=bk.name;
+    tt.querySelector('.tt-detail').textContent=`${bk.chapters} ch · ${(VERSES[bk.abbr]||0).toLocaleString()} v · ${tr.toLocaleString()} refs`;
+    tt.style.display='block';
+    tt.style.left=(e.clientX+14)+'px';
+    tt.style.top=(e.clientY-8)+'px';
+    renderer.domElement.style.cursor='pointer';
+  }else{
+    if(hovered!==null&&hovered!==selectedIdx){
+      const lbl=labelSprites[hovered];
+      if(lbl)lbl.material.opacity=selectedIdx===-1?(lbl.userData.isMajor?0.9:0.5):0;
+    }
+    hovered=null;
+    tt.style.display='none';
+    renderer.domElement.style.cursor='grab';
   }
-  
-  if(introPhase === 3) {
-    const progress = Math.min(1, (t - introTime) / 5);
-    const easing = 1 - Math.pow(1 - progress, 3);
-    
-    camera.position.set(0, easing * 80, easing * 180);
-    controls.target.set(0, 0, 0);
-    renderer.toneMappingExposure = 0.6 * easing;
-    
-    if(progress > 0.2) {
-      document.getElementById('intro').classList.add('gone');
-      document.getElementById('skipbtn').style.display = 'none';
-    }
-    
-    if(progress > 0.5) {
+}
+
+/* ══════════════════════════════════════════════════════════
+   INTRO SEQUENCE
+   ══════════════════════════════════════════════════════════ */
+function updateIntro(t){
+  if(!introPhase)return;
+
+  if(introPhase===1){
+    if(t>0.6){document.getElementById('verse').classList.add('show');document.getElementById('intro-sub').classList.add('show');}
+    if(t>4.5){introPhase=2;introTime=t;}
+  }
+
+  if(introPhase===2){
+    if(t-introTime>2.5){introPhase=3;introTime=t;}
+  }
+
+  if(introPhase===3){
+    const p=Math.min(1,(t-introTime)/4.5);
+    const e=1-Math.pow(1-p,3);
+
+    camera.position.set(0,e*75,e*170);
+    controls.target.set(0,0,0);
+    renderer.toneMappingExposure=0.55*e;
+
+    if(p>0.15){document.getElementById('intro').classList.add('gone');document.getElementById('skipbtn').style.display='none';}
+    if(p>0.45){
       document.getElementById('hud').classList.add('show');
       document.getElementById('legend').classList.add('show');
       document.getElementById('search-wrap').classList.add('show');
     }
-    
-    if(progress > 0.7) {
+    if(p>0.65){
       document.getElementById('hint').classList.add('show');
       document.getElementById('conn-legend').classList.add('show');
-      document.getElementById('advanced-controls').classList.add('show');
-      document.getElementById('audio-controls').classList.add('show');
+      document.getElementById('audio-btn').classList.add('show');
     }
-    
-    if(progress >= 1) {
-      introPhase = 0;
-      controls.enabled = true;
-      initAudio();
-    }
+    if(p>=1){introPhase=0;controls.enabled=true;initAudio();}
   }
 }
 
-window.skipIntro = function() {
-  introPhase = 0;
-  camera.position.set(0, 80, 180);
-  controls.target.set(0, 0, 0);
-  renderer.toneMappingExposure = 0.6;
-  controls.enabled = true;
-  
+window.skipIntro=function(){
+  introPhase=0;
+  camera.position.set(0,75,170);
+  controls.target.set(0,0,0);
+  renderer.toneMappingExposure=0.55;
+  controls.enabled=true;
+
   document.getElementById('intro').classList.add('gone');
-  document.getElementById('skipbtn').style.display = 'none';
-  document.getElementById('hud').classList.add('show');
-  document.getElementById('legend').classList.add('show');
-  document.getElementById('hint').classList.add('show');
-  document.getElementById('search-wrap').classList.add('show');
-  document.getElementById('conn-legend').classList.add('show');
-  document.getElementById('advanced-controls').classList.add('show');
-  document.getElementById('audio-controls').classList.add('show');
-  
+  document.getElementById('skipbtn').style.display='none';
+  ['hud','legend','hint','search-wrap','conn-legend','audio-btn'].forEach(id=>document.getElementById(id).classList.add('show'));
   initAudio();
 };
 
-// Enhanced interaction handlers
-function onClick(e) {
-  if(introPhase) return;
-  
-  mouse.x = (e.clientX / innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  
-  const hits = raycaster.intersectObjects(hitSpheres);
-  if(hits.length) {
-    const idx = hits[0].object.userData.idx;
-    if(selectedIdx === idx) {
-      deselect();
-    } else {
-      selectBook(idx);
-    }
-  } else {
-    deselect();
-  }
+/* ══════════════════════════════════════════════════════════
+   RESIZE
+   ══════════════════════════════════════════════════════════ */
+function onResize(){
+  const w=innerWidth,h=innerHeight;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h,false);
+  composer.setSize(w,h);
 }
 
-function onTouch(e) {
-  if(introPhase || !e.changedTouches.length) return;
-  
-  const touch = e.changedTouches[0];
-  mouse.x = (touch.clientX / innerWidth) * 2 - 1;
-  mouse.y = -(touch.clientY / innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  
-  const hits = raycaster.intersectObjects(hitSpheres);
-  if(hits.length) {
-    const idx = hits[0].object.userData.idx;
-    if(selectedIdx === idx) {
-      deselect();
-    } else {
-      selectBook(idx);
-    }
-  } else {
-    deselect();
-  }
-}
-
-function onHover(e) {
-  if(introPhase) return;
-  
-  mouse.x = (e.clientX / innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  
-  const hits = raycaster.intersectObjects(hitSpheres);
-  const tooltip = document.getElementById('tooltip');
-  
-  if(hits.length) {
-    const idx = hits[0].object.userData.idx;
-    if(hovered !== idx) {
-      if(hovered !== null && hovered !== selectedIdx && !labels[hovered].userData.isMajor) {
-        labels[hovered].material.opacity = 0;
-      }
-      labels[idx].material.opacity = 1;
-      hovered = idx;
-    }
-    
-    // Enhanced tooltip
-    const book = data.books[idx];
-    const connections = data.connections.filter(c => c.from === book.abbr || c.to === book.abbr);
-    const totalRefs = connections.reduce((sum, c) => sum + c.count, 0);
-    const themes = THEMES[book.abbr] || [];
-    
-    tooltip.querySelector('.tt-name').textContent = book.name;
-    tooltip.querySelector('.tt-detail').textContent = 
-      `${book.chapters} ch · ${(VERSES[book.abbr] || 0).toLocaleString()} verses · ${totalRefs.toLocaleString()} refs`;
-    tooltip.querySelector('.tt-themes').textContent = 
-      themes.length > 0 ? `Themes: ${themes.slice(0, 3).join(', ')}` : '';
-    
-    tooltip.style.display = 'block';
-    tooltip.style.left = (e.clientX + 15) + 'px';
-    tooltip.style.top = (e.clientY - 10) + 'px';
-    renderer.domElement.style.cursor = 'pointer';
-  } else {
-    if(hovered !== null && hovered !== selectedIdx && !labels[hovered]?.userData.isMajor) {
-      labels[hovered].material.opacity = 0;
-    }
-    hovered = null;
-    tooltip.style.display = 'none';
-    renderer.domElement.style.cursor = 'grab';
-  }
-}
-
-function onKey(e) {
-  if(e.key === 'Escape') deselect();
-}
-
-// Enhanced camera animation
-let cameraAnimation = null;
-
-function animateCamera(position, target) {
-  cameraAnimation = {
-    startPos: camera.position.clone(),
-    endPos: position,
-    startTarget: controls.target.clone(),
-    endTarget: target,
-    startTime: clock.getElapsedTime(),
-    duration: 2.2
-  };
-}
-
-function updateCameraAnimation(time) {
-  if(!cameraAnimation) return;
-  
-  const elapsed = time - cameraAnimation.startTime;
-  let progress = Math.min(1, elapsed / cameraAnimation.duration);
-  
-  if(progress >= 1) {
-    progress = 1;
-    cameraAnimation = null;
-  }
-  
-  // Enhanced easing
-  const eased = 1 - Math.pow(1 - progress, 4);
-  
-  camera.position.lerpVectors(cameraAnimation.startPos, cameraAnimation.endPos, eased);
-  controls.target.lerpVectors(cameraAnimation.startTarget, cameraAnimation.endTarget, eased);
-}
-
-// Enhanced animation loop
-function animate() {
+/* ══════════════════════════════════════════════════════════
+   ANIMATION LOOP
+   ══════════════════════════════════════════════════════════ */
+function animate(){
   requestAnimationFrame(animate);
-  
-  const time = clock.getElapsedTime();
-  const dt = clock.getDelta();
+  const time=clock.getElapsedTime();
+  const dt=clock.getDelta();
 
   updateIntro(time);
-  updateCameraAnimation(time);
+  updateCamAnim(time);
   controls.update();
 
-  // Enhanced glow pulsing
-  if(selectedIdx === -1) {
-    glows.forEach((g, i) => {
-      const pulse = Math.sin(time * 1.3 + i * 0.9) * 0.15 + 1;
-      g.scale.setScalar(g.userData.bs * pulse);
+  // Glow pulsing
+  if(selectedIdx===-1){
+    glowSprites.forEach((g,i)=>{
+      const p=Math.sin(time*1.2+i*0.85)*0.12+1;
+      g.scale.setScalar(g.userData.bs*p);
     });
   }
-
-  // Enhanced ring rotation
-  scene.traverse(obj => {
-    if(obj.userData?.type === 'ring') {
-      obj.rotation.z = time * 0.25 + obj.userData.idx * 0.6;
-      if(obj.material.uniforms) {
-        obj.material.uniforms.uTime.value = time;
-      }
-    }
-  });
 
   // Update all shader uniforms
-  scene.traverse(obj => {
-    if(obj.material && obj.material.uniforms) {
-      if(obj.material.uniforms.uTime) {
-        obj.material.uniforms.uTime.value = time;
-      }
-    }
-    
-    if(obj.userData?.originalMaterial?.uniforms?.uTime) {
-      obj.userData.originalMaterial.uniforms.uTime.value = time;
-    }
+  scene.traverse(o=>{
+    if(o.material?.uniforms?.uTime)o.material.uniforms.uTime.value=time;
+    if(o.userData?.mat?.uniforms?.uTime)o.userData.mat.uniforms.uTime.value=time;
   });
 
-  // Enhanced shooting stars
-  if(shootingStars) {
-    const pos = shootingStars.pos;
-    const vel = shootingStars.vel;
-    let hasActiveStars = false;
-    
-    vel.forEach((v, i) => {
-      v.cooldown -= dt;
-      if(v.cooldown > 0) {
-        // Reset trail to single point
-        for(let j = 0; j < 6; j++) {
-          pos[i*18 + j*3] = pos[i*18];
-          pos[i*18 + j*3 + 1] = pos[i*18 + 1];
-          pos[i*18 + j*3 + 2] = pos[i*18 + 2];
-        }
-        return;
-      }
-      
-      v.life += dt;
-      if(v.life > v.maxLife) {
-        // Reset star
-        v.life = 0;
-        v.cooldown = Math.random() * 15 + 6;
-        v.maxLife = Math.random() * 1.8 + 0.8;
-        
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 200 + Math.random() * 250;
-        pos[i*18] = Math.cos(angle) * radius;
-        pos[i*18 + 1] = Math.random() * 150 + 50;
-        pos[i*18 + 2] = Math.sin(angle) * radius;
-        
-        v.x = (Math.random() - 0.5) * 15;
-        v.y = -(Math.random() * 5 + 4);
-        v.z = (Math.random() - 0.5) * 15;
-        return;
-      }
-      
-      hasActiveStars = true;
-      
-      // Update trail
-      for(let j = 5; j > 0; j--) {
-        pos[i*18 + j*3] = pos[i*18 + (j-1)*3];
-        pos[i*18 + j*3 + 1] = pos[i*18 + (j-1)*3 + 1];
-        pos[i*18 + j*3 + 2] = pos[i*18 + (j-1)*3 + 2];
-      }
-      
-      // Update head position
-      pos[i*18] += v.x * dt * 80;
-      pos[i*18 + 1] += v.y * dt * 80;
-      pos[i*18 + 2] += v.z * dt * 80;
-    });
-    
-    shootingStars.geo.attributes.position.needsUpdate = true;
-    shootingStars.mesh.material.opacity = hasActiveStars ? 0.7 : 0;
-  }
+  // God ray rotation
+  if(godRayMesh)godRayMesh.rotation.z=time*0.02;
 
-  // Update enhanced particle systems
-  updateEnhancedFlow(dt);
-  updateThemeParticles(dt);
+  // Flow particles
+  flowParts.forEach(p=>{
+    p.userData.t+=dt*p.userData.speed*(p.userData.rev?-1:1);
+    if(p.userData.t>1)p.userData.t-=1;if(p.userData.t<0)p.userData.t+=1;
+    const pt=p.userData.curve.getPoint(p.userData.t);
+    p.position.copy(pt);
+    p.position.y+=Math.sin(time*1.5+p.userData.po)*0.4;
+    p.material.opacity=(Math.sin(time*2+p.userData.po)*0.3+0.7)*0.7;
+  });
 
-  // Enhanced connection pulsing
-  if(selectedIdx === -1) {
-    conns.forEach((line, i) => {
-      if(line.userData.str > 0.08) {
-        const pulse = Math.sin(time * 0.9 + i * 0.4) * 0.2 + 1;
-        if(line.material.uniforms) {
-          line.material.uniforms.uOpacity.value = line.userData.bo * pulse;
-        } else {
-          line.material.opacity = line.userData.bo * pulse;
-        }
+  // Connection pulsing when nothing selected
+  if(selectedIdx===-1){
+    connLines.forEach((l,i)=>{
+      if(l.userData.str>0.08){
+        const p=Math.sin(time*0.8+i*0.35)*0.18+1;
+        if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=l.userData.bo*p;
+        else l.material.opacity=l.userData.bo*p;
       }
     });
   }
 
-  // Update post-processing
-  composer.passes.forEach(pass => {
-    if(pass.uniforms?.uTime) {
-      pass.uniforms.uTime.value = time;
-    }
-  });
+  // Post-processing time
+  composer.passes.forEach(p=>{if(p.uniforms?.uTime)p.uniforms.uTime.value=time;});
 
   composer.render();
 }
 
-function onResize() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h, false);
-  renderer.domElement.style.width = w + 'px';
-  renderer.domElement.style.height = h + 'px';
-  composer.setSize(w, h);
-}
-
-// Placeholder functions for advanced features
-function arrangeNetworkLayout() {
-  console.log('Network layout not yet implemented');
-}
-
-function arrangeTimelineLayout() {
-  console.log('Timeline layout not yet implemented');
-}
-
-function highlightThematicConnections() {
-  console.log('Thematic analysis not yet implemented');
-}
-
-function highlightAuthorConnections() {
-  console.log('Author analysis not yet implemented');
-}
-
-function highlightChronologicalConnections() {
-  console.log('Chronological analysis not yet implemented');
-}
-
-function resetAnalysis() {
-  console.log('Resetting analysis');
-}
-
-function filterStrongConnections() {
-  conns.forEach(line => {
-    if(line.userData.str < 0.3) {
-      if(line.material.uniforms) {
-        line.material.uniforms.uOpacity.value = 0.002;
-      } else {
-        line.material.opacity = 0.002;
-      }
-    }
-  });
-}
-
-function filterPropheticBooks() {
-  const prophetic = ['Isa', 'Jer', 'Ezek', 'Dan', 'Hos', 'Joel', 'Amos', 'Obad', 'Jonah', 'Mic', 'Nah', 'Hab', 'Zeph', 'Hag', 'Zech', 'Mal'];
-  const propheticSet = new Set(prophetic);
-  
-  glows.forEach((g, i) => {
-    const book = data.books[i];
-    if(propheticSet.has(book.abbr)) {
-      g.material.opacity = 1;
-      g.scale.setScalar(g.userData.bs * 1.3);
-    } else {
-      g.material.opacity = 0.1;
-    }
-  });
-}
-
-function filterMessianicReferences() {
-  const messianic = ['Gen', 'Num', 'Deut', 'Ps', 'Isa', 'Jer', 'Ezek', 'Dan', 'Mic', 'Zech', 'Mal', 'Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', 'Heb', 'Rev'];
-  const messianicSet = new Set(messianic);
-  
-  glows.forEach((g, i) => {
-    const book = data.books[i];
-    if(messianicSet.has(book.abbr)) {
-      g.material.opacity = 1;
-      g.scale.setScalar(g.userData.bs * 1.2);
-    } else {
-      g.material.opacity = 0.08;
-    }
-  });
-}
-
-function resetFilters() {
-  glows.forEach(g => {
-    g.material.opacity = g.userData.bo;
-    g.scale.setScalar(g.userData.bs);
-  });
-  
-  conns.forEach(line => {
-    if(line.material.uniforms) {
-      line.material.uniforms.uOpacity.value = line.userData.bo;
-    } else {
-      line.material.opacity = line.userData.bo;
-    }
-  });
-}
-
-function highlightSection(sectionName) {
-  if(selected) deselect();
-  
-  const sectionBooks = data.sections[sectionName] || [];
-  const sectionSet = new Set(sectionBooks);
-  
-  glows.forEach(g => {
-    const book = data.books[g.userData.idx];
-    if(sectionSet.has(book.abbr)) {
-      g.material.opacity = 1;
-      g.scale.setScalar(g.userData.bs * 1.8);
-    } else {
-      g.material.opacity = 0.08;
-    }
-  });
-  
-  labels.forEach(l => {
-    const book = data.books[l.userData.idx];
-    l.material.opacity = sectionSet.has(book.abbr) ? 1 : 0;
-  });
-  
-  conns.forEach(line => {
-    const hasFrom = sectionSet.has(line.userData.from);
-    const hasTo = sectionSet.has(line.userData.to);
-    
-    let opacity;
-    if(hasFrom && hasTo) {
-      opacity = line.userData.bo * 3;
-    } else if(hasFrom || hasTo) {
-      opacity = line.userData.bo * 0.7;
-    } else {
-      opacity = 0.005;
-    }
-    
-    if(line.material.uniforms) {
-      line.material.uniforms.uOpacity.value = opacity;
-    } else {
-      line.material.opacity = opacity;
-    }
-  });
-  
-  // Auto-reset after 8 seconds
-  setTimeout(() => {
-    if(!selected) {
-      glows.forEach(g => {
-        g.material.opacity = g.userData.bo;
-        g.scale.setScalar(g.userData.bs);
-      });
-      
-      labels.forEach(l => {
-        l.material.opacity = l.userData.isMajor ? 0.6 : 0;
-      });
-      
-      conns.forEach(line => {
-        if(line.material.uniforms) {
-          line.material.uniforms.uOpacity.value = line.userData.bo;
-        } else {
-          line.material.opacity = line.userData.bo;
-        }
-      });
-    }
-  }, 8000);
-}
-
-// Initialize the enhanced galaxy
+// Launch
 init();
 </script>
 </body>
