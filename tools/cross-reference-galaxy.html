@@ -1272,8 +1272,22 @@ function initSearch(){
     const q=e.target.value.toLowerCase().trim();
     if(!q){res.classList.remove('show');return;}
     const matches=data.books.filter(b=>b.name.toLowerCase().includes(q)||b.abbr.toLowerCase().includes(q));
-    if(!matches.length){res.classList.remove('show');return;}
+
+    // Check if searching for the cross
+    const crossTerms=['cross','crucif','calvary','golgotha','inri'];
+    const isCrossSearch=crossTerms.some(t=>t.includes(q)||q.includes(t));
+
+    if(!matches.length&&!isCrossSearch){res.classList.remove('show');return;}
     res.innerHTML='';
+
+    // Add the cross as a search result
+    if(isCrossSearch){
+      const d=document.createElement('div');
+      d.innerHTML=`✝ The Cross<span class="sec">The center of it all</span>`;
+      d.onclick=()=>{flyToCross();inp.value='';res.classList.remove('show');inp.blur();};
+      res.appendChild(d);
+    }
+
     matches.slice(0,8).forEach(bk=>{
       const d=document.createElement('div');
       d.innerHTML=`${bk.name}<span class="sec">${bk.section}</span>`;
@@ -1379,6 +1393,7 @@ function selectBook(idx){
 
 window.deselect=function(silent){
   if(selectedIdx===-1)return;
+  const wasCross=selectedIdx===-2;
   selected=null;selectedIdx=-1;
   controls.autoRotate=true;
 
@@ -1536,6 +1551,48 @@ function highlightSection(name){
 /* ══════════════════════════════════════════════════════════
    CAMERA ANIMATION
    ══════════════════════════════════════════════════════════ */
+function flyToCross(){
+  if(selected)deselect(true);
+  controls.autoRotate=false;
+
+  // Cross is at (0, 0, -280), fly to a position in front of it
+  const crossPos=new THREE.Vector3(0,25,-280);
+  const camPos=new THREE.Vector3(0,25,-180);
+  animateCamera(camPos,crossPos);
+
+  // Show a panel for the cross
+  document.getElementById('bname').textContent='The Cross';
+  document.getElementById('bdetail').textContent='The center of all Scripture';
+  document.getElementById('bdesc').textContent='Every book, every verse, every cross-reference — they all point here. The cross is not just an event in history; it is the lens through which the entire Bible is understood. From Genesis to Revelation, the scarlet thread of redemption weaves through every page, every prophecy, every promise — all fulfilled at Calvary.';
+  document.getElementById('str-fill').style.width='100%';
+  document.getElementById('str-num').textContent='264,673 references';
+  document.getElementById('s-cent').textContent='100%';
+  document.getElementById('s-infl').textContent='100%';
+  document.getElementById('s-conn').textContent='66';
+  document.getElementById('s-rank').textContent='The Center';
+  document.getElementById('bconns').innerHTML='';
+  document.getElementById('blink').innerHTML='';
+  document.getElementById('panel').classList.add('show');
+  document.getElementById('hint').style.opacity='0';
+
+  // Dim everything else to make the cross prominent
+  glowSprites.forEach(g=>{g.material.opacity=0.06;});
+  bookMeshes.forEach(b=>b.userData.mat.uniforms.uInt.value=0.12);
+  connLines.forEach(l=>{
+    if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=0.003;
+    else l.material.opacity=0.003;
+  });
+  labelSprites.forEach(l=>l.material.opacity=0);
+
+  // Play a deeper, more resonant chime
+  playChime(130.8);
+  setTimeout(()=>playChime(164.8),300);
+  setTimeout(()=>playChime(196.0),600);
+
+  selectedIdx=-2; // Special marker so deselect works
+  selected={position:crossPos};
+}
+
 function animateCamera(pos,target){
   camAnim={sP:camera.position.clone(),eP:pos,sT:controls.target.clone(),eT:target,t0:clock.getElapsedTime(),dur:2.0};
 }
