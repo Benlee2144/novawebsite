@@ -4,59 +4,95 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cross-Reference Galaxy — The Unveiled Word</title>
-<meta name="description" content="Explore 264,000+ cross-references between every book of the Bible as a stunning 3D galaxy.">
+<meta name="description" content="264,000 connections. 66 books. One galaxy. Explore every cross-reference in the Bible as an interactive 3D universe.">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#020108;font-family:'Cinzel',Georgia,serif}
-canvas{width:100%;height:100%;display:block;cursor:grab}
-canvas:active{cursor:grabbing}
+html,body{width:100%;height:100%;overflow:hidden;background:#010005;font-family:Georgia,serif}
+canvas{width:100%;height:100%;display:block}
 
-#topbar{position:fixed;top:0;left:0;right:0;z-index:100;
-  background:linear-gradient(180deg,rgba(2,1,8,0.9) 0%,transparent 100%);
-  padding:14px 20px 40px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none}
-#topbar *{pointer-events:auto}
-#topbar a{color:rgba(197,150,12,0.6);text-decoration:none;font-size:0.75rem;transition:color 0.3s}
-#topbar a:hover{color:#c5960c}
-#title{color:rgba(197,150,12,0.8);font-size:0.9rem;letter-spacing:0.2em;text-transform:uppercase;text-align:center}
-#stats{color:rgba(255,245,220,0.3);font-size:0.6rem;letter-spacing:0.08em;font-family:Georgia,serif;text-align:right}
+/* Cinematic intro */
+#intro{position:fixed;inset:0;z-index:300;background:#010005;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;transition:opacity 2s}
+#intro.gone{opacity:0;pointer-events:none}
+#verse{color:rgba(197,150,12,0);font-style:italic;font-size:1.1rem;max-width:500px;text-align:center;
+  line-height:1.8;transition:color 3s;letter-spacing:0.02em}
+#verse.show{color:rgba(197,150,12,0.7)}
+#verse cite{display:block;margin-top:12px;font-size:0.75rem;font-style:normal;color:rgba(197,150,12,0.4);
+  letter-spacing:0.15em;text-transform:uppercase}
+#skipbtn{position:fixed;bottom:30px;right:30px;z-index:301;color:rgba(255,245,220,0.2);font-size:0.65rem;
+  cursor:pointer;letter-spacing:0.1em;border:none;background:none;font-family:Georgia,serif;
+  transition:color 0.3s}
+#skipbtn:hover{color:rgba(255,245,220,0.5)}
 
-#info{position:fixed;bottom:0;left:0;right:0;z-index:100;text-align:center;
-  background:linear-gradient(0deg,rgba(2,1,8,0.95) 0%,rgba(2,1,8,0.6) 60%,transparent 100%);
-  padding:40px 24px 24px;transform:translateY(100%);transition:transform 0.6s cubic-bezier(0.4,0,0.2,1)}
-#info.show{transform:translateY(0)}
-#bookname{color:#c5960c;font-size:1.4rem;margin-bottom:4px;text-shadow:0 0 20px rgba(197,150,12,0.4)}
-#bookdetail{color:rgba(255,245,220,0.5);font-size:0.75rem;font-family:Georgia,serif;margin-bottom:6px}
-#connections-list{color:rgba(255,245,220,0.35);font-size:0.65rem;font-family:Georgia,serif;line-height:1.7}
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;
+  padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start;
+  opacity:0;transition:opacity 1.5s}
+#hud.show{opacity:1}
+#hud *{pointer-events:auto}
+#hud a{color:rgba(197,150,12,0.4);text-decoration:none;font-size:0.7rem;transition:color 0.3s}
+#hud a:hover{color:rgba(197,150,12,0.8)}
+#htitle{color:rgba(197,150,12,0.5);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;
+  font-family:'Cinzel',Georgia,serif}
+#hstats{color:rgba(255,245,220,0.2);font-size:0.55rem;letter-spacing:0.08em;text-align:right}
 
-#hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99;
-  color:rgba(255,245,220,0.2);font-size:0.65rem;font-family:Georgia,serif;letter-spacing:0.1em;
-  transition:opacity 2s}
+/* Info panel */
+#panel{position:fixed;bottom:0;left:0;right:0;z-index:100;text-align:center;
+  background:linear-gradient(0deg,rgba(1,0,5,0.97) 0%,rgba(1,0,5,0.5) 70%,transparent 100%);
+  padding:50px 28px 28px;transform:translateY(110%);transition:transform 0.7s cubic-bezier(0.25,1,0.5,1)}
+#panel.show{transform:translateY(0)}
+#bname{color:#c5960c;font-size:1.5rem;font-family:'Cinzel',Georgia,serif;margin-bottom:4px;
+  text-shadow:0 0 30px rgba(197,150,12,0.3)}
+#bdetail{color:rgba(255,245,220,0.45);font-size:0.75rem;margin-bottom:8px}
+#bconns{color:rgba(255,245,220,0.3);font-size:0.65rem;line-height:1.8}
 
-#legend{position:fixed;top:60px;right:16px;z-index:100;opacity:0.5;transition:opacity 0.3s}
-#legend:hover{opacity:1}
+/* Legend */
+#legend{position:fixed;top:50px;right:16px;z-index:100;opacity:0;transition:opacity 1.5s 2s}
+#legend.show{opacity:0.4}
+#legend:hover{opacity:0.9}
 #legend div{display:flex;align-items:center;gap:6px;margin-bottom:3px;cursor:pointer}
-#legend .dot{width:6px;height:6px;border-radius:50%}
-#legend .lbl{color:rgba(255,245,220,0.5);font-size:0.55rem;font-family:Georgia,serif}
+.ldot{width:5px;height:5px;border-radius:50%}
+.llbl{color:rgba(255,245,220,0.6);font-size:0.5rem;letter-spacing:0.04em}
 
-#loading{position:fixed;inset:0;z-index:200;background:#020108;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;transition:opacity 1.5s}
-#loading.done{opacity:0;pointer-events:none}
-#loading h1{color:rgba(197,150,12,0.8);font-size:1.1rem;letter-spacing:0.25em;text-transform:uppercase}
-#loading p{color:rgba(255,245,220,0.25);font-size:0.7rem;font-family:Georgia,serif;margin-top:8px}
-.bar{width:160px;height:1px;background:rgba(197,150,12,0.1);margin-top:20px;overflow:hidden}
-.fill{width:0%;height:100%;background:#c5960c;transition:width 0.4s}
+/* Hint */
+#hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99;
+  color:rgba(255,245,220,0);font-size:0.6rem;letter-spacing:0.12em;
+  transition:color 1.5s 4s;pointer-events:none}
+#hint.show{color:rgba(255,245,220,0.15)}
 
-@media(max-width:768px){#legend{display:none}#title{font-size:0.75rem}}
+@media(max-width:768px){
+  #verse{font-size:0.9rem;padding:0 24px}
+  #legend{display:none}
+  #bname{font-size:1.2rem}
+}
 </style>
 </head>
 <body>
-<div id="loading"><h1>✦ Mapping the Galaxy ✦</h1><p>264,000 connections across 66 books</p><div class="bar"><div class="fill" id="lf"></div></div></div>
-<div id="topbar"><a href="../">← Home</a><div id="title">Cross-Reference Galaxy</div><div id="stats">66 Books · 264,673 Refs</div></div>
+
+<div id="intro">
+  <p id="verse">
+    &ldquo;In the beginning God created the heaven and the earth.
+    And God said, Let there be light: and there was light.&rdquo;
+    <cite>Genesis 1:1, 3</cite>
+  </p>
+</div>
+<button id="skipbtn" onclick="skipIntro()">skip →</button>
+
+<div id="hud">
+  <a href="../">← The Unveiled Word</a>
+  <div id="htitle">Cross-Reference Galaxy</div>
+  <div id="hstats">66 Books · 264,673 References</div>
+</div>
+
 <div id="legend"></div>
 <canvas id="c"></canvas>
-<div id="info"><div id="bookname"></div><div id="bookdetail"></div><div id="connections-list"></div></div>
-<div id="hint">drag to orbit · scroll to zoom · tap a star</div>
+<div id="panel">
+  <div id="bname"></div>
+  <div id="bdetail"></div>
+  <div id="bconns"></div>
+</div>
+<div id="hint">drag to orbit · scroll to zoom · click a star</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -65,475 +101,697 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
 
-const SEC_COL = {
-  'Torah':          0xd4a843,
-  'History':        0x9e7a2e,
-  'Poetry':         0x5b9bd5,
-  'Major Prophets': 0xc94040,
-  'Minor Prophets': 0xd4784a,
-  'Gospels':        0xf5deb3,
-  'Church History': 0x3db87a,
-  "Paul's Letters": 0x8e44ad,
-  'General Letters':0x27ae60,
-  'Apocalyptic':    0xe74c3c,
+// ═══════════════════════════════════════════════
+// PALETTE
+// ═══════════════════════════════════════════════
+const C={
+  'Torah':0xd4a843,'History':0x9e7a2e,'Poetry':0x5b9bd5,
+  'Major Prophets':0xc94040,'Minor Prophets':0xd4784a,
+  'Gospels':0xf5deb3,'Church History':0x3db87a,
+  "Paul's Letters":0x8e44ad,'General Letters':0x27ae60,'Apocalyptic':0xe74c3c
 };
 
 let scene,camera,renderer,composer,controls,clock;
-let bookMeshes=[],allGlows=[],connLines=[],data=null;
-let selected=null,raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+let books=[],glows=[],labels=[],conns=[];
+let flowParticles=[];
+let shootingStars;
+let selected=null,hovered=null;
+let raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+let data,introPhase=0,introTime=0;
+let audioCtx,masterGain;
 
-function lp(p){document.getElementById('lf').style.width=p+'%'}
+// ═══════════════════════════════════════════════
+// PROCEDURAL TEXTURES
+// ═══════════════════════════════════════════════
+function starTex(){
+  const c=document.createElement('canvas'),s=256;c.width=c.height=s;
+  const x=c.getContext('2d'),h=s/2;
+  // Soft radial core
+  let g=x.createRadialGradient(h,h,0,h,h,h);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(0.02,'rgba(255,252,240,0.95)');
+  g.addColorStop(0.06,'rgba(255,240,210,0.6)');
+  g.addColorStop(0.15,'rgba(255,220,160,0.2)');
+  g.addColorStop(0.35,'rgba(200,160,80,0.04)');
+  g.addColorStop(0.6,'rgba(120,80,40,0.01)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g;x.fillRect(0,0,s,s);
+  // 6-point diffraction spikes
+  x.globalCompositeOperation='lighter';
+  for(let a=0;a<6;a++){
+    const ang=a*Math.PI/3;
+    x.save();x.translate(h,h);x.rotate(ang);
+    let sg=x.createLinearGradient(-h,0,h,0);
+    sg.addColorStop(0,'rgba(255,255,255,0)');
+    sg.addColorStop(0.35,'rgba(255,240,200,0.03)');
+    sg.addColorStop(0.48,'rgba(255,255,255,0.1)');
+    sg.addColorStop(0.5,'rgba(255,255,255,0.15)');
+    sg.addColorStop(0.52,'rgba(255,255,255,0.1)');
+    sg.addColorStop(0.65,'rgba(255,240,200,0.03)');
+    sg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=sg;x.fillRect(-h,-1.5,s,3);
+    x.restore();
+  }
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;return t;
+}
 
-// ── Star texture (procedural) ──
-function makeStarTex(){
+function ringTex(){
   const c=document.createElement('canvas');c.width=128;c.height=128;
   const x=c.getContext('2d');
-  const g=x.createRadialGradient(64,64,0,64,64,64);
-  g.addColorStop(0,'rgba(255,255,255,1)');
-  g.addColorStop(0.05,'rgba(255,255,255,0.9)');
-  g.addColorStop(0.15,'rgba(255,245,220,0.6)');
-  g.addColorStop(0.3,'rgba(255,220,150,0.2)');
-  g.addColorStop(0.5,'rgba(200,150,80,0.05)');
-  g.addColorStop(1,'rgba(0,0,0,0)');
-  x.fillStyle=g;x.fillRect(0,0,128,128);
-  // Add cross-flare
-  x.globalCompositeOperation='lighter';
-  const g2=x.createLinearGradient(0,64,128,64);
-  g2.addColorStop(0,'rgba(255,255,255,0)');
-  g2.addColorStop(0.4,'rgba(255,245,220,0.05)');
-  g2.addColorStop(0.5,'rgba(255,255,255,0.15)');
-  g2.addColorStop(0.6,'rgba(255,245,220,0.05)');
-  g2.addColorStop(1,'rgba(255,255,255,0)');
-  x.fillStyle=g2;x.fillRect(0,56,128,16);
-  const g3=x.createLinearGradient(64,0,64,128);
-  g3.addColorStop(0,'rgba(255,255,255,0)');
-  g3.addColorStop(0.4,'rgba(255,245,220,0.05)');
-  g3.addColorStop(0.5,'rgba(255,255,255,0.15)');
-  g3.addColorStop(0.6,'rgba(255,245,220,0.05)');
-  g3.addColorStop(1,'rgba(255,255,255,0)');
-  x.fillStyle=g3;x.fillRect(56,0,16,128);
+  x.strokeStyle='rgba(197,150,12,0.15)';x.lineWidth=1;
+  x.beginPath();x.arc(64,64,50,0,Math.PI*2);x.stroke();
+  x.strokeStyle='rgba(197,150,12,0.07)';
+  x.beginPath();x.arc(64,64,58,0,Math.PI*2);x.stroke();
   return new THREE.CanvasTexture(c);
 }
 
-function makeGlowTex(col){
-  const c=document.createElement('canvas');c.width=64;c.height=64;
-  const x=c.getContext('2d');
-  const r=((col>>16)&255),g2=((col>>8)&255),b=(col&255);
-  const g=x.createRadialGradient(32,32,0,32,32,32);
-  g.addColorStop(0,`rgba(${r},${g2},${b},0.3)`);
-  g.addColorStop(0.3,`rgba(${r},${g2},${b},0.1)`);
-  g.addColorStop(0.7,`rgba(${r},${g2},${b},0.02)`);
-  g.addColorStop(1,'rgba(0,0,0,0)');
-  x.fillStyle=g;x.fillRect(0,0,64,64);
-  return new THREE.CanvasTexture(c);
+// ═══════════════════════════════════════════════
+// AMBIENT AUDIO (Web Audio API — no files needed)
+// ═══════════════════════════════════════════════
+function initAudio(){
+  try{
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=audioCtx.createGain();
+    masterGain.gain.value=0;
+    masterGain.connect(audioCtx.destination);
+    // Deep space drone — layered sine waves
+    [55,82.5,110,165].forEach((freq,i)=>{
+      const osc=audioCtx.createOscillator();
+      const g=audioCtx.createGain();
+      osc.type=i===0?'sine':'sine';
+      osc.frequency.value=freq;
+      g.gain.value=[0.06,0.03,0.02,0.01][i];
+      osc.connect(g);g.connect(masterGain);
+      osc.start();
+    });
+    // Fade in
+    masterGain.gain.linearRampToValueAtTime(0.4,audioCtx.currentTime+6);
+  }catch(e){}
 }
 
+function playChime(freq){
+  if(!audioCtx)return;
+  try{
+    const osc=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    osc.type='sine';osc.frequency.value=freq;
+    g.gain.value=0.08;
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+2);
+    osc.connect(g);g.connect(masterGain);
+    osc.start();osc.stop(audioCtx.currentTime+2);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
 async function init(){
-  lp(10);
   scene=new THREE.Scene();
-  scene.fog=new THREE.FogExp2(0x020108,0.0025);
-  camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,2000);
-  camera.position.set(0,60,160);
+  camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,3000);
+  camera.position.set(0,0,0.1); // Start at origin for intro
 
   renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,powerPreference:'high-performance'});
   renderer.setSize(innerWidth,innerHeight);
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.0;
+  renderer.toneMappingExposure=0.8;
 
   composer=new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene,camera));
-  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),2.0,0.8,0.3);
+
+  // Bloom
+  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),2.5,1.0,0.15);
   composer.addPass(bloom);
 
-  controls=new OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true;controls.dampingFactor=0.04;
-  controls.rotateSpeed=0.4;controls.zoomSpeed=0.6;
-  controls.minDistance=15;controls.maxDistance=400;
-  controls.autoRotate=true;controls.autoRotateSpeed=0.1;
+  // Film grain + vignette
+  const filmShader={
+    uniforms:{tDiffuse:{value:null},uTime:{value:0},uVignette:{value:0.4}},
+    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime,uVignette;varying vec2 vUv;
+      float rand(vec2 co){return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453);}
+      void main(){
+        vec4 col=texture2D(tDiffuse,vUv);
+        // Subtle film grain
+        float grain=rand(vUv*uTime)*0.03;
+        col.rgb+=grain-0.015;
+        // Vignette
+        float d=distance(vUv,vec2(0.5));
+        col.rgb*=smoothstep(0.85,0.3,d*uVignette*2.0);
+        // Slight color grade: warm highlights, cool shadows
+        col.r+=col.r*0.05;
+        col.b+=max(0.0,(0.15-col.r))*0.1;
+        gl_FragColor=col;
+      }`
+  };
+  const filmPass=new ShaderPass(filmShader);
+  composer.addPass(filmPass);
 
-  lp(25);
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=0.03;
+  controls.rotateSpeed=0.3;controls.zoomSpeed=0.5;
+  controls.minDistance=10;controls.maxDistance=400;
+  controls.autoRotate=true;controls.autoRotateSpeed=0.08;
+  controls.enabled=false; // Disabled during intro
+
+  // Load data
   const resp=await fetch('../data/galaxy_data.json');
   data=await resp.json();
-  lp(40);
 
-  createDeepSpace();
-  lp(55);
-  createBooks();
-  lp(75);
-  createConnections();
-  lp(90);
-  createLegend();
-  lp(100);
+  buildSpace();
+  buildBooks();
+  buildConnections();
+  buildShootingStars();
+  buildLegend();
 
   addEventListener('resize',onResize);
   renderer.domElement.addEventListener('click',onClick);
   renderer.domElement.addEventListener('mousemove',onHover);
-  renderer.domElement.addEventListener('touchend',onTouchEnd,{passive:true});
+  renderer.domElement.addEventListener('touchend',onTouch,{passive:true});
 
+  // Start intro sequence
   clock=new THREE.Clock();
-  setTimeout(()=>{document.getElementById('loading').classList.add('done')},600);
-  setTimeout(()=>{document.getElementById('hint').style.opacity='0'},6000);
-  animate();
+  introPhase=1;
+  requestAnimationFrame(animate);
 }
 
-// ── DEEP SPACE ──
-function createDeepSpace(){
-  // Distant stars
-  const sc=5000,sp=new Float32Array(sc*3),ss=new Float32Array(sc);
-  for(let i=0;i<sc;i++){
-    const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=300+Math.random()*500;
-    sp[i*3]=r*Math.sin(ph)*Math.cos(th);sp[i*3+1]=r*Math.sin(ph)*Math.sin(th);sp[i*3+2]=r*Math.cos(ph);
-    ss[i]=Math.random()*1.2+0.2;
+// ═══════════════════════════════════════════════
+// DEEP SPACE
+// ═══════════════════════════════════════════════
+function buildSpace(){
+  // Background stars — 8000 tiny points
+  const N=8000,p=new Float32Array(N*3),s=new Float32Array(N),c=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=400+Math.random()*800;
+    p[i*3]=r*Math.sin(ph)*Math.cos(th);p[i*3+1]=r*Math.sin(ph)*Math.sin(th);p[i*3+2]=r*Math.cos(ph);
+    s[i]=Math.random()*1.5+0.2;
+    const temp=Math.random();// Color temperature
+    c[i*3]=0.9+temp*0.1;c[i*3+1]=0.85+temp*0.1;c[i*3+2]=0.8+temp*0.15;
   }
-  const sg=new THREE.BufferGeometry();
-  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
-  sg.setAttribute('size',new THREE.BufferAttribute(ss,1));
-  const sm=new THREE.ShaderMaterial({
+  const bg=new THREE.BufferGeometry();
+  bg.setAttribute('position',new THREE.BufferAttribute(p,3));
+  bg.setAttribute('size',new THREE.BufferAttribute(s,1));
+  bg.setAttribute('color',new THREE.BufferAttribute(c,3));
+  bg.userData={type:'bgstars'};
+  const bm=new THREE.ShaderMaterial({
     uniforms:{uTime:{value:0},uPR:{value:renderer.getPixelRatio()}},
-    vertexShader:`attribute float size;uniform float uTime,uPR;varying float vA;
-      void main(){vA=sin(uTime*3.0+position.x*0.05)*0.3+0.7;
+    vertexShader:`attribute float size;varying vec3 vC;varying float vTw;uniform float uTime,uPR;
+      void main(){vC=color;vTw=sin(uTime*2.0+position.x*0.03+position.z*0.03)*0.4+0.6;
       vec4 mv=modelViewMatrix*vec4(position,1.0);gl_Position=projectionMatrix*mv;
-      gl_PointSize=size*uPR*(60.0/-mv.z);}`,
-    fragmentShader:`varying float vA;void main(){float d=length(gl_PointCoord-0.5);
-      if(d>0.5)discard;gl_FragColor=vec4(1.0,0.98,0.93,smoothstep(0.5,0.0,d)*vA*0.6);}`,
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending
+      gl_PointSize=size*uPR*(80.0/-mv.z);}`,
+    fragmentShader:`varying vec3 vC;varying float vTw;
+      void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;
+      gl_FragColor=vec4(vC,smoothstep(0.5,0.0,d)*vTw*0.7);}`,
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
   });
-  scene.add(new THREE.Points(sg,sm));
+  scene.add(new THREE.Points(bg,bm));
 
-  // Nebula clouds
-  const nc=12000,np=new Float32Array(nc*3),ncol=new Float32Array(nc*3),nsz=new Float32Array(nc);
-  for(let i=0;i<nc;i++){
-    const a=Math.random()*Math.PI*6,r=10+Math.random()*180,h=(Math.random()-0.5)*50;
-    const spread=20+r*0.15;
-    np[i*3]=Math.cos(a)*r+(Math.random()-0.5)*spread;
-    np[i*3+1]=h+Math.sin(a*0.4)*15+(Math.random()-0.5)*20;
-    np[i*3+2]=Math.sin(a)*r+(Math.random()-0.5)*spread;
+  // Nebula — 15000 particles, spiral + dust lanes
+  const nn=15000,np=new Float32Array(nn*3),nc=new Float32Array(nn*3),ns=new Float32Array(nn);
+  for(let i=0;i<nn;i++){
+    const arm=Math.floor(Math.random()*3); // 3 spiral arms
+    const armOff=arm*(Math.PI*2/3);
+    const dist=Math.random()*200+5;
+    const angle=armOff+dist*0.025+Math.random()*0.4;
+    const spread=12+dist*0.12;
+    np[i*3]=Math.cos(angle)*dist+(Math.random()-0.5)*spread;
+    np[i*3+1]=(Math.random()-0.5)*25*Math.exp(-dist*0.005);
+    np[i*3+2]=Math.sin(angle)*dist+(Math.random()-0.5)*spread;
     const t=Math.random();
-    if(t<0.4){ncol[i*3]=0.4;ncol[i*3+1]=0.2;ncol[i*3+2]=0.05;}
-    else if(t<0.7){ncol[i*3]=0.15;ncol[i*3+1]=0.12;ncol[i*3+2]=0.35;}
-    else{ncol[i*3]=0.25;ncol[i*3+1]=0.1;ncol[i*3+2]=0.15;}
-    nsz[i]=Math.random()*4+1;
+    // Dust lane: darken particles near certain angles
+    const dustAngle=Math.atan2(np[i*3+2],np[i*3]);
+    const dustFactor=Math.abs(Math.sin(dustAngle*2))<0.15?0.1:1;
+    if(t<0.5){nc[i*3]=0.35*dustFactor;nc[i*3+1]=0.18*dustFactor;nc[i*3+2]=0.05*dustFactor;}
+    else if(t<0.8){nc[i*3]=0.12*dustFactor;nc[i*3+1]=0.1*dustFactor;nc[i*3+2]=0.3*dustFactor;}
+    else{nc[i*3]=0.2*dustFactor;nc[i*3+1]=0.08*dustFactor;nc[i*3+2]=0.12*dustFactor;}
+    ns[i]=Math.random()*5+1;
   }
   const ng=new THREE.BufferGeometry();
   ng.setAttribute('position',new THREE.BufferAttribute(np,3));
-  ng.setAttribute('color',new THREE.BufferAttribute(ncol,3));
-  ng.setAttribute('size',new THREE.BufferAttribute(nsz,1));
+  ng.setAttribute('color',new THREE.BufferAttribute(nc,3));
+  ng.setAttribute('size',new THREE.BufferAttribute(ns,1));
   const nm=new THREE.ShaderMaterial({
     uniforms:{uTime:{value:0},uPR:{value:renderer.getPixelRatio()}},
     vertexShader:`attribute float size;varying vec3 vC;uniform float uTime,uPR;
-      void main(){vC=color;vec3 p=position;p.y+=sin(uTime*0.08+position.x*0.008)*3.0;
+      void main(){vC=color;vec3 p=position;
+      p.y+=sin(uTime*0.06+position.x*0.005)*2.0;
+      p.x+=cos(uTime*0.03+position.z*0.003)*1.5;
       vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
-      gl_PointSize=size*uPR*(200.0/-mv.z);}`,
-    fragmentShader:`varying vec3 vC;void main(){float d=length(gl_PointCoord-0.5);
-      if(d>0.5)discard;gl_FragColor=vec4(vC,smoothstep(0.5,0.1,d)*0.06);}`,
+      gl_PointSize=size*uPR*(250.0/-mv.z);}`,
+    fragmentShader:`varying vec3 vC;
+      void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;
+      gl_FragColor=vec4(vC,smoothstep(0.5,0.05,d)*0.04);}`,
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
   });
-  const nebula=new THREE.Points(ng,nm);
-  nebula.userData.isNebula=true;
-  scene.add(nebula);
+  const neb=new THREE.Points(ng,nm);neb.userData.type='nebula';
+  scene.add(neb);
 }
 
-// ── BOOKS AS STARS ──
-function createBooks(){
-  const starTex=makeStarTex();
-  const secNames=Object.keys(data.sections);
+// ═══════════════════════════════════════════════
+// SHOOTING STARS
+// ═══════════════════════════════════════════════
+function buildShootingStars(){
+  const N=6;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(N*6); // 2 vertices per line (start + end)
+  const vel=[];
+  for(let i=0;i<N;i++){
+    pos[i*6]=pos[i*6+3]=(Math.random()-0.5)*600;
+    pos[i*6+1]=pos[i*6+4]=Math.random()*200+50;
+    pos[i*6+2]=pos[i*6+5]=(Math.random()-0.5)*600;
+    vel.push({
+      x:(Math.random()-0.5)*8,
+      y:-(Math.random()*3+2),
+      z:(Math.random()-0.5)*8,
+      life:0,maxLife:Math.random()*1.5+0.5,
+      cooldown:Math.random()*15+5
+    });
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
+  shootingStars={geo,pos,vel,mesh:new THREE.LineSegments(geo,mat)};
+  scene.add(shootingStars.mesh);
+}
 
-  data.books.forEach((book,i)=>{
-    const si=secNames.indexOf(book.section);
-    const bks=data.sections[book.section];
-    const bi=bks.indexOf(book.abbr);
-    const bn=bks.length;
+// ═══════════════════════════════════════════════
+// BOOKS
+// ═══════════════════════════════════════════════
+function buildBooks(){
+  const tex=starTex();
+  const secs=Object.keys(data.sections);
+  // Major books get orbital rings
+  const majorBooks=['Gen','Ps','Isa','Matt','Rev','Rom','Exod','Jer','Ezek','John','Heb'];
 
-    const secAngle=(si/secNames.length)*Math.PI*2;
-    const innerAngle=(bi/Math.max(bn,1))*(Math.PI*2/secNames.length*0.8);
-    const angle=secAngle+innerAngle;
-    const baseR=30+si*12+bi*2.5;
-    const y=Math.sin(angle*2.5)*12+(Math.random()-0.5)*8;
-    const x=Math.cos(angle)*baseR;
-    const z=Math.sin(angle)*baseR;
+  data.books.forEach((bk,i)=>{
+    const si=secs.indexOf(bk.section);
+    const arr=data.sections[bk.section];
+    const bi=arr.indexOf(bk.abbr);
+    const bn=arr.length;
 
-    // Core star size — MUCH smaller
-    const sz=Math.max(0.3,Math.pow(book.chapters,0.35)*0.35);
-    const col=SEC_COL[book.section]||0xc5960c;
+    // Spiral placement with 3 arms
+    const arm=si%3;
+    const armBase=arm*(Math.PI*2/3);
+    const progress=(si*bn+bi)/(data.books.length);
+    const dist=25+progress*130;
+    const angle=armBase+progress*Math.PI*3.5+(bi/bn)*0.6;
+    const y=Math.sin(angle*1.8)*10+(Math.random()-0.5)*6;
+    const x=Math.cos(angle)*dist;
+    const z=Math.sin(angle)*dist;
 
-    // Bright core point (small sphere with emissive)
-    const coreGeo=new THREE.SphereGeometry(sz,16,16);
-    const coreMat=new THREE.MeshBasicMaterial({color:0xffffff});
-    const core=new THREE.Mesh(coreGeo,coreMat);
+    const sz=Math.max(0.2,Math.pow(bk.chapters,0.3)*0.3);
+    const col=C[bk.section]||0xc5960c;
+
+    // Core mesh (tiny, bright white)
+    const core=new THREE.Mesh(
+      new THREE.SphereGeometry(sz*0.5,12,12),
+      new THREE.MeshBasicMaterial({color:0xffffff})
+    );
     core.position.set(x,y,z);
-    core.userData={book,index:i,sz};
+    core.userData={bk,idx:i,sz};
     scene.add(core);
-    bookMeshes.push(core);
+    books.push(core);
 
     // Star glow sprite
-    const glowMat=new THREE.SpriteMaterial({
-      map:starTex,color:col,transparent:true,blending:THREE.AdditiveBlending,
-      depthWrite:false,opacity:0.7
+    const gm=new THREE.SpriteMaterial({
+      map:tex,color:col,transparent:true,opacity:0.6,
+      blending:THREE.AdditiveBlending,depthWrite:false
     });
-    const glow=new THREE.Sprite(glowMat);
-    const glowSize=sz*8+2;
-    glow.scale.set(glowSize,glowSize,1);
-    glow.position.copy(core.position);
-    glow.userData={bookIdx:i,baseScale:glowSize,baseOp:0.7};
-    scene.add(glow);
-    allGlows.push(glow);
+    const glow=new THREE.Sprite(gm);
+    const gs=sz*7+1.5;
+    glow.scale.set(gs,gs,1);glow.position.copy(core.position);
+    glow.userData={idx:i,bs:gs,bo:0.6};
+    scene.add(glow);glows.push(glow);
 
-    // Label
-    const label=mkLabel(book.name);
-    label.position.set(x,y+sz*4+3,z);
-    label.material.opacity=0.0; // Hidden by default, show on hover/select
-    label.userData={bookIdx:i};
-    scene.add(label);
-    allGlows.push(label); // reuse array for updates
+    // Orbital ring for major books
+    if(majorBooks.includes(bk.abbr)){
+      const rg=new THREE.RingGeometry(sz*4,sz*4.3,48);
+      const rm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.08,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false});
+      const ring=new THREE.Mesh(rg,rm);
+      ring.position.copy(core.position);
+      ring.rotation.x=Math.PI*0.4;
+      ring.userData={type:'ring',idx:i};
+      scene.add(ring);
+    }
+
+    // Label (hidden by default)
+    const lbl=mkLbl(bk.name);
+    lbl.position.set(x,y+sz*5+2.5,z);
+    lbl.material.opacity=0;
+    lbl.userData={idx:i,type:'label'};
+    scene.add(lbl);labels.push(lbl);
   });
 }
 
-function mkLabel(text){
+function mkLbl(t){
   const c=document.createElement('canvas');c.width=256;c.height=48;
   const x=c.getContext('2d');
-  x.font='500 20px Georgia,serif';x.textAlign='center';x.textBaseline='middle';
-  x.shadowColor='rgba(0,0,0,0.9)';x.shadowBlur=4;
-  x.fillStyle='rgba(255,245,220,0.9)';x.fillText(text,128,24);
-  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
-  const m=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false});
-  const s=new THREE.Sprite(m);s.scale.set(10,2,1);
-  return s;
+  x.font='500 18px Georgia,serif';x.textAlign='center';x.textBaseline='middle';
+  x.shadowColor='rgba(0,0,0,1)';x.shadowBlur=6;
+  x.fillStyle='rgba(255,245,220,0.9)';x.fillText(t,128,24);
+  const tex=new THREE.CanvasTexture(c);tex.minFilter=THREE.LinearFilter;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
+  s.scale.set(9,1.8,1);return s;
 }
 
-// ── CONNECTIONS ──
-function createConnections(){
-  const conns=data.connections.slice(0,400);
-  const maxC=conns[0]?.count||1;
+// ═══════════════════════════════════════════════
+// CONNECTIONS
+// ═══════════════════════════════════════════════
+function buildConnections(){
+  const top=data.connections.slice(0,500);
+  const max=top[0]?.count||1;
 
-  conns.forEach(conn=>{
-    const fb=data.books.find(b=>b.abbr===conn.from);
-    const tb=data.books.find(b=>b.abbr===conn.to);
+  top.forEach(cn=>{
+    const fb=data.books.find(b=>b.abbr===cn.from);
+    const tb=data.books.find(b=>b.abbr===cn.to);
     if(!fb||!tb)return;
-    const fm=bookMeshes[fb.index],tm=bookMeshes[tb.index];
-    if(!fm||!tm)return;
+    const fm=books[fb.index],tm=books[tb.index];
 
-    const str=conn.count/maxC;
+    const str=cn.count/max;
     const s=fm.position.clone(),e=tm.position.clone();
-    const mid=s.clone().add(e).multiplyScalar(0.5);
-    mid.y+=5+str*20;
+    const m=s.clone().add(e).multiplyScalar(0.5);
+    m.y+=4+str*18;
 
-    const curve=new THREE.QuadraticBezierCurve3(s,mid,e);
-    const pts=curve.getPoints(24);
+    const curve=new THREE.QuadraticBezierCurve3(s,m,e);
+    const pts=curve.getPoints(28);
     const geo=new THREE.BufferGeometry().setFromPoints(pts);
 
-    // Color from source section
-    const fc=SEC_COL[fb.section]||0xc5960c;
-    const tc=SEC_COL[tb.section]||0xc5960c;
-    const c1=new THREE.Color(fc),c2=new THREE.Color(tc);
+    const c1=new THREE.Color(C[fb.section]||0xc5960c);
+    const c2=new THREE.Color(C[tb.section]||0xc5960c);
     const vc=new Float32Array(pts.length*3);
-    for(let i=0;i<pts.length;i++){
-      const t=i/(pts.length-1);
-      const c=c1.clone().lerp(c2,t);
-      vc[i*3]=c.r;vc[i*3+1]=c.g;vc[i*3+2]=c.b;
+    for(let j=0;j<pts.length;j++){
+      const t=j/(pts.length-1);
+      const cc=c1.clone().lerp(c2,t);
+      vc[j*3]=cc.r;vc[j*3+1]=cc.g;vc[j*3+2]=cc.b;
     }
     geo.setAttribute('color',new THREE.BufferAttribute(vc,3));
 
-    const baseOp=Math.max(0.015,str*0.12);
+    const bo=Math.max(0.01,str*0.1);
     const mat=new THREE.LineBasicMaterial({
-      vertexColors:true,transparent:true,opacity:baseOp,
+      vertexColors:true,transparent:true,opacity:bo,
       blending:THREE.AdditiveBlending,depthWrite:false
     });
     const line=new THREE.Line(geo,mat);
-    line.userData={from:conn.from,to:conn.to,count:conn.count,baseOp};
-    scene.add(line);
-    connLines.push(line);
+    line.userData={from:cn.from,to:cn.to,count:cn.count,bo,curve};
+    scene.add(line);conns.push(line);
   });
 }
 
-// ── LEGEND ──
-function createLegend(){
+// ═══════════════════════════════════════════════
+// ENERGY FLOW PARTICLES (appear on selection)
+// ═══════════════════════════════════════════════
+function spawnFlow(bookAbbr){
+  clearFlow();
+  const related=conns.filter(l=>l.userData.from===bookAbbr||l.userData.to===bookAbbr).slice(0,30);
+  related.forEach(line=>{
+    const curve=line.userData.curve;
+    if(!curve)return;
+    const col=new THREE.Color(C[data.books.find(b=>b.abbr===bookAbbr)?.section]||0xc5960c);
+    // Create flowing particles along this curve
+    for(let i=0;i<8;i++){
+      const geo=new THREE.SphereGeometry(0.15,6,6);
+      const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.8});
+      const m=new THREE.Mesh(geo,mat);
+      m.userData={curve,t:Math.random(),speed:0.3+Math.random()*0.3,reverse:line.userData.to===bookAbbr};
+      scene.add(m);
+      flowParticles.push(m);
+    }
+  });
+}
+
+function clearFlow(){
+  flowParticles.forEach(p=>{scene.remove(p);p.geometry.dispose();p.material.dispose()});
+  flowParticles=[];
+}
+
+function updateFlow(dt){
+  flowParticles.forEach(p=>{
+    p.userData.t+=dt*p.userData.speed*(p.userData.reverse?-1:1);
+    if(p.userData.t>1)p.userData.t-=1;
+    if(p.userData.t<0)p.userData.t+=1;
+    const pt=p.userData.curve.getPoint(p.userData.t);
+    p.position.copy(pt);
+    // Pulse opacity
+    p.material.opacity=0.4+Math.sin(p.userData.t*Math.PI)*0.5;
+  });
+}
+
+// ═══════════════════════════════════════════════
+// LEGEND
+// ═══════════════════════════════════════════════
+function buildLegend(){
   const el=document.getElementById('legend');
-  for(const[name,col] of Object.entries(SEC_COL)){
+  for(const[n,col] of Object.entries(C)){
     const d=document.createElement('div');
-    const dot=document.createElement('span');dot.className='dot';
+    const dot=document.createElement('span');dot.className='ldot';
     dot.style.background='#'+new THREE.Color(col).getHexString();
     dot.style.boxShadow='0 0 4px #'+new THREE.Color(col).getHexString();
-    const lbl=document.createElement('span');lbl.className='lbl';lbl.textContent=name;
+    const lbl=document.createElement('span');lbl.className='llbl';lbl.textContent=n;
     d.append(dot,lbl);el.appendChild(d);
   }
 }
 
-// ── INTERACTION ──
+// ═══════════════════════════════════════════════
+// INTRO SEQUENCE
+// ═══════════════════════════════════════════════
+// Phase 1: Black screen, verse fades in (0-3s)
+// Phase 2: Verse visible (3-6s)
+// Phase 3: Camera pulls back, stars appear (6-9s)
+// Phase 4: Full galaxy visible, controls enabled (9s+)
+
+function updateIntro(t){
+  if(introPhase===0)return;
+
+  if(introPhase===1){
+    // Show verse
+    if(t>0.5) document.getElementById('verse').classList.add('show');
+    if(t>4){introPhase=2;introTime=t;}
+  }
+  if(introPhase===2){
+    // Hold verse, then start fading
+    if(t-introTime>2){introPhase=3;introTime=t;}
+  }
+  if(introPhase===3){
+    // Camera pulls back from origin to galaxy view
+    const p=Math.min(1,(t-introTime)/4);
+    const ease=1-Math.pow(1-p,3);
+    camera.position.set(0,ease*60,ease*160);
+    controls.target.set(0,0,0);
+    renderer.toneMappingExposure=0.8*ease;
+
+    if(p>0.3){
+      document.getElementById('intro').classList.add('gone');
+      document.getElementById('skipbtn').style.display='none';
+    }
+    if(p>0.7){
+      document.getElementById('hud').classList.add('show');
+      document.getElementById('legend').classList.add('show');
+      document.getElementById('hint').classList.add('show');
+    }
+    if(p>=1){
+      introPhase=0;
+      controls.enabled=true;
+      initAudio();
+    }
+  }
+}
+
+window.skipIntro=function(){
+  introPhase=0;
+  camera.position.set(0,60,160);controls.target.set(0,0,0);
+  renderer.toneMappingExposure=0.8;
+  controls.enabled=true;
+  document.getElementById('intro').classList.add('gone');
+  document.getElementById('skipbtn').style.display='none';
+  document.getElementById('hud').classList.add('show');
+  document.getElementById('legend').classList.add('show');
+  document.getElementById('hint').classList.add('show');
+  initAudio();
+};
+
+// ═══════════════════════════════════════════════
+// INTERACTION
+// ═══════════════════════════════════════════════
 function onClick(e){
-  mouse.x=(e.clientX/innerWidth)*2-1;
-  mouse.y=-(e.clientY/innerHeight)*2+1;
+  if(introPhase)return;
+  mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;
   raycaster.setFromCamera(mouse,camera);
-  // Check glow sprites too (bigger hit area)
-  const hits=raycaster.intersectObjects(bookMeshes);
-  if(hits.length>0) selectBook(hits[0].object.userData.index);
+  // Bigger hit area: check glow sprites
+  const hits=raycaster.intersectObjects(books);
+  if(hits.length)selectBook(hits[0].object.userData.idx);
   else deselect();
 }
 
-function onTouchEnd(e){
-  if(!e.changedTouches.length)return;
+function onTouch(e){
+  if(introPhase||!e.changedTouches.length)return;
   const t=e.changedTouches[0];
-  mouse.x=(t.clientX/innerWidth)*2-1;
-  mouse.y=-(t.clientY/innerHeight)*2+1;
+  mouse.x=(t.clientX/innerWidth)*2-1;mouse.y=-(t.clientY/innerHeight)*2+1;
   raycaster.setFromCamera(mouse,camera);
-  const hits=raycaster.intersectObjects(bookMeshes);
-  if(hits.length>0) selectBook(hits[0].object.userData.index);
+  const hits=raycaster.intersectObjects(books);
+  if(hits.length)selectBook(hits[0].object.userData.idx);
 }
 
-let hovered=null;
 function onHover(e){
-  mouse.x=(e.clientX/innerWidth)*2-1;
-  mouse.y=-(e.clientY/innerHeight)*2+1;
+  if(introPhase)return;
+  mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;
   raycaster.setFromCamera(mouse,camera);
-  const hits=raycaster.intersectObjects(bookMeshes);
-  if(hits.length>0){
-    const idx=hits[0].object.userData.index;
+  const hits=raycaster.intersectObjects(books);
+  if(hits.length){
+    const idx=hits[0].object.userData.idx;
     if(hovered!==idx){
-      // Show label
-      allGlows.forEach(g=>{
-        if(g.userData.bookIdx===idx && g.isSprite && g.material.map?.image?.width===256){
-          g.material.opacity=0.9;
-        }
-      });
-      if(hovered!==null){
-        allGlows.forEach(g=>{
-          if(g.userData.bookIdx===hovered && g.isSprite && g.material.map?.image?.width===256 && hovered!==(selected?.userData?.index)){
-            g.material.opacity=0;
-          }
-        });
-      }
+      if(hovered!==null&&hovered!==(selected?.userData?.idx))labels[hovered].material.opacity=0;
+      labels[idx].material.opacity=0.9;
       hovered=idx;
     }
     renderer.domElement.style.cursor='pointer';
-  } else {
-    if(hovered!==null && hovered!==(selected?.userData?.index)){
-      allGlows.forEach(g=>{
-        if(g.userData.bookIdx===hovered && g.isSprite && g.material.map?.image?.width===256){
-          g.material.opacity=0;
-        }
-      });
-    }
+  }else{
+    if(hovered!==null&&hovered!==(selected?.userData?.idx))labels[hovered].material.opacity=0;
     hovered=null;
     renderer.domElement.style.cursor='grab';
   }
 }
 
 function selectBook(idx){
-  const book=data.books[idx];
-  const mesh=bookMeshes[idx];
-  selected=mesh;
-  controls.autoRotate=false;
+  const bk=data.books[idx],mesh=books[idx];
+  if(selected)deselect();
+  selected=mesh;controls.autoRotate=false;
 
-  // Fly camera
+  // Camera
   const tgt=mesh.position.clone();
-  const cp=tgt.clone().add(new THREE.Vector3(5,8,25));
-  animCam(cp,tgt);
+  animCam(tgt.clone().add(new THREE.Vector3(3,6,18)),tgt);
 
-  // Get connections
-  const conns=data.connections.filter(c=>c.from===book.abbr||c.to===book.abbr).sort((a,b)=>b.count-a.count);
-  const connBooks=new Set(conns.map(c=>c.from===book.abbr?c.to:c.from));
-  const totalRefs=conns.reduce((s,c)=>s+c.count,0);
+  // Audio
+  const notes=[261.6,329.6,392.0,523.2];
+  playChime(notes[idx%4]);
 
-  // Highlight connections
-  connLines.forEach(l=>{
-    if(l.userData.from===book.abbr||l.userData.to===book.abbr){
-      l.material.opacity=Math.min(0.8,l.userData.baseOp*10);
-    } else {
-      l.material.opacity=0.003;
-    }
+  // Find connections
+  const bkConns=data.connections.filter(c=>c.from===bk.abbr||c.to===bk.abbr).sort((a,b)=>b.count-a.count);
+  const connSet=new Set(bkConns.map(c=>c.from===bk.abbr?c.to:c.from));
+  const total=bkConns.reduce((s,c)=>s+c.count,0);
+
+  // Highlight
+  conns.forEach(l=>{
+    if(l.userData.from===bk.abbr||l.userData.to===bk.abbr) l.material.opacity=Math.min(0.7,l.userData.bo*12);
+    else l.material.opacity=0.002;
   });
-
-  // Highlight connected stars, dim others
-  allGlows.forEach(g=>{
-    if(g.userData.bookIdx===undefined)return;
-    const bi=g.userData.bookIdx;
-    const bk=data.books[bi];
-    if(!bk)return;
-    if(bi===idx){
-      if(g.userData.baseScale) g.scale.setScalar(g.userData.baseScale*1.8);
-      if(g.userData.baseOp) g.material.opacity=1;
-      if(g.material.map?.image?.width===256) g.material.opacity=1; // label
-    } else if(connBooks.has(bk.abbr)){
-      if(g.userData.baseScale) g.material.opacity=g.userData.baseOp||0.7;
-      if(g.material.map?.image?.width===256) g.material.opacity=0.6;
-    } else {
-      if(g.userData.baseOp!==undefined) g.material.opacity=0.08;
-      if(g.material.map?.image?.width===256) g.material.opacity=0;
-    }
+  glows.forEach(g=>{
+    const gi=g.userData.idx;
+    if(gi===idx){g.material.opacity=1;g.scale.setScalar(g.userData.bs*2);}
+    else if(connSet.has(data.books[gi]?.abbr)){g.material.opacity=g.userData.bo*0.8;}
+    else{g.material.opacity=0.04;}
   });
-
-  bookMeshes.forEach((m,i)=>{
-    if(i===idx) m.material.color.setHex(0xffffff);
-    else if(connBooks.has(data.books[i].abbr)) m.material.color.setHex(0xdddddd);
-    else m.material.color.setHex(0x333333);
+  books.forEach((m,i)=>{
+    m.material.color.setHex(i===idx?0xffffff:connSet.has(data.books[i].abbr)?0xcccccc:0x222222);
   });
+  labels.forEach((l,i)=>{l.material.opacity=i===idx?1:connSet.has(data.books[i]?.abbr)?0.4:0;});
+
+  // Spawn energy flow
+  spawnFlow(bk.abbr);
 
   // UI
-  document.getElementById('bookname').textContent=book.name;
-  document.getElementById('bookdetail').textContent=
-    `${book.chapters} chapters · ${book.section} · ${totalRefs.toLocaleString()} cross-references`;
-  const top8=conns.slice(0,8).map(c=>{
-    const o=c.from===book.abbr?c.to:c.from;
-    const ob=data.books.find(b=>b.abbr===o);
-    return `${ob?ob.name:o} (${c.count.toLocaleString()})`;
+  document.getElementById('bname').textContent=bk.name;
+  document.getElementById('bdetail').textContent=
+    `${bk.chapters} chapters · ${bk.section} · ${total.toLocaleString()} cross-references`;
+  const top8=bkConns.slice(0,8).map(c=>{
+    const o=c.from===bk.abbr?c.to:c.from;
+    return `${data.books.find(b=>b.abbr===o)?.name||o} (${c.count.toLocaleString()})`;
   });
-  document.getElementById('connections-list').textContent='Top: '+top8.join(' · ');
-  document.getElementById('info').classList.add('show');
+  document.getElementById('bconns').textContent=top8.join(' · ');
+  document.getElementById('panel').classList.add('show');
   document.getElementById('hint').style.opacity='0';
 }
 
 function deselect(){
-  if(!selected)return;
-  selected=null;controls.autoRotate=true;
-  connLines.forEach(l=>l.material.opacity=l.userData.baseOp);
-  allGlows.forEach(g=>{
-    if(g.userData.baseOp!==undefined) g.material.opacity=g.userData.baseOp;
-    if(g.userData.baseScale) g.scale.setScalar(g.userData.baseScale);
-    if(g.material.map?.image?.width===256) g.material.opacity=0;
-  });
-  bookMeshes.forEach(m=>m.material.color.setHex(0xffffff));
-  document.getElementById('info').classList.remove('show');
+  if(!selected)return;selected=null;controls.autoRotate=true;
+  conns.forEach(l=>l.material.opacity=l.userData.bo);
+  glows.forEach(g=>{g.material.opacity=g.userData.bo;g.scale.setScalar(g.userData.bs)});
+  books.forEach(m=>m.material.color.setHex(0xffffff));
+  labels.forEach(l=>l.material.opacity=0);
+  clearFlow();
+  document.getElementById('panel').classList.remove('show');
 }
 
-// ── CAMERA ANIM ──
-let camAnim=null;
-function animCam(pos,look){
-  camAnim={sp:camera.position.clone(),ep:pos,st:controls.target.clone(),et:look,t0:clock.getElapsedTime(),dur:1.8};
-}
-function updateCam(t){
-  if(!camAnim)return;
-  let p=(t-camAnim.t0)/camAnim.dur;
-  if(p>=1){p=1;camAnim=null;}
-  p=1-Math.pow(1-p,3);
-  camera.position.lerpVectors(camAnim.sp,camAnim.ep,p);
-  controls.target.lerpVectors(camAnim.st,camAnim.et,p);
+// ── Camera ──
+let camA=null;
+function animCam(p,l){camA={sp:camera.position.clone(),ep:p,st:controls.target.clone(),et:l,t0:clock.getElapsedTime(),d:2};}
+function updCam(t){
+  if(!camA)return;let p=Math.min(1,(t-camA.t0)/camA.d);
+  if(p>=1){p=1;camA=null;}p=1-Math.pow(1-p,4);
+  camera.position.lerpVectors(camA.sp,camA.ep,p);
+  controls.target.lerpVectors(camA.st,camA.et,p);
 }
 
-// ── ANIMATE ──
+// ═══════════════════════════════════════════════
+// ANIMATE
+// ═══════════════════════════════════════════════
 function animate(){
   requestAnimationFrame(animate);
   const t=clock.getElapsedTime();
-  updateCam(t);
+  const dt=clock.getDelta();
+
+  updateIntro(t);
+  updCam(t);
   controls.update();
 
-  // Pulse stars gently
-  allGlows.forEach((g,i)=>{
-    if(g.userData.baseScale && !selected){
-      const pulse=Math.sin(t*1.5+i*0.7)*0.08+1;
-      g.scale.setScalar(g.userData.baseScale*pulse);
+  // Pulse glows
+  if(!selected){
+    glows.forEach((g,i)=>{
+      const p=Math.sin(t*1.2+i*0.8)*0.12+1;
+      g.scale.setScalar(g.userData.bs*p);
+    });
+  }
+
+  // Rotate orbital rings
+  scene.traverse(o=>{
+    if(o.userData?.type==='ring')o.rotation.z=t*0.2+o.userData.idx*0.5;
+  });
+
+  // Update nebula & stars
+  scene.traverse(o=>{
+    if(o.isPoints&&o.material.uniforms?.uTime)o.material.uniforms.uTime.value=t;
+    if(o.userData?.type==='nebula')o.rotation.y=t*0.003;
+  });
+
+  // Shooting stars
+  if(shootingStars){
+    const p=shootingStars.pos,v=shootingStars.vel;
+    let dirty=false;
+    v.forEach((vel,i)=>{
+      vel.cooldown-=dt;
+      if(vel.cooldown>0){
+        p[i*6]=p[i*6+3];p[i*6+1]=p[i*6+4];p[i*6+2]=p[i*6+5];
+        return;
+      }
+      vel.life+=dt;
+      if(vel.life>vel.maxLife){
+        vel.life=0;vel.cooldown=Math.random()*12+4;vel.maxLife=Math.random()*1+0.4;
+        const a=Math.random()*Math.PI*2,r=150+Math.random()*200;
+        p[i*6]=p[i*6+3]=Math.cos(a)*r;
+        p[i*6+1]=p[i*6+4]=Math.random()*100+30;
+        p[i*6+2]=p[i*6+5]=Math.sin(a)*r;
+        vel.x=(Math.random()-0.5)*10;vel.y=-(Math.random()*4+2);vel.z=(Math.random()-0.5)*10;
+        return;
+      }
+      // Trail: head moves, tail stays
+      p[i*6+3]+=vel.x*dt*60;p[i*6+4]+=vel.y*dt*60;p[i*6+5]+=vel.z*dt*60;
+      // Tail catches up slowly
+      p[i*6]+=(p[i*6+3]-p[i*6])*dt*4;
+      p[i*6+1]+=(p[i*6+4]-p[i*6+1])*dt*4;
+      p[i*6+2]+=(p[i*6+5]-p[i*6+2])*dt*4;
+      dirty=true;
+    });
+    if(dirty){
+      shootingStars.geo.attributes.position.needsUpdate=true;
+      const hasActive=v.some(vel=>vel.cooldown<=0&&vel.life>0&&vel.life<vel.maxLife);
+      shootingStars.mesh.material.opacity=hasActive?0.6:0;
     }
-  });
+  }
 
-  // Rotate nebula slowly
-  scene.traverse(o=>{
-    if(o.userData.isNebula){o.material.uniforms.uTime.value=t;o.rotation.y=t*0.005;}
-  });
+  // Energy flow
+  updateFlow(dt);
 
-  // Update star field twinkle
-  scene.traverse(o=>{
-    if(o.isPoints && o.material.uniforms?.uTime) o.material.uniforms.uTime.value=t;
-  });
+  // Film grain time
+  composer.passes.forEach(p=>{if(p.uniforms?.uTime)p.uniforms.uTime.value=t;});
 
   composer.render();
 }
