@@ -190,7 +190,7 @@ canvas{position:fixed;top:0;left:0;width:100vw!important;height:100vh!important;
 </div>
 
 <div id="tooltip"><div class="tt-name"></div><div class="tt-detail"></div></div>
-<div id="hint">drag to orbit · scroll to zoom · click a star · Esc to deselect</div>
+<div id="hint">drag to orbit · scroll to zoom · WASD to fly · Shift = boost · click a star · Esc to deselect</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -648,7 +648,16 @@ async function init(){
   initSearch();
 
   addEventListener('resize',onResize);
-  addEventListener('keydown',e=>{if(e.key==='Escape')deselect();});
+  addEventListener('keydown',e=>{
+    if(e.key==='Escape')deselect();
+    if(e.target.tagName==='INPUT')return;
+    keysDown[e.key.toLowerCase()]=true;
+    if(e.key==='Shift')keysDown.shift=true;
+  });
+  addEventListener('keyup',e=>{
+    keysDown[e.key.toLowerCase()]=false;
+    if(e.key==='Shift')keysDown.shift=false;
+  });
   renderer.domElement.addEventListener('click',onClick);
   renderer.domElement.addEventListener('mousemove',onHover);
   renderer.domElement.addEventListener('touchend',onTouch,{passive:true});
@@ -1728,6 +1737,39 @@ function onResize(){
 /* ══════════════════════════════════════════════════════════
    ANIMATION LOOP
    ══════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════
+   WASD + QE FLIGHT CONTROLS
+   ══════════════════════════════════════════════════════════ */
+const keysDown={};
+
+function updateFlight(dt){
+  const speed=(keysDown.shift?180:50)*dt;
+  if(!Object.values(keysDown).some(v=>v))return;
+
+  // Stop auto-rotate when flying
+  if(keysDown.w||keysDown.a||keysDown.s||keysDown.d||keysDown.q||keysDown.e||keysDown.z||keysDown.r)
+    controls.autoRotate=false;
+
+  // Get camera directions
+  const forward=new THREE.Vector3();
+  camera.getWorldDirection(forward);
+  const right=new THREE.Vector3().crossVectors(forward,camera.up).normalize();
+  const up=camera.up.clone();
+
+  const move=new THREE.Vector3();
+
+  if(keysDown.w)move.add(forward.clone().multiplyScalar(speed));
+  if(keysDown.s)move.add(forward.clone().multiplyScalar(-speed));
+  if(keysDown.a)move.add(right.clone().multiplyScalar(-speed));
+  if(keysDown.d)move.add(right.clone().multiplyScalar(speed));
+  if(keysDown.q||keysDown.z)move.add(up.clone().multiplyScalar(-speed));  // down
+  if(keysDown.e||keysDown.r)move.add(up.clone().multiplyScalar(speed));   // up
+  if(keysDown[' '])move.add(up.clone().multiplyScalar(speed));            // space = up
+
+  camera.position.add(move);
+  controls.target.add(move);
+}
+
 function animate(){
   requestAnimationFrame(animate);
   const time=clock.getElapsedTime();
@@ -1735,6 +1777,7 @@ function animate(){
 
   updateIntro(time);
   updateCamAnim(time);
+  updateFlight(dt);
   controls.update();
 
   // Glow pulsing
