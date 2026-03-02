@@ -9,7 +9,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#010005;font-family:Georgia,serif}
-canvas{width:100%;height:100%;display:block}
+canvas{position:fixed;top:0;left:0;width:100vw!important;height:100vh!important;display:block}
 
 /* Cinematic intro */
 #intro{position:fixed;inset:0;z-index:300;background:#010005;display:flex;flex-direction:column;
@@ -368,8 +368,11 @@ async function init(){
   camera.position.set(0,0,0.1);
 
   renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,powerPreference:'high-performance'});
-  renderer.setSize(innerWidth,innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const dpr=Math.min(devicePixelRatio,2);
+  renderer.setPixelRatio(dpr);
+  renderer.setSize(window.innerWidth,window.innerHeight,false);
+  renderer.domElement.style.width=window.innerWidth+'px';
+  renderer.domElement.style.height=window.innerHeight+'px';
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=0.9;
 
@@ -411,6 +414,9 @@ async function init(){
   initSearch();
 
   addEventListener('resize',onResize);
+  addEventListener('orientationchange',()=>setTimeout(onResize,200));
+  // iOS Safari viewport fix: force correct size after load
+  setTimeout(onResize,100);
   addEventListener('keydown',onKey);
   renderer.domElement.addEventListener('click',onClick);
   renderer.domElement.addEventListener('mousemove',onHover);
@@ -1059,8 +1065,12 @@ function animate(){
 }
 
 function onResize(){
-  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);
+  const w=window.innerWidth,h=window.innerHeight;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h,false);
+  renderer.domElement.style.width=w+'px';
+  renderer.domElement.style.height=h+'px';
+  composer.setSize(w,h);
 }
 
 init();
