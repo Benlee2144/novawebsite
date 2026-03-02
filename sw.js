@@ -1,5 +1,6 @@
-// The Living Word — Service Worker (network-first)
-const CACHE_NAME = 'living-word-v3';
+// The Living Word — Service Worker (network-first, auto-versioned)
+// Cache busts automatically on every deploy since this file changes each push
+const CACHE_NAME = 'living-word-' + '20260302125843';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
