@@ -748,7 +748,7 @@ async function init(){
   renderer.domElement.style.width=window.innerWidth+'px';
   renderer.domElement.style.height=window.innerHeight+'px';
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=0.8;
+  renderer.toneMappingExposure=0.6;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -759,9 +759,9 @@ async function init(){
   // Enhanced bloom with better parameters
   const bloom=new UnrealBloomPass(
     new THREE.Vector2(innerWidth,innerHeight),
-    2.2,  // strength
-    0.7,  // radius  
-    0.1   // threshold
+    0.8,  // strength (was 2.2 — way too bright)
+    0.4,  // radius  
+    0.3   // threshold
   );
   composer.addPass(bloom);
 
@@ -1020,7 +1020,7 @@ async function buildEnhancedSpace(){
       void main(){
         float d=length(gl_PointCoord-0.5);
         if(d>0.5)discard;
-        float alpha=smoothstep(0.5,0.1,d)*0.06;
+        float alpha=smoothstep(0.5,0.1,d)*0.03;
         gl_FragColor=vec4(vC,alpha);
       }
     `,
@@ -1073,6 +1073,7 @@ function buildEnhancedBooks(){
       blending: THREE.AdditiveBlending
     });
     coreMat.uniforms.uColor.value = new THREE.Color(col);
+    coreMat.uniforms.uIntensity.value = 0.7;
     
     const core = new THREE.Mesh(coreGeo, coreMat);
     core.position.set(x,y,z);
@@ -1095,15 +1096,15 @@ function buildEnhancedBooks(){
       map:tex,
       color:col,
       transparent:true,
-      opacity:0.8,
+      opacity:0.35,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     });
     const glow=new THREE.Sprite(gm);
-    const gs=sz*10+3;
+    const gs=sz*6+2;
     glow.scale.set(gs,gs,1);
     glow.position.copy(core.position);
-    glow.userData={idx:i,bs:gs,bo:0.8};
+    glow.userData={idx:i,bs:gs,bo:0.35};
     scene.add(glow);
     glows.push(glow);
 
@@ -1131,12 +1132,12 @@ function createEnhancedStarTexture() {
 
   // Create main radial gradient
   let gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
-  gradient.addColorStop(0, 'rgba(255,255,255,1)');
-  gradient.addColorStop(0.01, 'rgba(255,250,235,0.98)');
-  gradient.addColorStop(0.03, 'rgba(255,245,220,0.8)');
-  gradient.addColorStop(0.08, 'rgba(255,235,180,0.5)');
-  gradient.addColorStop(0.2, 'rgba(240,200,120,0.15)');
-  gradient.addColorStop(0.4, 'rgba(180,140,60,0.03)');
+  gradient.addColorStop(0, 'rgba(255,255,255,0.7)');
+  gradient.addColorStop(0.01, 'rgba(255,250,235,0.6)');
+  gradient.addColorStop(0.03, 'rgba(255,245,220,0.4)');
+  gradient.addColorStop(0.08, 'rgba(255,235,180,0.2)');
+  gradient.addColorStop(0.2, 'rgba(240,200,120,0.08)');
+  gradient.addColorStop(0.4, 'rgba(180,140,60,0.02)');
   gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
   ctx.fillStyle = gradient;
@@ -1153,9 +1154,9 @@ function createEnhancedStarTexture() {
     let spikeGradient = ctx.createLinearGradient(-center, 0, center, 0);
     spikeGradient.addColorStop(0, 'rgba(255,255,255,0)');
     spikeGradient.addColorStop(0.4, 'rgba(255,245,220,0.05)');
-    spikeGradient.addColorStop(0.485, 'rgba(255,255,255,0.15)');
-    spikeGradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
-    spikeGradient.addColorStop(0.515, 'rgba(255,255,255,0.15)');
+    spikeGradient.addColorStop(0.485, 'rgba(255,255,255,0.08)');
+    spikeGradient.addColorStop(0.5, 'rgba(255,255,255,0.1)');
+    spikeGradient.addColorStop(0.515, 'rgba(255,255,255,0.08)');
     spikeGradient.addColorStop(0.6, 'rgba(255,245,220,0.05)');
     spikeGradient.addColorStop(1, 'rgba(255,255,255,0)');
 
@@ -1710,11 +1711,11 @@ function enhanceBookSelection(bookIdx, connectedBooks, analysis) {
   // Enhanced glow effects
   glows.forEach((g, i) => {
     if(i === bookIdx) {
-      g.material.opacity = 1;
-      g.scale.setScalar(g.userData.bs * 3);
+      g.material.opacity = 0.6;
+      g.scale.setScalar(g.userData.bs * 1.8);
     } else if(connectedBooks.has(data.books[i]?.abbr)) {
-      g.material.opacity = 0.8;
-      g.scale.setScalar(g.userData.bs * 1.5);
+      g.material.opacity = 0.4;
+      g.scale.setScalar(g.userData.bs * 1.2);
     } else {
       g.material.opacity = 0.05;
     }
@@ -1743,11 +1744,11 @@ function enhanceBookSelection(bookIdx, connectedBooks, analysis) {
   // Enhanced book highlighting
   books.forEach((book, i) => {
     if(i === bookIdx) {
-      book.userData.originalMaterial.uniforms.uIntensity.value = 2.5;
-    } else if(connectedBooks.has(data.books[i]?.abbr)) {
       book.userData.originalMaterial.uniforms.uIntensity.value = 1.2;
+    } else if(connectedBooks.has(data.books[i]?.abbr)) {
+      book.userData.originalMaterial.uniforms.uIntensity.value = 0.8;
     } else {
-      book.userData.originalMaterial.uniforms.uIntensity.value = 0.3;
+      book.userData.originalMaterial.uniforms.uIntensity.value = 0.2;
     }
   });
 
@@ -2096,7 +2097,7 @@ window.deselect = function(silent) {
   });
   
   books.forEach(book => {
-    book.userData.originalMaterial.uniforms.uIntensity.value = 1.0;
+    book.userData.originalMaterial.uniforms.uIntensity.value = 0.7;
   });
   
   labels.forEach(l => {
@@ -2141,7 +2142,7 @@ function updateIntro(t) {
     
     camera.position.set(0, easing * 80, easing * 180);
     controls.target.set(0, 0, 0);
-    renderer.toneMappingExposure = 0.8 * easing;
+    renderer.toneMappingExposure = 0.6 * easing;
     
     if(progress > 0.2) {
       document.getElementById('intro').classList.add('gone');
@@ -2173,7 +2174,7 @@ window.skipIntro = function() {
   introPhase = 0;
   camera.position.set(0, 80, 180);
   controls.target.set(0, 0, 0);
-  renderer.toneMappingExposure = 0.8;
+  renderer.toneMappingExposure = 0.6;
   controls.enabled = true;
   
   document.getElementById('intro').classList.add('gone');
