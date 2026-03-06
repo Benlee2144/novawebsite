@@ -348,6 +348,7 @@ Every study follows this exact structure. **Note the book-page and illuminated-b
 - `the-trinity-is-it-biblical.html` — Echad/Elohim/theos/logos/pneuma/homoousios, 22 words, 65+ refs, ~90 min, includes "Is the Trinity Biblical?" three-position analysis + full Nicaea/Constantinople political history
 - `the-rapture-a-doctrine-invented-in-the-1830s.html` — Harpazō/apantēsis/parousia/apokalypsis/epiphaneia/thlipsis/keleusma, 24 words, 70+ refs, ~95 min, includes pre/mid/post-trib controversy + Darby→Scofield→Left Behind invention timeline
 - `predestination-did-god-pick-winners.html` — Proorizō/eklegomai/prognōsis/boulomai/thelō study, 17 words, 60+ refs, ~90 min, includes "Does God Choose Who Gets Saved?" Calvinism vs corporate election controversy
+- `the-armor-of-god-what-each-piece-actually-is.html` — Panoplia/endynamoō/histēmi/machaira/rhēma study, 25 words, 70+ refs, ~90 min, includes "Is Spiritual Warfare Literal or Metaphorical?" three-position analysis + Isaiah 59:17 connection + Roman military historical context
 
 ## Studies Remaining (source .md files exist in root)
 - Things Twisted In The Bible — Full Breakdown
