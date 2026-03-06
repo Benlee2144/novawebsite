@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Arc Cathedral — 264,000 Connections — The Unveiled Word</title>
+<meta name="description" content="264,000 cross-references visualized. 66 books. 40 authors. 1,500 years. 3 languages. See why the Bible couldn't be an accident.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Georgia,serif;color:#fff5dc}
+canvas{position:fixed;top:0;left:0;width:100vw!important;height:100vh!important;display:block}
+
+#loading{position:fixed;inset:0;z-index:400;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1.5s}
+#loading.gone{opacity:0;pointer-events:none}
+.ld-spin{width:50px;height:50px;border:2px solid rgba(197,150,12,0.15);border-top:2px solid rgba(197,150,12,0.7);border-radius:50%;animation:spin 0.9s linear infinite;margin-bottom:18px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-text{color:rgba(197,150,12,0.5);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase}
+
+#intro{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 3s ease-out;cursor:pointer}
+#intro.gone{opacity:0;pointer-events:none}
+#intro-verse{color:rgba(197,150,12,0);font-style:italic;font-size:1.2rem;max-width:560px;text-align:center;line-height:2;transition:color 3s;letter-spacing:0.04em}
+#intro-verse.show{color:rgba(197,150,12,0.85)}
+#intro-verse cite{display:block;margin-top:14px;font-size:0.7rem;font-style:normal;color:rgba(197,150,12,0.4);letter-spacing:0.25em;text-transform:uppercase}
+#intro-stats{color:rgba(255,245,220,0);margin-top:40px;font-size:1rem;letter-spacing:0.15em;transition:color 2s 1.5s;text-align:center;line-height:2.2}
+#intro-stats.show{color:rgba(255,245,220,0.5)}
+#intro-stats strong{color:rgba(197,150,12,0.85);font-size:1.15rem}
+#intro-prompt{color:rgba(255,245,220,0);margin-top:30px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;transition:color 2s 3s;animation:pulse 3s ease-in-out infinite 4s}
+#intro-prompt.show{color:rgba(255,245,220,0.3)}
+@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:0.7}}
+#skipbtn{position:fixed;bottom:25px;right:25px;z-index:301;color:rgba(255,245,220,0.2);font-size:0.65rem;cursor:pointer;letter-spacing:0.12em;border:none;background:none;font-family:Georgia;text-transform:uppercase}
+#skipbtn:hover{color:rgba(255,245,220,0.6)}
+
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start;opacity:0;transition:opacity 2s;background:linear-gradient(180deg,rgba(0,0,0,0.5) 0%,transparent 100%)}
+#hud.show{opacity:1}
+#hud *{pointer-events:auto}
+#hud a{color:rgba(197,150,12,0.4);text-decoration:none;font-size:0.7rem;transition:color 0.3s}
+#hud a:hover{color:rgba(197,150,12,0.9)}
+#htitle{color:rgba(197,150,12,0.5);font-size:0.72rem;letter-spacing:0.3em;text-transform:uppercase}
+#hstats{color:rgba(255,245,220,0.3);font-size:0.55rem;letter-spacing:0.08em;text-align:right;line-height:1.6}
+
+#modes{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:120;display:flex;gap:4px;opacity:0;transition:opacity 2s}
+#modes.show{opacity:1}
+.mode-btn{background:rgba(255,245,220,0.04);border:1px solid rgba(197,150,12,0.12);color:rgba(255,245,220,0.45);font-family:Georgia;font-size:0.62rem;padding:6px 14px;border-radius:16px;cursor:pointer;transition:all 0.3s;letter-spacing:0.06em}
+.mode-btn:hover,.mode-btn.active{background:rgba(197,150,12,0.15);border-color:rgba(197,150,12,0.4);color:#fff5dc}
+
+#book-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;height:80px;pointer-events:none;opacity:0;transition:opacity 2s;background:linear-gradient(0deg,rgba(0,0,0,0.7) 0%,transparent 100%)}
+#book-bar.show{opacity:1}
+
+#info-panel{position:fixed;top:50%;right:20px;transform:translateY(-50%);z-index:110;width:280px;background:rgba(2,1,8,0.95);border:1px solid rgba(197,150,12,0.15);border-radius:10px;padding:20px;backdrop-filter:blur(20px);opacity:0;pointer-events:none;transition:all 0.5s;box-shadow:0 15px 50px rgba(0,0,0,0.6)}
+#info-panel.show{opacity:1;pointer-events:auto}
+#info-panel h3{color:#c5960c;font-size:1.1rem;margin-bottom:6px;text-shadow:0 0 20px rgba(197,150,12,0.3)}
+#info-panel .detail{color:rgba(255,245,220,0.5);font-size:0.7rem;margin-bottom:10px}
+#info-panel .desc{color:rgba(255,245,220,0.35);font-size:0.65rem;line-height:1.6;font-style:italic;margin-bottom:12px}
+#info-panel .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#info-panel .stat{background:rgba(197,150,12,0.04);border:1px solid rgba(197,150,12,0.08);border-radius:5px;padding:8px;text-align:center}
+#info-panel .stat-val{color:rgba(197,150,12,0.8);font-size:0.85rem;font-weight:bold}
+#info-panel .stat-lbl{color:rgba(255,245,220,0.3);font-size:0.5rem;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+#info-close{position:absolute;top:8px;right:12px;background:none;border:none;color:rgba(255,245,220,0.3);font-size:1.1rem;cursor:pointer;font-family:Georgia}
+#info-close:hover{color:rgba(255,245,220,0.8)}
+#info-conns{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
+.conn-tag{background:rgba(197,150,12,0.06);border:1px solid rgba(197,150,12,0.12);border-radius:12px;padding:3px 9px;font-size:0.52rem;color:rgba(255,245,220,0.55);cursor:pointer;transition:all 0.2s}
+.conn-tag:hover{background:rgba(197,150,12,0.2);color:#fff5dc}
+#info-link{margin-top:10px;text-align:center}
+#info-link a{color:rgba(197,150,12,0.4);text-decoration:none;font-size:0.6rem}
+#info-link a:hover{color:rgba(197,150,12,0.8)}
+
+#tooltip{position:fixed;z-index:200;pointer-events:none;background:rgba(2,1,8,0.95);border:1px solid rgba(197,150,12,0.25);border-radius:6px;padding:6px 12px;display:none;white-space:nowrap;box-shadow:0 8px 25px rgba(0,0,0,0.5);backdrop-filter:blur(12px)}
+.tt-name{color:#c5960c;font-weight:bold;font-size:0.7rem}
+.tt-detail{color:rgba(255,245,220,0.4);font-size:0.55rem;margin-top:2px}
+
+#big-stat{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:100;text-align:center;opacity:0;transition:opacity 1.5s;pointer-events:none}
+#big-stat.show{opacity:1}
+#big-stat .num{color:rgba(197,150,12,0.6);font-size:1.8rem;font-weight:bold;text-shadow:0 0 30px rgba(197,150,12,0.2)}
+#big-stat .lbl{color:rgba(255,245,220,0.25);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;margin-top:4px}
+
+#legend{position:fixed;bottom:90px;right:18px;z-index:99;opacity:0;transition:opacity 2s 2s;background:rgba(2,1,8,0.5);border:1px solid rgba(197,150,12,0.08);border-radius:7px;padding:8px 11px;backdrop-filter:blur(10px)}
+#legend.show{opacity:0.5}
+#legend:hover{opacity:1}
+.leg-title{color:rgba(197,150,12,0.4);font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;text-align:center}
+.leg-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;cursor:pointer;padding:1px 4px;border-radius:3px;transition:background 0.2s}
+.leg-row:hover{background:rgba(197,150,12,0.08)}
+.ldot{width:6px;height:6px;border-radius:50%;box-shadow:0 0 5px currentColor;flex-shrink:0}
+.llbl{color:rgba(255,245,220,0.5);font-size:0.48rem}
+
+@media(max-width:768px){
+  #info-panel{right:10px;left:10px;width:auto;top:auto;bottom:85px;transform:none}
+  #legend{display:none}
+  #big-stat .num{font-size:1.3rem}
+  #modes .mode-btn{font-size:0.55rem;padding:5px 10px}
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="ld-spin"></div><div class="ld-text">Building Cathedral</div></div>
+
+<div id="intro" onclick="startExperience()">
+  <p id="intro-verse">&ldquo;All Scripture is breathed out by God and profitable for teaching, for reproof, for correction, and for training in righteousness.&rdquo;<cite>2 Timothy 3:16</cite></p>
+  <div id="intro-stats">
+    <strong>40</strong> authors &middot; <strong>3</strong> continents &middot; <strong>3</strong> languages &middot; <strong>1,500</strong> years<br>
+    <strong>264,000</strong> connections
+  </div>
+  <div id="intro-prompt">click to enter</div>
+</div>
+<button id="skipbtn" onclick="startExperience()">skip &rarr;</button>
+
+<div id="hud">
+  <a href="../">&larr; The Unveiled Word</a>
+  <div id="htitle">The Arc Cathedral</div>
+  <div id="hstats">66 Books &middot; 264,673 Cross-References<br>40 Authors &middot; 1,500 Years</div>
+</div>
+
+<div id="modes">
+  <button class="mode-btn active" onclick="setMode('all')">All Connections</button>
+  <button class="mode-btn" onclick="setMode('strong')">Strongest</button>
+  <button class="mode-btn" onclick="setMode('ot-nt')">OT &rarr; NT</button>
+  <button class="mode-btn" onclick="setMode('section')">By Section</button>
+</div>
+
+<div id="book-bar"></div>
+
+<div id="info-panel">
+  <button id="info-close" onclick="deselectBook()">&times;</button>
+  <h3 id="ip-name"></h3>
+  <div class="detail" id="ip-detail"></div>
+  <div class="desc" id="ip-desc"></div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="ip-refs">—</div><div class="stat-lbl">References</div></div>
+    <div class="stat"><div class="stat-val" id="ip-conn">—</div><div class="stat-lbl">Connected To</div></div>
+    <div class="stat"><div class="stat-val" id="ip-rank">—</div><div class="stat-lbl">Rank</div></div>
+    <div class="stat"><div class="stat-val" id="ip-date">—</div><div class="stat-lbl">Written</div></div>
+  </div>
+  <div id="info-conns"></div>
+  <div id="info-link"></div>
+</div>
+
+<div id="big-stat"><div class="num" id="bs-num"></div><div class="lbl" id="bs-lbl"></div></div>
+<div id="tooltip"><div class="tt-name"></div><div class="tt-detail"></div></div>
+<div id="legend"></div>
+
+<canvas id="c"></canvas>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════════════════════ */
+const BOOK_INFO={Gen:"The beginning of everything — creation, the fall, the flood, and God's covenant with Abraham.",Exod:"Israel's liberation from Egypt, the giving of the Law at Sinai.",Lev:"Instructions for worship, sacrifice, and holiness.",Num:"Israel's 40 years wandering the wilderness.",Deut:"Moses' farewell speeches and covenant renewal.",Josh:"The conquest and settlement of Canaan.",Judg:"A cycle of rebellion, oppression, and deliverance.",Ruth:"A Moabite widow's loyalty leads her into the lineage of David and Jesus.",'1Sam':"Samuel, Saul's tragic reign, and David's rise.",'2Sam':"David's reign — military victories and family turmoil.",'1Kgs':"Solomon's glory and the kingdom's division.",'2Kgs':"The decline of both kingdoms.",'1Chr':"Israel's history retold, focusing on David's Temple preparations.",'2Chr':"Solomon's Temple, Judah's kings, exile. Ends with Cyrus' decree.",Ezra:"The return from exile — rebuilding the Temple.",Neh:"Rebuilding Jerusalem's walls and spiritual reforms.",Esth:"A Jewish queen saves her people from genocide.",Job:"The problem of suffering explored through poetry.",Ps:"150 songs covering every human emotion — worship, lament, praise, prophecy.",Prov:"Practical wisdom for daily life.",Eccl:"The Preacher's search for meaning under the sun.",Song:"A love poem celebrating romantic love.",Isa:"The prophet of salvation — Messianic prophecies and the Suffering Servant.",Jer:"The weeping prophet warns Judah and promises a new covenant.",Lam:"Five poems mourning Jerusalem's destruction.",Ezek:"Visions of God's glory and the valley of dry bones.",Dan:"Faithfulness in exile. Apocalyptic visions of God's eternal kingdom.",Hos:"God's love for unfaithful Israel.",Joel:"The Day of the LORD and the promise of the Spirit.",Amos:"A shepherd-prophet denounces social injustice.",Obad:"Judgment against Edom — the shortest OT book.",Jonah:"A reluctant prophet and God's mercy for enemies.",Mic:"Justice, mercy, humility. Predicts the Messiah's birth in Bethlehem.",Nah:"The fall of Nineveh.",Hab:"'The righteous shall live by faith.'",Zeph:"The coming Day of the LORD.",Hag:"After exile: rebuild the Temple.",Zech:"Messianic prophecies. The coming King rides on a donkey.",Mal:"The last OT prophet. 400 years of silence follow.",Matt:"Jesus as the promised Jewish Messiah.",Mark:"The action Gospel — Jesus as suffering servant.",Luke:"The most detailed Gospel. Jesus for all people.",John:"The theological Gospel. 'In the beginning was the Word.'",Acts:"The birth and spread of the early church.",Rom:"Paul's theological masterpiece — justification by faith.",'1Cor':"Paul addresses a divided church. Love, gifts, resurrection.",'2Cor':"Paul defends his apostleship. Weakness as strength.",Gal:"Freedom from the Law. Justification by faith alone.",Eph:"The cosmic Christ, the church as his body, spiritual warfare.",Phil:"Joy in all circumstances, written from prison.",Col:"Christ supreme over all creation.",'1Thess':"The return of Christ and living in readiness.",'2Thess':"Clarifying the Day of the Lord.",'1Tim':"Instructions for church leadership.",'2Tim':"Paul's final letter. 'I have fought the good fight.'",'Titus':"Sound doctrine and good works.",Phlm:"A personal letter about forgiveness and reconciliation.",Heb:"Christ is superior to everything.",Jas:"Faith without works is dead.",'1Pet':"Suffering with hope.",'2Pet':"Warning against false teachers.",'1John':"God is light, God is love.",'2John':"Walk in truth and love.",'3John':"Commending hospitality.",Jude:"Contend for the faith.",Rev:"Christ's ultimate victory. New heaven and new earth."};
+
+const VERSES={Gen:1533,Exod:1213,Lev:859,Num:1288,Deut:959,Josh:658,Judg:618,Ruth:85,'1Sam':810,'2Sam':695,'1Kgs':816,'2Kgs':719,'1Chr':942,'2Chr':822,Ezra:280,Neh:406,Esth:167,Job:1070,Ps:2461,Prov:915,Eccl:222,Song:117,Isa:1292,Jer:1364,Lam:154,Ezek:1273,Dan:357,Hos:197,Joel:73,Amos:146,Obad:21,Jonah:48,Mic:105,Nah:47,Hab:56,Zeph:53,Hag:38,Zech:211,Mal:55,Matt:1071,Mark:678,Luke:1151,John:879,Acts:1007,Rom:433,'1Cor':437,'2Cor':257,Gal:149,Eph:155,Phil:104,Col:95,'1Thess':89,'2Thess':47,'1Tim':113,'2Tim':83,Titus:46,Phlm:25,Heb:303,Jas:108,'1Pet':105,'2Pet':61,'1John':105,'2John':13,'3John':15,Jude:25,Rev:404};
+
+const DATES={Gen:'1400 BC',Exod:'1400 BC',Lev:'1400 BC',Num:'1400 BC',Deut:'1400 BC',Josh:'1350 BC',Judg:'1050 BC',Ruth:'1050 BC','1Sam':'930 BC','2Sam':'930 BC','1Kgs':'560 BC','2Kgs':'560 BC','1Chr':'450 BC','2Chr':'450 BC',Ezra:'440 BC',Neh:'430 BC',Esth:'470 BC',Job:'Unknown',Ps:'1000 BC',Prov:'950 BC',Eccl:'935 BC',Song:'950 BC',Isa:'700 BC',Jer:'600 BC',Lam:'586 BC',Ezek:'570 BC',Dan:'535 BC',Hos:'750 BC',Joel:'835 BC',Amos:'760 BC',Obad:'585 BC',Jonah:'760 BC',Mic:'700 BC',Nah:'660 BC',Hab:'607 BC',Zeph:'625 BC',Hag:'520 BC',Zech:'518 BC',Mal:'430 BC',Matt:'55 AD',Mark:'50 AD',Luke:'60 AD',John:'90 AD',Acts:'62 AD',Rom:'57 AD','1Cor':'55 AD','2Cor':'56 AD',Gal:'49 AD',Eph:'60 AD',Phil:'61 AD',Col:'60 AD','1Thess':'51 AD','2Thess':'51 AD','1Tim':'64 AD','2Tim':'67 AD',Titus:'64 AD',Phlm:'60 AD',Heb:'68 AD',Jas:'45 AD','1Pet':'64 AD','2Pet':'67 AD','1John':'90 AD','2John':'90 AD','3John':'90 AD',Jude:'65 AD',Rev:'95 AD'};
+
+const SEC_COLORS={
+  'Torah':[212,168,67],'History':[158,122,46],'Poetry':[107,181,255],
+  'Major Prophets':[239,85,85],'Minor Prophets':[224,136,80],
+  'Gospels':[255,240,200],'Church History':[77,216,138],
+  "Paul's Letters":[177,109,234],'General Letters':[61,216,138],'Apocalyptic':[255,68,68]
+};
+
+const OT_SECS=['Torah','History','Poetry','Major Prophets','Minor Prophets'];
+
+/* ══════════════════════════════════════════════════════════
+   GLOBALS
+   ══════════════════════════════════════════════════════════ */
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+let W,H,dpr;
+let data,bookPositions=[],selectedBook=-1,hoveredBook=-1;
+let currentMode='all';
+let animFrame=0,startTime=0;
+let introActive=true;
+let particles=[];
+let ambientParticles=[];
+
+/* ══════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════ */
+async function init(){
+  resize();
+  addEventListener('resize',resize);
+
+  try{
+    const r=await fetch('../data/galaxy_data.json');
+    data=await r.json();
+  }catch(e){data={books:[],connections:[],sections:{}};}
+
+  // Compute book positions along the bottom arc
+  computePositions();
+
+  // Build legend
+  buildLegend();
+
+  // Setup interaction
+  canvas.addEventListener('mousemove',onMouseMove);
+  canvas.addEventListener('click',onMouseClick);
+  canvas.addEventListener('touchend',onTouch,{passive:true});
+
+  document.getElementById('loading').classList.add('gone');
+
+  // Start intro
+  setTimeout(()=>{
+    document.getElementById('intro-verse').classList.add('show');
+    document.getElementById('intro-stats').classList.add('show');
+    document.getElementById('intro-prompt').classList.add('show');
+  },400);
+
+  // Init ambient particles
+  for(let i=0;i<200;i++){
+    ambientParticles.push({
+      x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-0.5)*0.15,vy:-Math.random()*0.3-0.05,
+      size:Math.random()*1.5+0.5,
+      alpha:Math.random()*0.15+0.02,
+      hue:Math.random()*40+25 // gold range
+    });
+  }
+
+  startTime=performance.now();
+  requestAnimationFrame(animate);
+}
+
+function resize(){
+  dpr=Math.min(devicePixelRatio,2);
+  W=innerWidth;H=innerHeight;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(data)computePositions();
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMPUTE BOOK POSITIONS — along bottom arc
+   ══════════════════════════════════════════════════════════ */
+function computePositions(){
+  if(!data.books.length)return;
+  bookPositions=[];
+  const n=data.books.length;
+  const margin=60;
+  const barY=H-45;
+  const usableW=W-margin*2;
+
+  data.books.forEach((bk,i)=>{
+    const t=i/(n-1);
+    const x=margin+t*usableW;
+    // Slight upward arc for the book bar
+    const arcY=barY-Math.sin(t*Math.PI)*12;
+    const col=SEC_COLORS[bk.section]||[197,150,12];
+    const totalRefs=data.connections.filter(c=>c.from===bk.abbr||c.to===bk.abbr).reduce((s,c)=>s+c.count,0);
+    bookPositions.push({x,y:arcY,bk,col,totalRefs,idx:i});
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   DRAWING
+   ══════════════════════════════════════════════════════════ */
+function animate(now){
+  requestAnimationFrame(animate);
+  animFrame++;
+  const t=(now-startTime)*0.001;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Background gradient
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#020108');
+  bg.addColorStop(0.5,'#0a0515');
+  bg.addColorStop(1,'#050210');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,H);
+
+  if(introActive)return;
+
+  // Draw ambient particles
+  drawAmbientParticles(t);
+
+  // Draw arcs
+  drawArcs(t);
+
+  // Draw book pillars
+  drawBooks(t);
+
+  // Draw timeline
+  drawTimeline();
+
+  // Update ambient particles
+  ambientParticles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}
+    if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;
+  });
+}
+
+function drawAmbientParticles(t){
+  ambientParticles.forEach(p=>{
+    const flicker=Math.sin(t*1.5+p.x*0.01)*0.3+0.7;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fillStyle=`rgba(197,150,12,${p.alpha*flicker})`;
+    ctx.fill();
+  });
+}
+
+function drawArcs(t){
+  if(!data.connections.length||!bookPositions.length)return;
+
+  const maxCount=data.connections[0]?.count||1;
+  const bookIdx={};
+  data.books.forEach((bk,i)=>{bookIdx[bk.abbr]=i;});
+
+  // Sort: draw weakest first so strongest are on top
+  const sorted=[...data.connections].sort((a,b)=>a.count-b.count);
+
+  sorted.forEach((cn,ci)=>{
+    const fi=bookIdx[cn.from];
+    const ti=bookIdx[cn.to];
+    if(fi===undefined||ti===undefined)return;
+
+    const fp=bookPositions[fi];
+    const tp=bookPositions[ti];
+    if(!fp||!tp)return;
+
+    const str=cn.count/maxCount;
+
+    // Mode filtering
+    if(currentMode==='strong'&&str<0.15)return;
+    if(currentMode==='ot-nt'){
+      const fOT=OT_SECS.includes(fp.bk.section);
+      const tOT=OT_SECS.includes(tp.bk.section);
+      if(fOT===tOT)return; // Only show OT↔NT connections
+    }
+
+    // Selection filtering
+    let isSelected=false;
+    if(selectedBook>=0){
+      const selBk=data.books[selectedBook].abbr;
+      isSelected=(cn.from===selBk||cn.to===selBk);
+      if(!isSelected)return; // Only show selected book's connections
+    }
+
+    // Arc geometry — height proportional to distance between books
+    const dist=Math.abs(fi-ti);
+    const arcHeight=30+dist*3.5+str*40;
+
+    // Control point for quadratic bezier (top of arc)
+    const midX=(fp.x+tp.x)/2;
+    const midY=Math.min(fp.y,tp.y)-arcHeight;
+
+    // Color — blend between from and to section colors
+    const fc=fp.col;const tc=tp.col;
+    const mc=[
+      Math.round((fc[0]+tc[0])/2),
+      Math.round((fc[1]+tc[1])/2),
+      Math.round((fc[2]+tc[2])/2)
+    ];
+
+    // Alpha based on strength and selection
+    let alpha;
+    if(selectedBook>=0){
+      alpha=isSelected?Math.min(0.7,0.15+str*0.8):0.005;
+    }else{
+      alpha=Math.min(0.25,0.008+str*0.35);
+    }
+
+    // Line width
+    const lw=selectedBook>=0&&isSelected?(0.5+str*3):(0.3+str*1.5);
+
+    // Draw the arc
+    ctx.beginPath();
+    ctx.moveTo(fp.x,fp.y-8);
+    ctx.quadraticCurveTo(midX,midY,tp.x,tp.y-8);
+    ctx.strokeStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},${alpha})`;
+    ctx.lineWidth=lw;
+    ctx.stroke();
+
+    // Glow for strong connections
+    if(str>0.3||(selectedBook>=0&&isSelected&&str>0.1)){
+      ctx.beginPath();
+      ctx.moveTo(fp.x,fp.y-8);
+      ctx.quadraticCurveTo(midX,midY,tp.x,tp.y-8);
+      ctx.strokeStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},${alpha*0.3})`;
+      ctx.lineWidth=lw+3;
+      ctx.stroke();
+    }
+
+    // Animated pulse for selected book's connections
+    if(selectedBook>=0&&isSelected&&str>0.05){
+      const pulse=(t*0.5+ci*0.01)%1;
+      const px=fp.x*(1-pulse)*(1-pulse)+2*midX*pulse*(1-pulse)+tp.x*pulse*pulse;
+      const py=(fp.y-8)*(1-pulse)*(1-pulse)+2*midY*pulse*(1-pulse)+(tp.y-8)*pulse*pulse;
+      ctx.beginPath();
+      ctx.arc(px,py,1.5+str*2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},${0.4+str*0.5})`;
+      ctx.fill();
+
+      // Pulse glow
+      ctx.beginPath();
+      ctx.arc(px,py,3+str*4,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},0.1)`;
+      ctx.fill();
+    }
+  });
+}
+
+function drawBooks(t){
+  if(!bookPositions.length)return;
+
+  bookPositions.forEach((bp,i)=>{
+    const isSelected=i===selectedBook;
+    const isHovered=i===hoveredBook;
+    const isConnected=selectedBook>=0&&isBookConnected(i);
+    const dimmed=selectedBook>=0&&!isSelected&&!isConnected;
+
+    const c=bp.col;
+    const baseAlpha=dimmed?0.1:(isSelected?1:isHovered?0.9:0.6);
+    const size=isSelected?6:isHovered?5:(3+bp.totalRefs/8000);
+
+    // Pillar of light going up
+    const pillarH=isSelected?35:isHovered?20:(8+bp.totalRefs/3000);
+    const pillarG=ctx.createLinearGradient(bp.x,bp.y,bp.x,bp.y-pillarH);
+    pillarG.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.5})`);
+    pillarG.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+    ctx.fillStyle=pillarG;
+    ctx.fillRect(bp.x-1,bp.y-pillarH,2,pillarH);
+
+    // Book dot
+    ctx.beginPath();
+    ctx.arc(bp.x,bp.y-8,size,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha})`;
+    ctx.fill();
+
+    // Glow
+    if(!dimmed){
+      const pulse=Math.sin(t*1.5+i*0.4)*0.2+0.8;
+      ctx.beginPath();
+      ctx.arc(bp.x,bp.y-8,size+4,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.15*pulse})`;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(bp.x,bp.y-8,size+8,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.05*pulse})`;
+      ctx.fill();
+    }
+
+    // Label
+    if(isSelected||isHovered||selectedBook===-1){
+      const showLabel=isSelected||isHovered||(W>900&&bookPositions.length<=66);
+      if(showLabel){
+        ctx.font=`${isSelected?'bold ':''}${isSelected?'11px':isHovered?'10px':'8px'} Georgia`;
+        ctx.textAlign='center';
+        ctx.fillStyle=`rgba(255,245,220,${dimmed?0.08:isSelected?0.95:isHovered?0.85:0.4})`;
+
+        // Rotate labels to avoid overlap
+        ctx.save();
+        ctx.translate(bp.x,bp.y+4);
+        ctx.rotate(Math.PI*0.35);
+        ctx.fillText(bp.bk.name,0,0);
+        ctx.restore();
+      }
+    }
+  });
+}
+
+function drawTimeline(){
+  // OT | NT divider
+  if(!bookPositions.length)return;
+  const otSections=['Torah','History','Poetry','Major Prophets','Minor Prophets'];
+  let lastOT=-1;
+  data.books.forEach((bk,i)=>{if(otSections.includes(bk.section))lastOT=i;});
+
+  if(lastOT>=0&&lastOT<bookPositions.length-1){
+    const divX=(bookPositions[lastOT].x+bookPositions[lastOT+1].x)/2;
+    ctx.beginPath();
+    ctx.moveTo(divX,H-75);
+    ctx.lineTo(divX,H-20);
+    ctx.strokeStyle='rgba(197,150,12,0.15)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font='9px Georgia';
+    ctx.textAlign='right';
+    ctx.fillStyle='rgba(197,150,12,0.25)';
+    ctx.fillText('Old Testament',divX-8,H-18);
+    ctx.textAlign='left';
+    ctx.fillText('New Testament',divX+8,H-18);
+
+    // Time labels
+    ctx.font='7px Georgia';
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,245,220,0.12)';
+    ctx.fillText('1400 BC',bookPositions[0].x,H-6);
+    ctx.fillText('95 AD',bookPositions[bookPositions.length-1].x,H-6);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════ */
+function isBookConnected(idx){
+  if(selectedBook<0)return false;
+  const selAbbr=data.books[selectedBook].abbr;
+  const checkAbbr=data.books[idx].abbr;
+  return data.connections.some(c=>
+    (c.from===selAbbr&&c.to===checkAbbr)||(c.from===checkAbbr&&c.to===selAbbr)
+  );
+}
+
+function getBookAt(mx,my){
+  let closest=-1,closestDist=30; // 30px hit radius
+  bookPositions.forEach((bp,i)=>{
+    const dx=mx-bp.x,dy=my-(bp.y-8);
+    const d=Math.sqrt(dx*dx+dy*dy);
+    if(d<closestDist){closestDist=d;closest=i;}
+  });
+  return closest;
+}
+
+/* ══════════════════════════════════════════════════════════
+   INTERACTION
+   ══════════════════════════════════════════════════════════ */
+function onMouseMove(e){
+  const mx=e.clientX,my=e.clientY;
+  const hit=getBookAt(mx,my);
+  hoveredBook=hit;
+  canvas.style.cursor=hit>=0?'pointer':'default';
+
+  const tt=document.getElementById('tooltip');
+  if(hit>=0){
+    const bk=data.books[hit];
+    const bp=bookPositions[hit];
+    tt.querySelector('.tt-name').textContent=bk.name;
+    tt.querySelector('.tt-detail').textContent=`${(VERSES[bk.abbr]||0).toLocaleString()} verses · ${bp.totalRefs.toLocaleString()} refs · ${DATES[bk.abbr]||''}`;
+    tt.style.display='block';
+    tt.style.left=(mx+14)+'px';
+    tt.style.top=(my-30)+'px';
+  }else{
+    tt.style.display='none';
+  }
+}
+
+function onMouseClick(e){
+  const hit=getBookAt(e.clientX,e.clientY);
+  if(hit>=0){
+    if(selectedBook===hit)deselectBook();
+    else selectBook(hit);
+  }else{
+    deselectBook();
+  }
+}
+
+function onTouch(e){
+  if(!e.changedTouches.length)return;
+  const t=e.changedTouches[0];
+  const hit=getBookAt(t.clientX,t.clientY);
+  if(hit>=0){
+    if(selectedBook===hit)deselectBook();
+    else selectBook(hit);
+  }else{
+    deselectBook();
+  }
+}
+
+function selectBook(idx){
+  selectedBook=idx;
+  const bk=data.books[idx];
+  const bp=bookPositions[idx];
+
+  // Compute connections
+  const conns=data.connections.filter(c=>c.from===bk.abbr||c.to===bk.abbr);
+  const totalRefs=conns.reduce((s,c)=>s+c.count,0);
+  const connectedBooks=conns.length;
+
+  // Rank
+  const ranks=data.books.map(b=>{
+    const c=data.connections.filter(cn=>cn.from===b.abbr||cn.to===b.abbr);
+    return{a:b.abbr,t:c.reduce((s,cn)=>s+cn.count,0)};
+  }).sort((a,b)=>b.t-a.t);
+  const rank=ranks.findIndex(r=>r.a===bk.abbr)+1;
+
+  document.getElementById('ip-name').textContent=bk.name;
+  document.getElementById('ip-detail').textContent=`${bk.chapters} chapters · ${(VERSES[bk.abbr]||0).toLocaleString()} verses · ${bk.section}`;
+  document.getElementById('ip-desc').textContent=BOOK_INFO[bk.abbr]||'';
+  document.getElementById('ip-refs').textContent=totalRefs.toLocaleString();
+  document.getElementById('ip-conn').textContent=connectedBooks;
+  document.getElementById('ip-rank').textContent=`#${rank}`;
+  document.getElementById('ip-date').textContent=DATES[bk.abbr]||'—';
+
+  // Top connections
+  const connsDiv=document.getElementById('info-conns');
+  connsDiv.innerHTML='';
+  conns.sort((a,b)=>b.count-a.count).slice(0,12).forEach(c=>{
+    const other=c.from===bk.abbr?c.to:c.from;
+    const ob=data.books.find(b=>b.abbr===other);if(!ob)return;
+    const tag=document.createElement('span');tag.className='conn-tag';
+    tag.textContent=`${ob.name} (${c.count.toLocaleString()})`;
+    tag.onclick=()=>selectBook(ob.index);
+    connsDiv.appendChild(tag);
+  });
+
+  const abbr=bk.abbr.toLowerCase().replace(/\s/g,'');
+  document.getElementById('info-link').innerHTML=`<a href="../interlinear/${abbr}-1.html">Read ${bk.name} →</a>`;
+
+  document.getElementById('info-panel').classList.add('show');
+
+  // Update big stat
+  document.getElementById('bs-num').textContent=totalRefs.toLocaleString();
+  document.getElementById('bs-lbl').textContent=`connections from ${bk.name}`;
+  document.getElementById('big-stat').classList.add('show');
+}
+
+window.deselectBook=function(){
+  selectedBook=-1;
+  document.getElementById('info-panel').classList.remove('show');
+  document.getElementById('big-stat').classList.remove('show');
+};
+
+/* ══════════════════════════════════════════════════════════
+   MODES
+   ══════════════════════════════════════════════════════════ */
+window.setMode=function(mode){
+  currentMode=mode;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  deselectBook();
+};
+
+/* ══════════════════════════════════════════════════════════
+   LEGEND
+   ══════════════════════════════════════════════════════════ */
+function buildLegend(){
+  const el=document.getElementById('legend');
+  el.innerHTML='<div class="leg-title">Sections</div>';
+  for(const[name,color]of Object.entries(SEC_COLORS)){
+    const d=document.createElement('div');d.className='leg-row';
+    d.innerHTML=`<span class="ldot" style="background:rgb(${color});color:rgb(${color})"></span><span class="llbl">${name}</span>`;
+    d.onclick=()=>{
+      // Highlight section — select first book in that section
+      const first=data.books.findIndex(b=>b.section===name);
+      if(first>=0)selectBook(first);
+    };
+    el.appendChild(d);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   INTRO
+   ══════════════════════════════════════════════════════════ */
+window.startExperience=function(){
+  if(!introActive)return;
+  introActive=false;
+  document.getElementById('intro').classList.add('gone');
+  document.getElementById('skipbtn').style.display='none';
+
+  setTimeout(()=>{
+    document.getElementById('hud').classList.add('show');
+    document.getElementById('book-bar').classList.add('show');
+    document.getElementById('modes').classList.add('show');
+    document.getElementById('legend').classList.add('show');
+  },500);
+
+  // Show total stats
+  setTimeout(()=>{
+    document.getElementById('bs-num').textContent='264,673';
+    document.getElementById('bs-lbl').textContent='cross-references across 66 books · 1,500 years';
+    document.getElementById('big-stat').classList.add('show');
+    setTimeout(()=>{if(selectedBook===-1)document.getElementById('big-stat').classList.remove('show');},5000);
+  },2000);
+};
+
+// Launch
+init();
+</script>
+</body>
+</html>
