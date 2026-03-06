@@ -206,13 +206,13 @@ async function init(){
   },400);
 
   // Init ambient particles
-  for(let i=0;i<200;i++){
+  for(let i=0;i<500;i++){
     ambientParticles.push({
       x:Math.random()*W,y:Math.random()*H,
-      vx:(Math.random()-0.5)*0.15,vy:-Math.random()*0.3-0.05,
-      size:Math.random()*1.5+0.5,
-      alpha:Math.random()*0.15+0.02,
-      hue:Math.random()*40+25 // gold range
+      vx:(Math.random()-0.5)*0.2,vy:-Math.random()*0.4-0.08,
+      size:Math.random()*2+0.5,
+      alpha:Math.random()*0.2+0.03,
+      hue:Math.random()*40+25
     });
   }
 
@@ -262,9 +262,10 @@ function animate(now){
 
   // Background gradient
   const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#020108');
-  bg.addColorStop(0.5,'#0a0515');
-  bg.addColorStop(1,'#050210');
+  bg.addColorStop(0,'#000000');
+  bg.addColorStop(0.4,'#030108');
+  bg.addColorStop(0.8,'#06020f');
+  bg.addColorStop(1,'#0a0418');
   ctx.fillStyle=bg;
   ctx.fillRect(0,0,W,H);
 
@@ -338,8 +339,9 @@ function drawArcs(t){
     }
 
     // Arc geometry — height proportional to distance between books
+    // TALL arcs that fill the screen like a cathedral dome
     const dist=Math.abs(fi-ti);
-    const arcHeight=30+dist*3.5+str*40;
+    const arcHeight=80+dist*7+str*80;
 
     // Control point for quadratic bezier (top of arc)
     const midX=(fp.x+tp.x)/2;
@@ -353,16 +355,16 @@ function drawArcs(t){
       Math.round((fc[2]+tc[2])/2)
     ];
 
-    // Alpha based on strength and selection
+    // Alpha — MUCH brighter so arcs are actually visible
     let alpha;
     if(selectedBook>=0){
-      alpha=isSelected?Math.min(0.7,0.15+str*0.8):0.005;
+      alpha=isSelected?Math.min(0.85,0.3+str*0.7):0.003;
     }else{
-      alpha=Math.min(0.25,0.008+str*0.35);
+      alpha=Math.min(0.5,0.03+str*0.65);
     }
 
-    // Line width
-    const lw=selectedBook>=0&&isSelected?(0.5+str*3):(0.3+str*1.5);
+    // Line width — thicker for visual impact
+    const lw=selectedBook>=0&&isSelected?(1+str*4):(0.5+str*2.5);
 
     // Draw the arc
     ctx.beginPath();
@@ -372,13 +374,21 @@ function drawArcs(t){
     ctx.lineWidth=lw;
     ctx.stroke();
 
-    // Glow for strong connections
-    if(str>0.3||(selectedBook>=0&&isSelected&&str>0.1)){
+    // Outer glow for ALL visible connections
+    ctx.beginPath();
+    ctx.moveTo(fp.x,fp.y-8);
+    ctx.quadraticCurveTo(midX,midY,tp.x,tp.y-8);
+    ctx.strokeStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},${alpha*0.2})`;
+    ctx.lineWidth=lw+4;
+    ctx.stroke();
+
+    // Extra bloom glow for strong connections
+    if(str>0.2||(selectedBook>=0&&isSelected)){
       ctx.beginPath();
       ctx.moveTo(fp.x,fp.y-8);
       ctx.quadraticCurveTo(midX,midY,tp.x,tp.y-8);
-      ctx.strokeStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},${alpha*0.3})`;
-      ctx.lineWidth=lw+3;
+      ctx.strokeStyle=`rgba(${mc[0]},${mc[1]},${mc[2]},${alpha*0.1})`;
+      ctx.lineWidth=lw+10;
       ctx.stroke();
     }
 
@@ -411,16 +421,22 @@ function drawBooks(t){
     const dimmed=selectedBook>=0&&!isSelected&&!isConnected;
 
     const c=bp.col;
-    const baseAlpha=dimmed?0.1:(isSelected?1:isHovered?0.9:0.6);
-    const size=isSelected?6:isHovered?5:(3+bp.totalRefs/8000);
+    const baseAlpha=dimmed?0.08:(isSelected?1:isHovered?0.95:0.75);
+    const size=isSelected?10:isHovered?8:(4+bp.totalRefs/4000);
 
-    // Pillar of light going up
-    const pillarH=isSelected?35:isHovered?20:(8+bp.totalRefs/3000);
+    // Pillar of light going up — TALL dramatic pillars
+    const pillarH=isSelected?80:isHovered?50:(15+bp.totalRefs/1500);
     const pillarG=ctx.createLinearGradient(bp.x,bp.y,bp.x,bp.y-pillarH);
     pillarG.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.5})`);
     pillarG.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
     ctx.fillStyle=pillarG;
-    ctx.fillRect(bp.x-1,bp.y-pillarH,2,pillarH);
+    ctx.fillRect(bp.x-2,bp.y-pillarH,4,pillarH);
+    // Wider outer glow pillar
+    const pillarG2=ctx.createLinearGradient(bp.x,bp.y,bp.x,bp.y-pillarH*0.7);
+    pillarG2.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.15})`);
+    pillarG2.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+    ctx.fillStyle=pillarG2;
+    ctx.fillRect(bp.x-6,bp.y-pillarH*0.7,12,pillarH*0.7);
 
     // Book dot
     ctx.beginPath();
@@ -432,13 +448,18 @@ function drawBooks(t){
     if(!dimmed){
       const pulse=Math.sin(t*1.5+i*0.4)*0.2+0.8;
       ctx.beginPath();
-      ctx.arc(bp.x,bp.y-8,size+4,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.15*pulse})`;
+      ctx.arc(bp.x,bp.y-8,size+6,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.25*pulse})`;
       ctx.fill();
 
       ctx.beginPath();
-      ctx.arc(bp.x,bp.y-8,size+8,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.05*pulse})`;
+      ctx.arc(bp.x,bp.y-8,size+14,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.08*pulse})`;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(bp.x,bp.y-8,size+25,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${baseAlpha*0.03*pulse})`;
       ctx.fill();
     }
 
