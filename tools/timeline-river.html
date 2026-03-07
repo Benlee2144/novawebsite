@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Timeline River — The Unveiled Word</title>
+<meta name="description" content="1,500 years. 66 books. 40 authors. Watch them connect across time.">
+<link rel="icon" href="../favicon.ico">
+<style>
+:root{--g:#c5960c;--bg:#020108;--c:rgba(255,245,220,0.8)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--c);font-family:Georgia,serif;overflow-x:hidden;overflow-y:hidden;height:100vh;cursor:grab}
+body.dragging{cursor:grabbing}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:8px 14px;display:flex;justify-content:space-between;pointer-events:none;background:linear-gradient(rgba(2,1,8,0.9),transparent)}
+nav *{pointer-events:auto}
+nav a{color:rgba(197,150,12,0.25);text-decoration:none;font-size:0.5rem;letter-spacing:0.08em;transition:color 0.3s}
+nav a:hover{color:var(--g)}
+#info{position:fixed;bottom:0;left:0;right:0;z-index:100;padding:10px 14px;background:linear-gradient(transparent,rgba(2,1,8,0.95));text-align:center}
+#info .hint{font-size:0.4rem;color:rgba(197,150,12,0.2);letter-spacing:0.08em}
+#info .year{font-size:0.7rem;color:var(--g);margin-bottom:4px;transition:opacity 0.2s}
+#legend{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:3px}
+.litem{display:flex;align-items:center;gap:5px;font-size:0.35rem;color:rgba(255,245,220,0.3);letter-spacing:0.04em;cursor:pointer;transition:color 0.3s}
+.litem:hover{color:rgba(255,245,220,0.6)}
+.ldot{width:6px;height:6px;border-radius:50%}
+#canvas{display:block;width:100%;height:100vh}
+#tooltip{position:fixed;pointer-events:none;background:rgba(2,1,8,0.95);border:1px solid rgba(197,150,12,0.2);border-radius:4px;padding:8px 12px;display:none;max-width:280px;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,0.5)}
+.tt-name{color:var(--g);font-size:0.7rem;font-weight:bold}
+.tt-meta{color:rgba(255,245,220,0.35);font-size:0.38rem;margin:3px 0}
+.tt-author{color:rgba(255,245,220,0.5);font-size:0.45rem;font-style:italic}
+.tt-arcs{margin-top:6px;border-top:1px solid rgba(197,150,12,0.08);padding-top:5px}
+.tt-arc{font-size:0.4rem;color:rgba(255,245,220,0.3);margin:2px 0;line-height:1.4}
+#silence{position:fixed;top:50%;transform:translateY(-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity 0.5s;z-index:50}
+.sil-t{font-size:clamp(0.8rem,2vw,1.2rem);color:rgba(197,150,12,0.08);letter-spacing:0.2em}
+.sil-y{font-size:0.42rem;color:rgba(197,150,12,0.05);letter-spacing:0.1em;margin-top:5px}
+@media(max-width:600px){#legend{display:none}.litem{font-size:0.3rem}}
+</style>
+</head><body>
+<nav><a href="../index.html">&larr; The Unveiled Word</a><a href="../the-evidence.html">The Evidence &rarr;</a></nav>
+
+<canvas id="canvas"></canvas>
+
+<div id="info">
+  <div class="year" id="year-display"></div>
+  <div class="hint">drag to explore &middot; scroll to zoom &middot; hover books for details</div>
+</div>
+
+<div id="legend"></div>
+<div id="tooltip"><div class="tt-name"></div><div class="tt-meta"></div><div class="tt-author"></div><div class="tt-arcs"></div></div>
+<div id="silence"><div class="sil-t">400 YEARS OF SILENCE</div><div class="sil-y">Between Malachi and Matthew</div></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
+
+const BOOKS = [["Gen", "Genesis", -1400, -1400, "OT", "Torah", "Moses"], ["Exod", "Exodus", -1400, -1400, "OT", "Torah", "Moses"], ["Lev", "Leviticus", -1400, -1400, "OT", "Torah", "Moses"], ["Num", "Numbers", -1400, -1400, "OT", "Torah", "Moses"], ["Deut", "Deuteronomy", -1400, -1400, "OT", "Torah", "Moses"], ["Josh", "Joshua", -1350, -1350, "OT", "History", "Joshua"], ["Judg", "Judges", -1050, -1050, "OT", "History", "Samuel"], ["Ruth", "Ruth", -1010, -1010, "OT", "History", "Samuel"], ["1Sam", "1 Samuel", -930, -930, "OT", "History", "Samuel"], ["2Sam", "2 Samuel", -930, -930, "OT", "History", "Samuel"], ["1Kgs", "1 Kings", -560, -560, "OT", "History", "Jeremiah"], ["2Kgs", "2 Kings", -560, -560, "OT", "History", "Jeremiah"], ["1Chr", "1 Chronicles", -430, -430, "OT", "History", "Ezra"], ["2Chr", "2 Chronicles", -430, -430, "OT", "History", "Ezra"], ["Ezra", "Ezra", -440, -440, "OT", "History", "Ezra"], ["Neh", "Nehemiah", -430, -430, "OT", "History", "Nehemiah"], ["Esth", "Esther", -460, -460, "OT", "History", "Unknown"], ["Job", "Job", -2000, -2000, "OT", "Poetry", "Unknown"], ["Ps", "Psalms", -1000, -400, "OT", "Poetry", "David"], ["Prov", "Proverbs", -950, -700, "OT", "Poetry", "Solomon"], ["Eccl", "Ecclesiastes", -935, -935, "OT", "Poetry", "Solomon"], ["Song", "Song of Solomon", -960, -960, "OT", "Poetry", "Solomon"], ["Isa", "Isaiah", -700, -680, "OT", "Major Prophets", "Isaiah"], ["Jer", "Jeremiah", -627, -580, "OT", "Major Prophets", "Jeremiah"], ["Lam", "Lamentations", -586, -586, "OT", "Major Prophets", "Jeremiah"], ["Ezek", "Ezekiel", -593, -570, "OT", "Major Prophets", "Ezekiel"], ["Dan", "Daniel", -536, -530, "OT", "Major Prophets", "Daniel"], ["Hos", "Hosea", -750, -715, "OT", "Minor Prophets", "Hosea"], ["Joel", "Joel", -835, -800, "OT", "Minor Prophets", "Joel"], ["Amos", "Amos", -760, -755, "OT", "Minor Prophets", "Amos"], ["Obad", "Obadiah", -840, -840, "OT", "Minor Prophets", "Obadiah"], ["Jonah", "Jonah", -760, -760, "OT", "Minor Prophets", "Jonah"], ["Mic", "Micah", -735, -700, "OT", "Minor Prophets", "Micah"], ["Nah", "Nahum", -660, -650, "OT", "Minor Prophets", "Nahum"], ["Hab", "Habakkuk", -607, -605, "OT", "Minor Prophets", "Habakkuk"], ["Zeph", "Zephaniah", -630, -625, "OT", "Minor Prophets", "Zephaniah"], ["Hag", "Haggai", -520, -520, "OT", "Minor Prophets", "Haggai"], ["Zech", "Zechariah", -520, -480, "OT", "Minor Prophets", "Zechariah"], ["Mal", "Malachi", -430, -430, "OT", "Minor Prophets", "Malachi"], ["Matt", "Matthew", 55, 60, "NT", "Gospels", "Matthew"], ["Mark", "Mark", 55, 59, "NT", "Gospels", "Mark"], ["Luke", "Luke", 60, 62, "NT", "Gospels", "Luke"], ["John", "John", 85, 90, "NT", "Gospels", "John"], ["Acts", "Acts", 62, 64, "NT", "Church History", "Luke"], ["Rom", "Romans", 57, 57, "NT", "Paul's Letters", "Paul"], ["1Cor", "1 Corinthians", 55, 55, "NT", "Paul's Letters", "Paul"], ["2Cor", "2 Corinthians", 56, 56, "NT", "Paul's Letters", "Paul"], ["Gal", "Galatians", 49, 49, "NT", "Paul's Letters", "Paul"], ["Eph", "Ephesians", 60, 61, "NT", "Paul's Letters", "Paul"], ["Phil", "Philippians", 61, 62, "NT", "Paul's Letters", "Paul"], ["Col", "Colossians", 60, 61, "NT", "Paul's Letters", "Paul"], ["1Thess", "1 Thessalonians", 51, 51, "NT", "Paul's Letters", "Paul"], ["2Thess", "2 Thessalonians", 51, 52, "NT", "Paul's Letters", "Paul"], ["1Tim", "1 Timothy", 63, 65, "NT", "Paul's Letters", "Paul"], ["2Tim", "2 Timothy", 66, 67, "NT", "Paul's Letters", "Paul"], ["Titus", "Titus", 65, 65, "NT", "Paul's Letters", "Paul"], ["Phlm", "Philemon", 60, 61, "NT", "Paul's Letters", "Paul"], ["Heb", "Hebrews", 67, 69, "NT", "General Letters", "Unknown"], ["Jas", "James", 45, 49, "NT", "General Letters", "James"], ["1Pet", "1 Peter", 64, 65, "NT", "General Letters", "Peter"], ["2Pet", "2 Peter", 66, 68, "NT", "General Letters", "Peter"], ["1John", "1 John", 85, 90, "NT", "General Letters", "John"], ["2John", "2 John", 85, 90, "NT", "General Letters", "John"], ["3John", "3 John", 85, 90, "NT", "General Letters", "John"], ["Jude", "Jude", 65, 80, "NT", "General Letters", "Jude"], ["Rev", "Revelation", 95, 96, "NT", "Apocalyptic", "John"]];
+const ARCS = [{"from": "Gen", "to": "Gal", "topic": "Seed of a woman", "cat": "lineage"}, {"from": "Gen", "to": "Luke", "topic": "From the line of Shem", "cat": "lineage"}, {"from": "Gen", "to": "Matt", "topic": "Blessing through Abraham", "cat": "lineage"}, {"from": "Isa", "to": "Matt", "topic": "Born of a virgin", "cat": "birth"}, {"from": "Mic", "to": "Matt", "topic": "Born in Bethlehem", "cat": "birth"}, {"from": "Mic", "to": "John", "topic": "Bethlehem confirmed by crowd", "cat": "birth"}, {"from": "Mal", "to": "Matt", "topic": "A messenger sent before him", "cat": "forerunner"}, {"from": "Isa", "to": "Luke", "topic": "Anointed to preach good news to the poor", "cat": "ministry"}, {"from": "Isa", "to": "John", "topic": "Mighty God, Everlasting Father", "cat": "nature"}, {"from": "Ps", "to": "John", "topic": "Betrayed by a close friend", "cat": "betrayal"}, {"from": "Ps", "to": "Luke", "topic": "The friend lifts his heel \u2014 a kiss", "cat": "betrayal"}, {"from": "Zech", "to": "Matt", "topic": "Sold for exactly 30 pieces of silver", "cat": "betrayal"}, {"from": "Isa", "to": "1Pet", "topic": "Wounded for our transgressions", "cat": "crucifixion"}, {"from": "Ps", "to": "Acts", "topic": "Body would not see decay", "cat": "burial"}, {"from": "Ps", "to": "Matt", "topic": "His body does not see corruption", "cat": "resurrection"}, {"from": "Ps", "to": "1Cor", "topic": "God will redeem my soul from the grave", "cat": "resurrection"}, {"from": "Ps", "to": "Eph", "topic": "Ascends on high, leads captives", "cat": "ascension"}, {"from": "Ps", "to": "Heb", "topic": "Sits at God's right hand", "cat": "ascension"}, {"from": "Jer", "to": "Heb", "topic": "A new covenant \u2014 not like the old one", "cat": "covenant"}, {"from": "Gen", "to": "Heb", "topic": "Melchizedek \u2014 king-priest brings bread and wine", "cat": "types"}, {"from": "Gen", "to": "John", "topic": "God will provide himself a lamb", "cat": "types"}, {"from": "Dan", "to": "Matt", "topic": "Coming on the clouds with power", "cat": "second_coming"}, {"from": "Zech", "to": "Acts", "topic": "His feet will stand on the Mount of Olives", "cat": "second_coming"}, {"from": "Mal", "to": "2Pet", "topic": "The Sun of Righteousness rises with healing", "cat": "second_coming"}, {"from": "Zech", "to": "Heb", "topic": "He shall be a priest upon his throne", "cat": "priesthood"}, {"from": "Isa", "to": "Heb", "topic": "An offering for sin \u2014 sanctified through his body", "cat": "purpose"}, {"from": "Isa", "to": "Rom", "topic": "Chastisement upon him \u2014 our peace", "cat": "purpose"}, {"from": "Dan", "to": "Mark", "topic": "Messiah cut off, not for himself", "cat": "purpose"}, {"from": "Dan", "to": "Rev", "topic": "God will set up a kingdom that will never be destroyed", "cat": "kingdom"}, {"from": "Isa", "to": "Rev", "topic": "The key of David \u2014 he opens and none shuts", "cat": "authority"}];
+const SEC = {"Torah": "#d4a843", "History": "#c49032", "Poetry": "#e8c468", "Major Prophets": "#b8860b", "Minor Prophets": "#cd853f", "Gospels": "#4dd88a", "Church History": "#45c47a", "Paul's Letters": "#6bb5ff", "General Letters": "#9b8ec4", "Apocalyptic": "#ef5555"};
+
+// Timeline mapping: year → x position
+const MIN_YEAR = -2100;
+const MAX_YEAR = 120;
+const TOTAL_SPAN = MAX_YEAR - MIN_YEAR;
+const WORLD_WIDTH = 1400; // total 3D width
+
+function yearToX(year) {
+  return ((year - MIN_YEAR) / TOTAL_SPAN) * WORLD_WIDTH - WORLD_WIDTH / 2;
+}
+
+function xToYear(x) {
+  return Math.round(((x + WORLD_WIDTH / 2) / WORLD_WIDTH) * TOTAL_SPAN + MIN_YEAR);
+}
+
+// Scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x020108);
+scene.fog = new THREE.FogExp2(0x020108, 0.0015);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 3000);
+camera.position.set(yearToX(-1400), 30, 180);
+camera.lookAt(yearToX(-1400), 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+// Post-processing
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.8, 0.5, 0.2);
+composer.addPass(bloom);
+
+// RIVER — a flowing line along the bottom
+const riverGeo = new THREE.BufferGeometry();
+const riverPts = [];
+const riverCols = [];
+for (let x = -WORLD_WIDTH / 2 - 50; x <= WORLD_WIDTH / 2 + 50; x += 2) {
+  const y = Math.sin(x * 0.008) * 3 + Math.sin(x * 0.003) * 5;
+  const z = Math.cos(x * 0.005) * 2;
+  riverPts.push(x, y - 15, z);
+  const yr = xToYear(x);
+  const silenceZone = yr > -400 && yr < 5;
+  const r = silenceZone ? 0.02 : 0.12;
+  const g = silenceZone ? 0.015 : 0.09;
+  const b = silenceZone ? 0.01 : 0.005;
+  riverCols.push(r, g, b);
+}
+riverGeo.setAttribute('position', new THREE.Float32BufferAttribute(riverPts, 3));
+riverGeo.setAttribute('color', new THREE.Float32BufferAttribute(riverCols, 3));
+const riverMat = new THREE.LineBasicMaterial({ vertexColors: true, linewidth: 1 });
+scene.add(new THREE.Line(riverGeo, riverMat));
+
+// RIVER PARTICLES
+const rpGeo = new THREE.BufferGeometry();
+const rpPos = [];
+for (let i = 0; i < 3000; i++) {
+  const x = (Math.random() - 0.5) * WORLD_WIDTH * 1.1;
+  const y = Math.sin(x * 0.008) * 3 + Math.sin(x * 0.003) * 5 - 15 + (Math.random() - 0.5) * 8;
+  const z = (Math.random() - 0.5) * 20;
+  rpPos.push(x, y, z);
+}
+rpGeo.setAttribute('position', new THREE.Float32BufferAttribute(rpPos, 3));
+const rpMat = new THREE.PointsMaterial({ color: 0xc5960c, size: 0.3, transparent: true, opacity: 0.15 });
+scene.add(new THREE.Points(rpGeo, rpMat));
+
+// AMBIENT DUST
+const dustGeo = new THREE.BufferGeometry();
+const dustPos = [];
+for (let i = 0; i < 5000; i++) {
+  dustPos.push(
+    (Math.random() - 0.5) * WORLD_WIDTH * 1.2,
+    (Math.random() - 0.5) * 120,
+    (Math.random() - 0.5) * 150
+  );
+}
+dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPos, 3));
+const dustMat = new THREE.PointsMaterial({ color: 0xfff5dc, size: 0.2, transparent: true, opacity: 0.04 });
+scene.add(new THREE.Points(dustGeo, dustMat));
+
+// BOOKS as glowing spheres
+const bookMeshes = [];
+const bookData = [];
+
+BOOKS.forEach((b, i) => {
+  const [abbr, name, dStart, dEnd, testament, section, author] = b;
+  const x = yearToX((dStart + dEnd) / 2);
+  const riverY = Math.sin(x * 0.008) * 3 + Math.sin(x * 0.003) * 5;
+  // Stagger books vertically by section
+  const sectionOffset = {
+    'Torah': 20, 'History': 30, 'Poetry': 45, 'Major Prophets': 35, 'Minor Prophets': 15,
+    'Gospels': 25, 'Church History': 35, "Paul's Letters": 45, 'General Letters': 30, 'Apocalyptic': 55
+  }[section] || 20;
+  const jitterY = (Math.sin(i * 2.7) * 0.3 + 0.5) * sectionOffset;
+  const jitterZ = Math.sin(i * 1.3) * 12;
+  const y = riverY - 15 + 20 + jitterY;
+  const z = jitterZ;
+
+  const col = new THREE.Color(SEC[section] || '#c5960c');
+  const majorBooks = ['Gen', 'Exod', 'Ps', 'Isa', 'Jer', 'Dan', 'Matt', 'John', 'Acts', 'Rom', 'Rev'];
+  const isMajor = majorBooks.includes(abbr);
+  const sz = isMajor ? 2.5 : 1.2;
+
+  // Outer glow
+  const glowGeo = new THREE.SphereGeometry(sz * 2.5, 12, 12);
+  const glowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.03 });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  glow.position.set(x, y, z);
+  scene.add(glow);
+
+  // Core
+  const geo = new THREE.SphereGeometry(sz, 16, 16);
+  const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.7 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  scene.add(mesh);
+
+  bookMeshes.push(mesh);
+  bookData.push({ abbr, name, section, author, dStart, dEnd, x, y, z, col, isMajor });
+
+  // Vertical line down to river
+  const lineGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(x, y - sz, z),
+    new THREE.Vector3(x, riverY - 15, z * 0.3)
+  ]);
+  const lineMat = new THREE.LineBasicMaterial({ color: col.clone(), transparent: true, opacity: 0.06 });
+  scene.add(new THREE.Line(lineGeo, lineMat));
+});
+
+// PROPHECY ARCS
+const bookIdx = {};
+bookData.forEach((b, i) => { bookIdx[b.abbr] = i; });
+
+ARCS.forEach(arc => {
+  const fi = bookIdx[arc.from];
+  const ti = bookIdx[arc.to];
+  if (fi === undefined || ti === undefined) return;
+  const fb = bookData[fi];
+  const tb = bookData[ti];
+
+  const pts = [];
+  const mid = { x: (fb.x + tb.x) / 2, y: Math.max(fb.y, tb.y) + 25 + Math.random() * 15, z: (fb.z + tb.z) / 2 - 15 };
+  const curve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(fb.x, fb.y, fb.z),
+    new THREE.Vector3(mid.x, mid.y, mid.z),
+    new THREE.Vector3(tb.x, tb.y, tb.z)
+  );
+  const points = curve.getPoints(30);
+  const arcGeo = new THREE.BufferGeometry().setFromPoints(points);
+  const catColors = {
+    lineage: '#d4a843', birth: '#e8c468', crucifixion: '#ef5555', resurrection: '#4dd88a',
+    nature: '#fff5dc', betrayal: '#ff6b6b', kingdom: '#6bb5ff', types: '#cd853f',
+    covenant: '#9b8ec4', ministry: '#45c47a', ascension: '#87ceeb', second_coming: '#ef5555'
+  };
+  const arcCol = catColors[arc.cat] || '#c5960c';
+  const arcMat = new THREE.LineBasicMaterial({ color: new THREE.Color(arcCol), transparent: true, opacity: 0.04 });
+  scene.add(new THREE.Line(arcGeo, arcMat));
+});
+
+// SILENCE ZONE marker
+const silX1 = yearToX(-400);
+const silX2 = yearToX(5);
+const silGeo = new THREE.PlaneGeometry(silX2 - silX1, 120);
+const silMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+const silMesh = new THREE.Mesh(silGeo, silMat);
+silMesh.position.set((silX1 + silX2) / 2, 20, -5);
+scene.add(silMesh);
+
+// CENTURY MARKERS
+for (let yr = -2000; yr <= 100; yr += 100) {
+  const x = yearToX(yr);
+  const tickGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(x, -28, 0),
+    new THREE.Vector3(x, -22, 0)
+  ]);
+  const tickMat = new THREE.LineBasicMaterial({ color: 0xc5960c, transparent: true, opacity: yr % 500 === 0 ? 0.08 : 0.03 });
+  scene.add(new THREE.Line(tickGeo, tickMat));
+}
+
+// LEGEND
+const legend = document.getElementById('legend');
+Object.entries(SEC).forEach(([name, color]) => {
+  const d = document.createElement('div');
+  d.className = 'litem';
+  d.innerHTML = `<div class="ldot" style="background:${color}"></div>${name}`;
+  legend.appendChild(d);
+});
+
+// INTERACTION — drag to pan
+let isDragging = false;
+let lastX = 0, lastY = 0;
+let targetX = camera.position.x;
+let targetY = camera.position.y;
+let targetZ = camera.position.z;
+
+document.addEventListener('mousedown', e => {
+  isDragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  document.body.classList.add('dragging');
+});
+document.addEventListener('mousemove', e => {
+  if (isDragging) {
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    targetX -= dx * 0.8;
+    targetY += dy * 0.3;
+    targetY = Math.max(-20, Math.min(80, targetY));
+    lastX = e.clientX;
+    lastY = e.clientY;
+  }
+  // Tooltip
+  checkHover(e);
+});
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  document.body.classList.remove('dragging');
+});
+
+// Touch
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+});
+document.addEventListener('touchmove', e => {
+  const dx = e.touches[0].clientX - touchStartX;
+  const dy = e.touches[0].clientY - touchStartY;
+  targetX -= dx * 1.2;
+  targetY += dy * 0.4;
+  targetY = Math.max(-20, Math.min(80, targetY));
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  e.preventDefault();
+}, { passive: false });
+
+// Scroll to zoom
+document.addEventListener('wheel', e => {
+  targetZ += e.deltaY * 0.3;
+  targetZ = Math.max(40, Math.min(350, targetZ));
+  e.preventDefault();
+}, { passive: false });
+
+// Hover detection
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+raycaster.params.Points = { threshold: 5 };
+const tooltip = document.getElementById('tooltip');
+
+function checkHover(e) {
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  
+  let closest = null;
+  let closestDist = 15;
+  bookMeshes.forEach((m, i) => {
+    const dist = raycaster.ray.distanceToPoint(m.position);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closest = i;
+    }
+  });
+  
+  if (closest !== null) {
+    const b = bookData[closest];
+    const ttName = tooltip.querySelector('.tt-name');
+    const ttMeta = tooltip.querySelector('.tt-meta');
+    const ttAuthor = tooltip.querySelector('.tt-author');
+    const ttArcs = tooltip.querySelector('.tt-arcs');
+    
+    ttName.textContent = b.name;
+    const dateStr = b.dStart < 0 ? `${Math.abs(b.dStart)} BC` : `${b.dStart} AD`;
+    ttMeta.textContent = `${b.section} · ${dateStr}`;
+    ttAuthor.textContent = `Written by ${b.author}`;
+    
+    // Find connected arcs
+    const connected = ARCS.filter(a => a.from === b.abbr || a.to === b.abbr);
+    if (connected.length > 0) {
+      ttArcs.innerHTML = connected.slice(0, 4).map(a =>
+        `<div class="tt-arc">${a.from === b.abbr ? '→' : '←'} ${a.topic}</div>`
+      ).join('');
+    } else { ttArcs.innerHTML = ''; }
+    
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(e.clientX + 15, innerWidth - 290) + 'px';
+    tooltip.style.top = Math.min(e.clientY - 10, innerHeight - 200) + 'px';
+    
+    // Highlight
+    bookMeshes[closest].material.opacity = 1;
+    bookMeshes[closest].scale.setScalar(1.5);
+  } else {
+    tooltip.style.display = 'none';
+    bookMeshes.forEach(m => {
+      m.material.opacity = 0.7;
+      m.scale.setScalar(1);
+    });
+  }
+}
+
+// SILENCE indicator
+const silEl = document.getElementById('silence');
+
+// YEAR DISPLAY
+const yearEl = document.getElementById('year-display');
+
+// ANIMATE
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  
+  // Smooth camera
+  camera.position.x += (targetX - camera.position.x) * 0.06;
+  camera.position.y += (targetY - camera.position.y) * 0.06;
+  camera.position.z += (targetZ - camera.position.z) * 0.06;
+  camera.lookAt(camera.position.x, 10, 0);
+  
+  // River particles drift
+  const rp = rpGeo.attributes.position.array;
+  for (let i = 0; i < rp.length; i += 3) {
+    rp[i] += 0.15;
+    if (rp[i] > WORLD_WIDTH / 2 + 50) rp[i] = -WORLD_WIDTH / 2 - 50;
+  }
+  rpGeo.attributes.position.needsUpdate = true;
+  
+  // Dust drift
+  const dp = dustGeo.attributes.position.array;
+  for (let i = 0; i < dp.length; i += 3) {
+    dp[i] += Math.sin(t + i) * 0.02;
+    dp[i + 1] += Math.sin(t * 0.5 + i * 0.3) * 0.01;
+  }
+  dustGeo.attributes.position.needsUpdate = true;
+  
+  // Book pulse
+  bookMeshes.forEach((m, i) => {
+    if (m.scale.x < 1.4) {
+      const pulse = 0.95 + Math.sin(t * 1.5 + i * 0.5) * 0.05;
+      m.scale.setScalar(pulse);
+    }
+  });
+  
+  // Year display
+  const yr = xToYear(camera.position.x);
+  const yrStr = yr < 0 ? `${Math.abs(yr)} BC` : `${yr} AD`;
+  yearEl.textContent = yrStr;
+  
+  // Silence zone
+  const inSilence = yr > -420 && yr < 20;
+  silEl.style.opacity = inSilence ? '1' : '0';
+  silEl.style.left = '50%';
+  silEl.style.transform = 'translate(-50%, -50%)';
+  
+  composer.render();
+}
+
+// Intro: slow pan from Genesis to midpoint
+let introTime = 0;
+const introTarget = yearToX(-800);
+function introAnim() {
+  introTime += 0.005;
+  if (introTime < 1) {
+    const ease = 1 - Math.pow(1 - introTime, 3);
+    targetX = yearToX(-2000) + (introTarget - yearToX(-2000)) * ease;
+    requestAnimationFrame(introAnim);
+  }
+}
+
+targetZ = 180;
+introAnim();
+animate();
+
+// Resize
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body></html>
