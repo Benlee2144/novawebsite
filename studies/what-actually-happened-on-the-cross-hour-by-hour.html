@@ -14,39 +14,14 @@
   <link rel="stylesheet" href="../css/style.css?v6">
   <link rel="stylesheet" href="../css/ancient-effects.css?v1">
   <style>
-    /* ═══ BLOOD DRIP EFFECT ═══ */
-    .blood-container{position:fixed;top:0;left:0;right:0;height:100vh;pointer-events:none;z-index:9999;overflow:hidden}
-    .blood-drip{position:absolute;top:-20px;width:var(--w,3px);background:linear-gradient(180deg,rgba(120,10,10,0) 0%,rgba(139,15,15,0.85) 8%,rgba(120,10,10,0.9) 60%,rgba(80,5,5,0.7) 90%,rgba(60,2,2,0) 100%);border-radius:0 0 50% 50%;animation:drip var(--dur,4s) var(--del,0s) ease-in forwards;opacity:0;filter:blur(0.3px)}
-    .blood-drip::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:calc(var(--w,3px) + 2px);height:calc(var(--w,3px) + 2px);background:radial-gradient(circle,rgba(139,15,15,0.9),rgba(80,5,5,0.5));border-radius:50% 50% 50% 50%/60% 60% 40% 40%}
-    .blood-pool{position:absolute;border-radius:50%;background:radial-gradient(ellipse,rgba(120,10,10,0.35),rgba(80,5,5,0.15),transparent);animation:pool-spread 3s ease-out forwards;opacity:0;filter:blur(1px)}
-    @keyframes drip{
-      0%{opacity:0;height:0}
-      5%{opacity:0.9;height:8px}
-      15%{height:40px}
-      40%{height:var(--h,120px)}
-      70%{height:var(--h,120px);opacity:0.85}
-      95%{height:var(--h,120px);opacity:0.2;transform:translateY(15px)}
-      100%{height:var(--h,120px);opacity:0;transform:translateY(20px)}
-    }
-    @keyframes pool-spread{
-      0%{opacity:0;transform:scale(0.3)}
-      30%{opacity:0.3}
-      100%{opacity:0;transform:scale(1)}
-    }
-    /* Side streaks — blood running down edges */
-    .blood-streak{position:fixed;top:0;width:2px;height:0;z-index:9998;pointer-events:none;opacity:0}
-    .blood-streak.left{left:0;background:linear-gradient(180deg,transparent,rgba(100,8,8,0.12) 10%,rgba(120,10,10,0.08) 80%,transparent);animation:streak 12s 2s ease-in-out forwards}
-    .blood-streak.right{right:0;background:linear-gradient(180deg,transparent,rgba(100,8,8,0.1) 15%,rgba(120,10,10,0.06) 85%,transparent);animation:streak 14s 5s ease-in-out forwards}
-    @keyframes streak{
-      0%{height:0;opacity:0}
-      10%{opacity:1}
-      50%{height:70vh}
-      80%{height:100vh;opacity:0.6}
-      100%{height:100vh;opacity:0}
-    }
-    /* Subtle top-of-page blood source */
-    .blood-source{position:fixed;top:-2px;left:0;right:0;height:6px;background:linear-gradient(180deg,rgba(100,8,8,0.25),transparent);z-index:9997;pointer-events:none;opacity:0;animation:source-in 3s 1s ease forwards}
-    @keyframes source-in{0%{opacity:0}50%{opacity:1}100%{opacity:0.15}}
+    /* ═══ BLOOD EFFECT — stays on the page ═══ */
+    #blood-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;overflow:visible}
+    .bdrip{position:absolute;pointer-events:none}
+    .bdrip svg{display:block;filter:drop-shadow(0 1px 2px rgba(40,0,0,0.3))}
+    /* Edge streaks that stay */
+    .edge-blood{position:absolute;top:0;width:3px;pointer-events:none;z-index:99}
+    .edge-blood.left{left:0}
+    .edge-blood.right{right:0}
   </style>
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="canonical" href="https://benlee2144.github.io/novawebsite/studies/what-actually-happened-on-the-cross-hour-by-hour.html">
@@ -699,71 +674,148 @@
     </div>
   </footer>
 
-  <!-- Blood drip elements -->
-  <div class="blood-source"></div>
-  <div class="blood-streak left"></div>
-  <div class="blood-streak right"></div>
-  <div class="blood-container" id="blood"></div>
-
   <script>
-  // Blood drip system — spawns drips as reader scrolls through the study
+  // BLOOD SYSTEM — permanent drips that stay on the page
   (function(){
-    const container=document.getElementById('blood');
-    let lastScroll=0;
-    let dripCount=0;
-    const maxDrips=40; // Don't overwhelm
-    let scrollAccum=0;
+    // Create the blood layer inside the study body so drips scroll with content
+    const study=document.querySelector('.book-page')||document.body;
+    const layer=document.createElement('div');
+    layer.id='blood-layer';
+    study.style.position='relative';
+    study.appendChild(layer);
 
-    function makeDrip(){
-      if(dripCount>maxDrips)return;
-      dripCount++;
-      const drip=document.createElement('div');
-      drip.className='blood-drip';
-      const w=Math.random()*3+1.5; // 1.5-4.5px width
-      const h=Math.random()*160+60; // 60-220px height
-      const x=Math.random()*100; // random horizontal position
-      const dur=Math.random()*4+3; // 3-7s duration
-      drip.style.cssText=`left:${x}%;--w:${w}px;--h:${h}px;--dur:${dur}s;--del:${Math.random()*0.5}s`;
-      container.appendChild(drip);
+    let lastY=0,accum=0,total=0;
 
-      // Pool at bottom of drip
-      setTimeout(()=>{
-        const pool=document.createElement('div');
-        pool.className='blood-pool';
-        const pw=w*3+Math.random()*6;
-        pool.style.cssText=`left:calc(${x}% - ${pw/2}px);top:${h+5}px;width:${pw}px;height:${pw*0.4}px;animation-delay:0s`;
-        container.appendChild(pool);
-        setTimeout(()=>pool.remove(),4000);
-      },dur*700);
+    // Generate realistic SVG blood drip
+    function makeSVG(w,h){
+      // Drip body with organic wobble
+      const hw=w/2;
+      const bulge=w*0.7+Math.random()*w*0.5; // Bottom droplet size
+      const wobble1=hw*(0.3+Math.random()*0.4);
+      const wobble2=hw*(0.2+Math.random()*0.3);
+      const neckY=h*0.75+Math.random()*h*0.15;
 
-      // Clean up after animation
-      setTimeout(()=>{drip.remove();dripCount--;},dur*1000+2000);
+      // Blood colors — dark realistic arterial/venous mix
+      const r=100+Math.floor(Math.random()*40); // 100-140
+      const g=Math.floor(Math.random()*12); // 0-12
+      const b=Math.floor(Math.random()*12);
+      const c1=`rgb(${r},${g},${b})`;
+      const c2=`rgb(${r-30},${g},${b})`;
+      const c3=`rgb(${r+15},${g+5},${b+3})`;
+      const id='bg'+Math.random().toString(36).slice(2,8);
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(bulge*2+4)}" height="${Math.ceil(h+bulge+6)}" viewBox="${-bulge-2} 0 ${bulge*2+4} ${h+bulge+6}">
+        <defs>
+          <linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${c1}" stop-opacity="0.6"/>
+            <stop offset="15%" stop-color="${c1}" stop-opacity="0.92"/>
+            <stop offset="60%" stop-color="${c2}" stop-opacity="0.95"/>
+            <stop offset="85%" stop-color="${c3}" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="${c2}" stop-opacity="0.85"/>
+          </linearGradient>
+        </defs>
+        <path d="
+          M 0 0
+          C ${wobble1} ${h*0.2}, ${-wobble2} ${h*0.5}, ${hw*0.3} ${neckY}
+          C ${hw*0.5} ${h*0.9}, ${bulge} ${h*0.95}, ${bulge*0.6} ${h+bulge*0.3}
+          A ${bulge*0.6} ${bulge*0.45} 0 1 1 ${-bulge*0.6} ${h+bulge*0.3}
+          C ${-bulge} ${h*0.95}, ${-hw*0.5} ${h*0.9}, ${-hw*0.3} ${neckY}
+          C ${wobble2} ${h*0.5}, ${-wobble1} ${h*0.2}, 0 0
+          Z
+        " fill="url(#${id})" />
+        <ellipse cx="0" cy="${h+bulge*0.3}" rx="${bulge*0.35}" ry="${bulge*0.18}" fill="${c3}" opacity="0.3"/>
+      </svg>`;
     }
 
-    // Spawn drips on scroll — more drips as you get deeper into the study
+    // Splatter/pool SVG
+    function makePool(size){
+      const r=100+Math.floor(Math.random()*35);
+      const c=`rgb(${r},${Math.floor(Math.random()*10)},${Math.floor(Math.random()*10)})`;
+      const rx=size*(0.8+Math.random()*0.4);
+      const ry=size*(0.3+Math.random()*0.3);
+      const rot=Math.random()*360;
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${rx*2+4}" height="${ry*2+4}" viewBox="0 0 ${rx*2+4} ${ry*2+4}">
+        <ellipse cx="${rx+2}" cy="${ry+2}" rx="${rx}" ry="${ry}" fill="${c}" opacity="${0.2+Math.random()*0.15}" transform="rotate(${rot} ${rx+2} ${ry+2})"/>
+        <ellipse cx="${rx+2+Math.random()*4-2}" cy="${ry+2+Math.random()*2}" rx="${rx*0.5}" ry="${ry*0.6}" fill="${c}" opacity="${0.1+Math.random()*0.1}" transform="rotate(${rot+20} ${rx+2} ${ry+2})"/>
+      </svg>`;
+    }
+
+    // Edge streak — long thin blood run down left or right margin
+    function makeEdgeStreak(side){
+      const h=200+Math.random()*400;
+      const w=2+Math.random()*3;
+      const y=Math.random()*document.documentElement.scrollHeight*0.8;
+      const r=90+Math.floor(Math.random()*40);
+      const c=`rgb(${r},${Math.floor(Math.random()*8)},${Math.floor(Math.random()*8)})`;
+
+      const el=document.createElement('div');
+      el.className='edge-blood '+side;
+      el.style.cssText=`top:${y}px;width:${w}px;height:${h}px;background:linear-gradient(180deg,transparent,${c}88 5%,${c}aa 30%,${c}77 70%,${c}44 90%,transparent);border-radius:${w}px;`;
+      layer.appendChild(el);
+    }
+
+    function spawnDrip(){
+      const pageW=study.offsetWidth;
+      const scrollY=window.scrollY||window.pageYOffset;
+      const viewH=window.innerHeight;
+      // Place drip within the currently visible area
+      const y=scrollY+Math.random()*viewH*0.6;
+      const x=Math.random()*pageW;
+
+      const w=3+Math.random()*6; // width 3-9
+      const h=40+Math.random()*180; // height 40-220
+
+      const el=document.createElement('div');
+      el.className='bdrip';
+      el.innerHTML=makeSVG(w,h);
+      el.style.cssText=`left:${x}px;top:${y}px;opacity:0;transition:opacity 0.8s`;
+      layer.appendChild(el);
+      // Fade in
+      requestAnimationFrame(()=>{requestAnimationFrame(()=>{el.style.opacity='1';});});
+
+      // Pool below drip
+      if(Math.random()<0.6){
+        const pool=document.createElement('div');
+        pool.className='bdrip';
+        pool.innerHTML=makePool(w*2+Math.random()*8);
+        pool.style.cssText=`left:${x-w*2}px;top:${y+h+w}px;opacity:0;transition:opacity 1.2s 0.5s`;
+        layer.appendChild(pool);
+        requestAnimationFrame(()=>{requestAnimationFrame(()=>{pool.style.opacity='1';});});
+      }
+
+      total++;
+    }
+
+    // Scroll listener — spawn blood as you read
     window.addEventListener('scroll',()=>{
       const y=window.scrollY;
-      const diff=Math.abs(y-lastScroll);
-      scrollAccum+=diff;
-      lastScroll=y;
+      const diff=Math.abs(y-lastY);
+      accum+=diff;
+      lastY=y;
 
-      // Deeper in the page = more drips (intensity builds)
-      const depth=y/(document.documentElement.scrollHeight-window.innerHeight);
-      const threshold=Math.max(80,300-depth*250); // Easier to trigger deeper in
+      const depth=y/(document.documentElement.scrollHeight-window.innerHeight||1);
+      // More blood deeper in the study
+      const threshold=depth<0.15?500:depth<0.3?300:depth<0.6?180:100;
 
-      if(scrollAccum>threshold){
-        scrollAccum=0;
-        const numDrips=depth>0.4?Math.ceil(Math.random()*3):1;
-        for(let i=0;i<numDrips;i++){
-          setTimeout(()=>makeDrip(),i*200);
-        }
+      if(accum>threshold&&total<200){
+        accum=0;
+        const n=depth>0.5?Math.ceil(Math.random()*3):depth>0.3?Math.ceil(Math.random()*2):1;
+        for(let i=0;i<n;i++) setTimeout(()=>spawnDrip(),i*300);
       }
     });
 
-    // Initial drips after page load
-    setTimeout(()=>{makeDrip();},2000);
-    setTimeout(()=>{makeDrip();},3500);
-    setTimeout(()=>{makeDrip();},5000);
+    // Initial blood after page load
+    setTimeout(()=>{spawnDrip();},1500);
+    setTimeout(()=>{spawnDrip();},3000);
+    setTimeout(()=>{spawnDrip();},5000);
+
+    // Edge streaks
+    setTimeout(()=>{
+      makeEdgeStreak('left');
+      makeEdgeStreak('right');
+      setTimeout(()=>makeEdgeStreak('left'),4000);
+      setTimeout(()=>makeEdgeStreak('right'),7000);
+    },2000);
   })();
   </script>
 
