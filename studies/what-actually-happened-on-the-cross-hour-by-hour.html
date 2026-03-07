@@ -13,6 +13,41 @@
   <meta name="twitter:card" content="summary">
   <link rel="stylesheet" href="../css/style.css?v6">
   <link rel="stylesheet" href="../css/ancient-effects.css?v1">
+  <style>
+    /* ═══ BLOOD DRIP EFFECT ═══ */
+    .blood-container{position:fixed;top:0;left:0;right:0;height:100vh;pointer-events:none;z-index:9999;overflow:hidden}
+    .blood-drip{position:absolute;top:-20px;width:var(--w,3px);background:linear-gradient(180deg,rgba(120,10,10,0) 0%,rgba(139,15,15,0.85) 8%,rgba(120,10,10,0.9) 60%,rgba(80,5,5,0.7) 90%,rgba(60,2,2,0) 100%);border-radius:0 0 50% 50%;animation:drip var(--dur,4s) var(--del,0s) ease-in forwards;opacity:0;filter:blur(0.3px)}
+    .blood-drip::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:calc(var(--w,3px) + 2px);height:calc(var(--w,3px) + 2px);background:radial-gradient(circle,rgba(139,15,15,0.9),rgba(80,5,5,0.5));border-radius:50% 50% 50% 50%/60% 60% 40% 40%}
+    .blood-pool{position:absolute;border-radius:50%;background:radial-gradient(ellipse,rgba(120,10,10,0.35),rgba(80,5,5,0.15),transparent);animation:pool-spread 3s ease-out forwards;opacity:0;filter:blur(1px)}
+    @keyframes drip{
+      0%{opacity:0;height:0}
+      5%{opacity:0.9;height:8px}
+      15%{height:40px}
+      40%{height:var(--h,120px)}
+      70%{height:var(--h,120px);opacity:0.85}
+      95%{height:var(--h,120px);opacity:0.2;transform:translateY(15px)}
+      100%{height:var(--h,120px);opacity:0;transform:translateY(20px)}
+    }
+    @keyframes pool-spread{
+      0%{opacity:0;transform:scale(0.3)}
+      30%{opacity:0.3}
+      100%{opacity:0;transform:scale(1)}
+    }
+    /* Side streaks — blood running down edges */
+    .blood-streak{position:fixed;top:0;width:2px;height:0;z-index:9998;pointer-events:none;opacity:0}
+    .blood-streak.left{left:0;background:linear-gradient(180deg,transparent,rgba(100,8,8,0.12) 10%,rgba(120,10,10,0.08) 80%,transparent);animation:streak 12s 2s ease-in-out forwards}
+    .blood-streak.right{right:0;background:linear-gradient(180deg,transparent,rgba(100,8,8,0.1) 15%,rgba(120,10,10,0.06) 85%,transparent);animation:streak 14s 5s ease-in-out forwards}
+    @keyframes streak{
+      0%{height:0;opacity:0}
+      10%{opacity:1}
+      50%{height:70vh}
+      80%{height:100vh;opacity:0.6}
+      100%{height:100vh;opacity:0}
+    }
+    /* Subtle top-of-page blood source */
+    .blood-source{position:fixed;top:-2px;left:0;right:0;height:6px;background:linear-gradient(180deg,rgba(100,8,8,0.25),transparent);z-index:9997;pointer-events:none;opacity:0;animation:source-in 3s 1s ease forwards}
+    @keyframes source-in{0%{opacity:0}50%{opacity:1}100%{opacity:0.15}}
+  </style>
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="canonical" href="https://benlee2144.github.io/novawebsite/studies/what-actually-happened-on-the-cross-hour-by-hour.html">
 </head>
@@ -663,6 +698,74 @@
       <p class="footer-brand">The Unveiled Word &mdash; Soli Deo Gloria</p>
     </div>
   </footer>
+
+  <!-- Blood drip elements -->
+  <div class="blood-source"></div>
+  <div class="blood-streak left"></div>
+  <div class="blood-streak right"></div>
+  <div class="blood-container" id="blood"></div>
+
+  <script>
+  // Blood drip system — spawns drips as reader scrolls through the study
+  (function(){
+    const container=document.getElementById('blood');
+    let lastScroll=0;
+    let dripCount=0;
+    const maxDrips=40; // Don't overwhelm
+    let scrollAccum=0;
+
+    function makeDrip(){
+      if(dripCount>maxDrips)return;
+      dripCount++;
+      const drip=document.createElement('div');
+      drip.className='blood-drip';
+      const w=Math.random()*3+1.5; // 1.5-4.5px width
+      const h=Math.random()*160+60; // 60-220px height
+      const x=Math.random()*100; // random horizontal position
+      const dur=Math.random()*4+3; // 3-7s duration
+      drip.style.cssText=`left:${x}%;--w:${w}px;--h:${h}px;--dur:${dur}s;--del:${Math.random()*0.5}s`;
+      container.appendChild(drip);
+
+      // Pool at bottom of drip
+      setTimeout(()=>{
+        const pool=document.createElement('div');
+        pool.className='blood-pool';
+        const pw=w*3+Math.random()*6;
+        pool.style.cssText=`left:calc(${x}% - ${pw/2}px);top:${h+5}px;width:${pw}px;height:${pw*0.4}px;animation-delay:0s`;
+        container.appendChild(pool);
+        setTimeout(()=>pool.remove(),4000);
+      },dur*700);
+
+      // Clean up after animation
+      setTimeout(()=>{drip.remove();dripCount--;},dur*1000+2000);
+    }
+
+    // Spawn drips on scroll — more drips as you get deeper into the study
+    window.addEventListener('scroll',()=>{
+      const y=window.scrollY;
+      const diff=Math.abs(y-lastScroll);
+      scrollAccum+=diff;
+      lastScroll=y;
+
+      // Deeper in the page = more drips (intensity builds)
+      const depth=y/(document.documentElement.scrollHeight-window.innerHeight);
+      const threshold=Math.max(80,300-depth*250); // Easier to trigger deeper in
+
+      if(scrollAccum>threshold){
+        scrollAccum=0;
+        const numDrips=depth>0.4?Math.ceil(Math.random()*3):1;
+        for(let i=0;i<numDrips;i++){
+          setTimeout(()=>makeDrip(),i*200);
+        }
+      }
+    });
+
+    // Initial drips after page load
+    setTimeout(()=>{makeDrip();},2000);
+    setTimeout(()=>{makeDrip();},3500);
+    setTimeout(()=>{makeDrip();},5000);
+  })();
+  </script>
 
   <script src="../js/main.js?v3" data-base-path="../"></script>
   <script src="../js/ancient-effects.js?v1"></script>
