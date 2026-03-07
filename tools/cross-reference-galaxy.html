@@ -296,6 +296,7 @@ let data,introPhase=0,introTime=0;
 let audioCtx,masterGain,audioOn=false;
 let camAnim=null;
 let godRayMesh,auroraMeshes=[];
+let crossHaloMesh;
 
 /* ══════════════════════════════════════════════════════════
    POST-PROCESSING SHADERS
@@ -613,11 +614,11 @@ async function init(){
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=0.55;
 
-  // Post-processing
+  // Post-processing with enhanced bloom
   composer=new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene,camera));
 
-  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.7,0.5,0.25);
+  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.9,0.6,0.2); // Enhanced bloom
   composer.addPass(bloom);
 
   const cinematic=new ShaderPass(cinematicShader);
@@ -641,7 +642,7 @@ async function init(){
   buildGodRays();
   buildAurora();
   buildDustLanes();
-  buildCross();
+  buildCrossHalo();  // Changed from buildCross
   buildBooks();
   buildConnections();
   buildLegend();
@@ -895,151 +896,109 @@ function buildDustLanes(){
 }
 
 /* ══════════════════════════════════════════════════════════
-   BOOKS — volumetric spheres with pulsing shaders
+   CROSS HALO — Golden particle aura around cross formation
    ══════════════════════════════════════════════════════════ */
-const dpr=Math.min(devicePixelRatio,2);
-
-/* ══════════════════════════════════════════════════════════
-   THE CROSS — subtle particle cross deep in the background
-   Every line of Scripture ties back to this.
-   ══════════════════════════════════════════════════════════ */
-function buildCross(){
-  // Realistic crucifix proportions behind the galaxy
-  // Vertical beam: tall, slightly tapered at top
-  // Horizontal beam: about 60% up, shorter than vertical
-  // INRI plaque area: subtle brightening near top
-  // Foot rest: small angled piece near bottom
-
+function buildCrossHalo(){
   const particles=[];
-  const crossY=0;       // Center Y of the cross in scene
-  const crossZ=-280;    // Deep behind the galaxy
-  const crossX=0;
-
-  // Dimensions (scene units)
-  const vHeight=180;    // Full vertical beam height
-  const vWidth=8;       // Vertical beam width
-  const hWidth=110;     // Horizontal beam full width
-  const hHeight=8;      // Horizontal beam height
-  const hY=vHeight*0.28; // Horizontal beam positioned ~60% up from center (cross arm position)
-  const beamDepth=4;    // Depth variation
-
-  // Helper: add particles filling a 3D box with density
-  function fillBox(cx,cy,cz,w,h,d,density,brighten){
-    const count=Math.floor(w*h*density);
-    for(let i=0;i<count;i++){
-      const px=cx+(Math.random()-0.5)*w;
-      const py=cy+(Math.random()-0.5)*h;
-      const pz=cz+(Math.random()-0.5)*d;
-      // Distance from beam center for edge softness
-      const edgeX=Math.abs(px-cx)/(w*0.5);
-      const edgeY=Math.abs(py-cy)/(h*0.5);
-      const edge=Math.max(edgeX,edgeY);
-      const bright=brighten||(1.0-edge*0.3);
-      particles.push({x:px,y:py,z:pz,bright});
-    }
+  const crossY=35; // Match the horizontal beam Y position
+  
+  // Vertical halo particles
+  for(let i=0;i<500;i++){
+    const y=120+(Math.random()-0.5)*280; // Y from -140 to 140 with some spread
+    const x=(Math.random()-0.5)*15; // Narrow around X=0
+    const z=(Math.random()-0.5)*15; 
+    const dist=Math.sqrt(x*x+z*z);
+    const bright=0.3+0.4*Math.exp(-dist*0.2); // Brighter near center
+    particles.push({x,y,z,bright,type:'vertical'});
   }
-
-  // Vertical beam
-  fillBox(crossX, crossY, crossZ, vWidth, vHeight, beamDepth, 6);
-
-  // Horizontal beam (crossbar)
-  fillBox(crossX, crossY+hY, crossZ, hWidth, hHeight, beamDepth, 6);
-
-  // Wood grain texture effect — extra particles along the beams with slight offsets
-  // Vertical grain lines
-  for(let g=0;g<6;g++){
-    const gx=crossX+(g-2.5)*1.3;
-    const count=Math.floor(vHeight*0.8);
-    for(let i=0;i<count;i++){
-      const py=crossY-vHeight*0.4+i*(vHeight*0.8/count);
-      particles.push({x:gx+(Math.random()-0.5)*0.4, y:py, z:crossZ+(Math.random()-0.5)*1, bright:0.4+Math.random()*0.2});
-    }
-  }
-  // Horizontal grain lines
-  for(let g=0;g<4;g++){
-    const gy=crossY+hY+(g-1.5)*1.5;
-    const count=Math.floor(hWidth*0.7);
-    for(let i=0;i<count;i++){
-      const px=crossX-hWidth*0.35+i*(hWidth*0.7/count);
-      particles.push({x:px, y:gy+(Math.random()-0.5)*0.3, z:crossZ+(Math.random()-0.5)*1, bright:0.35+Math.random()*0.2});
-    }
-  }
-
-  // INRI area — slightly brighter cluster near top of vertical beam
-  fillBox(crossX, crossY+vHeight*0.42, crossZ+1, vWidth*1.3, 5, 2, 5, 0.8);
-
-  // Crown of thorns suggestion — ring of scattered particles at top
-  const crownY=crossY+vHeight*0.35;
-  for(let i=0;i<120;i++){
-    const angle=Math.random()*Math.PI*2;
-    const r=5+Math.random()*3;
-    const px=crossX+Math.cos(angle)*r+(Math.random()-0.5)*1.5;
-    const py=crownY+Math.sin(angle)*r*0.4+(Math.random()-0.5)*2;
-    particles.push({x:px, y:py, z:crossZ+(Math.random()-0.5)*3, bright:0.25+Math.random()*0.15});
-  }
-
-  // Nail points — brighter spots at the three nail locations
-  // Left hand
-  fillBox(crossX-hWidth*0.42, crossY+hY, crossZ+2, 4, 4, 2, 12, 0.9);
-  // Right hand
-  fillBox(crossX+hWidth*0.42, crossY+hY, crossZ+2, 4, 4, 2, 12, 0.9);
-  // Feet
-  fillBox(crossX, crossY-vHeight*0.42, crossZ+2, 5, 5, 2, 10, 0.85);
-
-  // Radiating light from behind the cross — glory rays
+  
+  // Horizontal halo particles
   for(let i=0;i<400;i++){
-    const angle=Math.random()*Math.PI*2;
-    const r=20+Math.random()*80;
-    const px=crossX+Math.cos(angle)*r;
-    const py=crossY+hY*0.5+Math.sin(angle)*r*0.7; // Centered slightly above middle
-    const pz=crossZ-5-Math.random()*15; // Behind the cross
-    const falloff=1.0-r/100;
-    particles.push({x:px, y:py, z:pz, bright:Math.max(0.2,falloff*0.6)});
+    const x=-120+(Math.random()-0.5)*260; // X from -130 to 130 with spread  
+    const y=crossY+(Math.random()-0.5)*20; // Around crossbar
+    const z=(Math.random()-0.5)*15;
+    const dist=Math.abs(y-crossY)+Math.abs(z)*0.5;
+    const bright=0.2+0.5*Math.exp(-dist*0.15);
+    particles.push({x,y,z,bright,type:'horizontal'});
+  }
+  
+  // Intersection glow - extra particles at cross center
+  for(let i=0;i<200;i++){
+    const x=(Math.random()-0.5)*25;
+    const y=crossY+(Math.random()-0.5)*25;
+    const z=(Math.random()-0.5)*25;
+    const dist=Math.sqrt(x*x+(y-crossY)*(y-crossY)+z*z);
+    const bright=0.6+0.4*Math.exp(-dist*0.1);
+    particles.push({x,y,z,bright,type:'intersection'});
+  }
+  
+  // Surrounding cross outline particles for distance viewing
+  // Vertical outline
+  for(let y=-120;y<=120;y+=2){
+    [-12,12].forEach(x=>{
+      [0,6,-6].forEach(z=>{
+        particles.push({x:x+(Math.random()-0.5)*3,y:y+(Math.random()-0.5)*3,z:z+(Math.random()-0.5)*3,bright:0.15,type:'outline'});
+      });
+    });
+  }
+  
+  // Horizontal outline
+  for(let x=-100;x<=100;x+=3){
+    [crossY-8,crossY+8].forEach(y=>{
+      [0,5,-5].forEach(z=>{
+        particles.push({x:x+(Math.random()-0.5)*3,y:y+(Math.random()-0.5)*3,z:z+(Math.random()-0.5)*3,bright:0.15,type:'outline'});
+      });
+    });
   }
 
-  // Build geometry
   const N=particles.length;
   const pos=new Float32Array(N*3);
   const sizes=new Float32Array(N);
   const colors=new Float32Array(N*3);
+  const phases=new Float32Array(N); // For animation offset
 
   particles.forEach((p,i)=>{
     pos[i*3]=p.x;
     pos[i*3+1]=p.y;
     pos[i*3+2]=p.z;
-    sizes[i]=1.5+Math.random()*2.5;
+    sizes[i]=0.8+Math.random()*1.2;
+    phases[i]=Math.random()*6.283;
 
-    // Warm wood/gold tones — bright enough to see
-    const b=Math.max(0.5, p.bright||0.7);
-    const warmth=Math.random()*0.15;
-    colors[i*3]=(0.9+warmth)*b;       // R — warm gold
-    colors[i*3+1]=(0.7+warmth)*b;     // G — gold
-    colors[i*3+2]=(0.3+warmth*0.5)*b; // B — warm
+    // Golden church window colors
+    const b=Math.max(0.2,p.bright||0.4);
+    const warmth=Math.random()*0.2;
+    colors[i*3]=(0.95+warmth)*b;       // R — bright gold
+    colors[i*3+1]=(0.8+warmth)*b;      // G — warm gold  
+    colors[i*3+2]=(0.4+warmth*0.3)*b;  // B — golden
   });
 
   const geo=new THREE.BufferGeometry();
   geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
   geo.setAttribute('size',new THREE.BufferAttribute(sizes,1));
   geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  geo.setAttribute('phase',new THREE.BufferAttribute(phases,1));
 
   const mat=new THREE.ShaderMaterial({
     uniforms:{uTime:{value:0},uPR:{value:dpr}},
     vertexShader:`
-      attribute float size;
+      attribute float size,phase;
       varying vec3 vC;
       varying float vAlpha;
       uniform float uTime,uPR;
       void main(){
         vC=color;
-        // Subtle upward drift — particles ascending slowly
+        // Gentle floating motion
         vec3 p=position;
-        float drift=mod(uTime*0.8+position.x*0.01+position.y*0.005,20.0);
-        p.y+=drift*0.5;
-        // Gentle flicker
-        vAlpha=0.85+sin(uTime*1.5+position.x*0.3+position.y*0.2)*0.15;
+        p.y+=sin(uTime*0.5+phase)*1.5;
+        p.x+=cos(uTime*0.3+phase*1.2)*1.0;
+        p.z+=sin(uTime*0.4+phase*0.8)*1.2;
+        
+        // Soft pulsing 
+        vAlpha=0.4+sin(uTime*1.2+phase)*0.3;
+        
         vec4 mv=modelViewMatrix*vec4(p,1.0);
         gl_Position=projectionMatrix*mv;
-        gl_PointSize=size*uPR*(120.0/-mv.z);
+        gl_PointSize=size*uPR*(80.0/-mv.z);
       }
     `,
     fragmentShader:`
@@ -1048,7 +1007,7 @@ function buildCross(){
       void main(){
         float d=length(gl_PointCoord-0.5);
         if(d>0.5)discard;
-        float a=smoothstep(0.5,0.05,d)*vAlpha*0.55;
+        float a=smoothstep(0.5,0.0,d)*vAlpha*0.25;
         gl_FragColor=vec4(vC,a);
       }
     `,
@@ -1058,41 +1017,64 @@ function buildCross(){
     vertexColors:true
   });
 
-  const crossMesh=new THREE.Points(geo,mat);
-  crossMesh.userData={type:'cross'};
-  scene.add(crossMesh);
+  crossHaloMesh=new THREE.Points(geo,mat);
+  crossHaloMesh.userData={type:'crossHalo'};
+  scene.add(crossHaloMesh);
 }
+
+/* ══════════════════════════════════════════════════════════
+   BOOKS — Now arranged in CROSS formation
+   ══════════════════════════════════════════════════════════ */
+const dpr=Math.min(devicePixelRatio,2);
 
 function buildBooks(){
   if(!data.books.length)return;
   const starTex=makeStarTex();
   const flareTex=makeLensFlare();
-  const secs=Object.keys(data.sections);
-
+  
+  // Identify OT vs NT books
+  const otSections=['Torah','History','Poetry','Major Prophets','Minor Prophets'];
+  const ntSections=['Gospels','Church History',"Paul's Letters",'General Letters','Apocalyptic'];
+  
+  const otBooks=data.books.filter(bk=>otSections.includes(bk.section));
+  const ntBooks=data.books.filter(bk=>ntSections.includes(bk.section));
+  
   data.books.forEach((bk,i)=>{
-    const si=secs.indexOf(bk.section);
-    const arr=data.sections[bk.section];
-    const bi=arr.indexOf(bk.abbr);
-    const bn=arr.length;
-
-    // Spiral galaxy positioning
-    const arm=si%3;
-    const armBase=arm*(6.283/3);
-    const progress=(si*bn+bi)/data.books.length;
-    const dist=28+progress*145;
-    const angle=armBase+progress*Math.PI*4.2+(bi/bn)*0.75;
-    const y=Math.sin(angle*1.5)*10+(Math.random()-0.5)*6;
-    const x=Math.cos(angle)*dist;
-    const z=Math.sin(angle)*dist;
-
     const col=SEC_COLORS[bk.section]||0xc5960c;
     const isMajor=MAJOR.includes(bk.abbr);
-    const sz=Math.max(0.5,Math.pow(bk.chapters,0.35)*0.45);
+    const sz=Math.max(0.5,Math.pow(bk.chapters,0.35)*0.45)*(isMajor?1.5:1); // Larger major books
+    
+    let x,y,z;
+    
+    if(otSections.includes(bk.section)){
+      // VERTICAL BEAM (OT - 39 books from top to bottom)
+      const otIndex=otBooks.findIndex(b=>b.abbr===bk.abbr);
+      y=120-((otIndex/38)*240); // From Y=120 to Y=-120
+      x=(Math.random()-0.5)*4; // Small jitter ±2 units
+      z=(Math.random()-0.5)*4;
+      
+      // Section depth offsets for visual interest
+      const sectionOffsets={'Torah':2,'History':-1,'Poetry':3,'Major Prophets':-2,'Minor Prophets':1};
+      x+=sectionOffsets[bk.section]||0;
+    }
+    else{
+      // HORIZONTAL BEAM (NT - 27 books from left to right)
+      const ntIndex=ntBooks.findIndex(b=>b.abbr===bk.abbr);
+      x=-100+((ntIndex/26)*200); // From X=-100 to X=100
+      y=35+(Math.random()-0.5)*6; // Around Y=35 (crossbar)
+      z=(Math.random()-0.5)*4;
+      
+      // Gospels cluster near center intersection
+      if(bk.section==='Gospels'){
+        x=x*0.3; // Pull toward center X=0
+        y=35+(Math.random()-0.5)*8; // Slightly more Y spread for visibility
+      }
+    }
 
-    // Volumetric sphere with custom shader
+    // Volumetric sphere with enhanced shader
     const coreGeo=new THREE.SphereGeometry(sz*0.7,20,20);
     const coreMat=new THREE.ShaderMaterial({
-      uniforms:{uTime:{value:0},uColor:{value:new THREE.Color(col)},uInt:{value:0.7}},
+      uniforms:{uTime:{value:0},uColor:{value:new THREE.Color(col)},uInt:{value:0.7+(isMajor?0.3:0)}},
       vertexShader:`
         uniform float uTime;varying vec2 vUv;varying vec3 vN,vPos;
         void main(){
@@ -1136,37 +1118,37 @@ function buildBooks(){
     scene.add(hs);
     hitSpheres.push(hs);
 
-    // Glow sprite
-    const gm=new THREE.SpriteMaterial({map:starTex,color:col,transparent:true,opacity:0.35,blending:THREE.AdditiveBlending,depthWrite:false});
+    // Enhanced glow sprite
+    const gm=new THREE.SpriteMaterial({map:starTex,color:col,transparent:true,opacity:(isMajor?0.5:0.35),blending:THREE.AdditiveBlending,depthWrite:false});
     const glow=new THREE.Sprite(gm);
-    const gs=sz*6+2;
+    const gs=sz*6+2+(isMajor?4:0); // Larger glows for major books
     glow.scale.set(gs,gs,1);
     glow.position.copy(core.position);
-    glow.userData={idx:i,bs:gs,bo:0.35};
+    glow.userData={idx:i,bs:gs,bo:(isMajor?0.5:0.35)};
     scene.add(glow);
     glowSprites.push(glow);
 
-    // Anamorphic lens flare for major books
+    // Enhanced anamorphic lens flare for major books  
     if(isMajor){
-      const fm=new THREE.SpriteMaterial({map:flareTex,color:col,transparent:true,opacity:0.25,blending:THREE.AdditiveBlending,depthWrite:false});
+      const fm=new THREE.SpriteMaterial({map:flareTex,color:col,transparent:true,opacity:0.4,blending:THREE.AdditiveBlending,depthWrite:false});
       const flare=new THREE.Sprite(fm);
-      flare.scale.set(sz*25,sz*3,1);
+      flare.scale.set(sz*35,sz*4,1); // Larger flares
       flare.position.copy(core.position);
       flare.userData={type:'flare',idx:i};
       scene.add(flare);
     }
 
     // Section-colored nebula cloud around each book
-    if(Math.random()<0.5||isMajor){
-      const cloudN=isMajor?60:25;
+    if(Math.random()<0.6||isMajor){
+      const cloudN=isMajor?80:35; // More cloud particles
       const cp=new Float32Array(cloudN*3),cs=new Float32Array(cloudN),cc=new Float32Array(cloudN*3);
       const secCol=new THREE.Color(col);
       for(let j=0;j<cloudN;j++){
-        const a=Math.random()*6.283,r=Math.random()*(isMajor?12:7)+2;
-        const hh=(Math.random()-0.5)*(isMajor?8:4);
+        const a=Math.random()*6.283,r=Math.random()*(isMajor?15:9)+3;
+        const hh=(Math.random()-0.5)*(isMajor?10:6);
         cp[j*3]=x+Math.cos(a)*r;cp[j*3+1]=y+hh;cp[j*3+2]=z+Math.sin(a)*r;
-        cs[j]=Math.random()*4+1;
-        cc[j*3]=secCol.r*0.3;cc[j*3+1]=secCol.g*0.3;cc[j*3+2]=secCol.b*0.3;
+        cs[j]=Math.random()*5+1;
+        cc[j*3]=secCol.r*0.4;cc[j*3+1]=secCol.g*0.4;cc[j*3+2]=secCol.b*0.4; // Brighter clouds
       }
       const cg=new THREE.BufferGeometry();
       cg.setAttribute('position',new THREE.BufferAttribute(cp,3));
@@ -1175,7 +1157,7 @@ function buildBooks(){
       const cm=new THREE.ShaderMaterial({
         uniforms:{uPR:{value:dpr}},
         vertexShader:`attribute float size;varying vec3 vC;uniform float uPR;void main(){vC=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_Position=projectionMatrix*mv;gl_PointSize=size*uPR*(200.0/-mv.z);}`,
-        fragmentShader:`varying vec3 vC;void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;gl_FragColor=vec4(vC,smoothstep(0.5,0.1,d)*0.04);}`,
+        fragmentShader:`varying vec3 vC;void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;gl_FragColor=vec4(vC,smoothstep(0.5,0.1,d)*0.06);}`, // Slightly brighter
         transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true
       });
       scene.add(new THREE.Points(cg,cm));
@@ -1184,7 +1166,7 @@ function buildBooks(){
     // Label
     const lbl=makeLabel(bk.name,isMajor);
     lbl.position.set(x,y+sz*6+3.5,z);
-    lbl.material.opacity=isMajor?0.9:0.5;
+    lbl.material.opacity=isMajor?0.95:0.6; // Slightly brighter labels
     lbl.userData={idx:i,isMajor};
     scene.add(lbl);
     labelSprites.push(lbl);
@@ -1192,7 +1174,7 @@ function buildBooks(){
 }
 
 /* ══════════════════════════════════════════════════════════
-   CONNECTIONS — book-level with animated shaders
+   CONNECTIONS — Enhanced dramatic visuals
    ══════════════════════════════════════════════════════════ */
 function buildConnections(){
   if(!data.connections.length)return;
@@ -1210,37 +1192,37 @@ function buildConnections(){
     const m=s.clone().add(e).multiplyScalar(0.5);
     m.y+=5+str*15;
     const curve=new THREE.QuadraticBezierCurve3(s,m,e);
-    const pts=curve.getPoints(28);
+    const pts=curve.getPoints(32); // More curve resolution
 
     const c1=new THREE.Color(SEC_COLORS[fb.section]||0xc5960c);
     const c2=new THREE.Color(SEC_COLORS[tb.section]||0xc5960c);
 
     let line;
-    if(str>0.1){
-      // Animated tube for strong connections
+    if(str>0.08){ // Lower threshold for dramatic tubes
+      // Enhanced animated tube for strong connections
       const catm=new THREE.CatmullRomCurve3(pts);
-      const tubeGeo=new THREE.TubeGeometry(catm,20,0.05+str*0.22,5,false);
+      const tubeGeo=new THREE.TubeGeometry(catm,24,0.08+str*0.3,6,false); // Thicker tubes
       const col=c1.clone().lerp(c2,0.5);
-      const op=0.15+str*0.6;
+      const op=0.2+str*0.8; // More opaque
       const mat=new THREE.ShaderMaterial({
         uniforms:{uTime:{value:0},uColor:{value:col},uOp:{value:op},uStr:{value:str}},
         vertexShader:`uniform float uTime;varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
         fragmentShader:`
           uniform float uTime,uOp,uStr;uniform vec3 uColor;varying vec3 vP;
           void main(){
-            // Energy pulse traveling along the line
-            float pulse=sin(uTime*1.8+length(vP)*0.08)*0.3+0.7;
-            float energy=sin(uTime*3.0-length(vP)*0.2)*0.5+0.5;
-            energy=pow(energy,3.0)*0.4;
-            vec3 col=uColor*(1.0+uStr*0.5+energy);
-            gl_FragColor=vec4(col,uOp*pulse+energy*0.2);
+            // Enhanced energy pulse
+            float pulse=sin(uTime*2.2+length(vP)*0.1)*0.4+0.7;
+            float energy=sin(uTime*3.5-length(vP)*0.25)*0.6+0.4;
+            energy=pow(energy,2.5)*0.6; // Stronger energy
+            vec3 col=uColor*(1.2+uStr*0.8+energy*1.2);
+            gl_FragColor=vec4(col,uOp*pulse+energy*0.4);
           }
         `,
         transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
       });
       line=new THREE.Mesh(tubeGeo,mat);
     }else{
-      // Simple line for weak connections
+      // Enhanced simple line for weak connections
       const geo=new THREE.BufferGeometry().setFromPoints(pts);
       const vc=new Float32Array(pts.length*3);
       for(let j=0;j<pts.length;j++){
@@ -1249,7 +1231,7 @@ function buildConnections(){
         vc[j*3]=cc.r;vc[j*3+1]=cc.g;vc[j*3+2]=cc.b;
       }
       geo.setAttribute('color',new THREE.BufferAttribute(vc,3));
-      const mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.04+str*0.35,blending:THREE.AdditiveBlending,depthWrite:false});
+      const mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.06+str*0.5,blending:THREE.AdditiveBlending,depthWrite:false}); // More visible
       line=new THREE.Line(geo,mat);
     }
 
@@ -1339,25 +1321,25 @@ function selectBook(idx){
 
   // Visual enhancements
   glowSprites.forEach((g,i)=>{
-    if(i===idx){g.material.opacity=0.65;g.scale.setScalar(g.userData.bs*1.8);}
-    else if(connSet.has(data.books[i]?.abbr)){g.material.opacity=0.4;g.scale.setScalar(g.userData.bs*1.15);}
-    else{g.material.opacity=0.04;}
+    if(i===idx){g.material.opacity=0.8;g.scale.setScalar(g.userData.bs*2.0);} // Brighter, larger
+    else if(connSet.has(data.books[i]?.abbr)){g.material.opacity=0.5;g.scale.setScalar(g.userData.bs*1.3);}
+    else{g.material.opacity=0.03;}
   });
 
   bookMeshes.forEach((b,i)=>{
-    const int=i===idx?1.3:connSet.has(data.books[i]?.abbr)?0.8:0.15;
+    const int=i===idx?1.5:connSet.has(data.books[i]?.abbr)?1.0:0.1; // More dramatic
     b.userData.mat.uniforms.uInt.value=int;
   });
 
   connLines.forEach(l=>{
     const hit=l.userData.from===bk.abbr||l.userData.to===bk.abbr;
-    const v=hit?Math.min(0.9,l.userData.bo*5):0.003;
+    const v=hit?Math.min(1.2,l.userData.bo*6):0.002; // More dramatic connections
     if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=v;
     else l.material.opacity=v;
   });
 
   labelSprites.forEach((l,i)=>{
-    l.material.opacity=i===idx?1:connSet.has(data.books[i]?.abbr)?0.85:0;
+    l.material.opacity=i===idx?1:connSet.has(data.books[i]?.abbr)?0.9:0;
   });
 
   // Spawn flow particles
@@ -1412,7 +1394,7 @@ window.deselect=function(silent){
   });
   glowSprites.forEach(g=>{g.material.opacity=g.userData.bo;g.scale.setScalar(g.userData.bs);});
   bookMeshes.forEach(b=>b.userData.mat.uniforms.uInt.value=0.7);
-  labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.9:0.5);
+  labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.95:0.6);
 
   clearFlow();clearVerseLines();
 
@@ -1432,12 +1414,12 @@ function spawnFlow(abbr,connsData){
     const line=connLines.find(l=>(l.userData.from===cn.from&&l.userData.to===cn.to)||(l.userData.from===cn.to&&l.userData.to===cn.from));
     if(!line?.userData.curve)return;
 
-    const n=Math.min(12,5+Math.floor(cn.count/80));
+    const n=Math.min(15,6+Math.floor(cn.count/60)); // More flow particles
     for(let j=0;j<n;j++){
-      const geo=new THREE.SphereGeometry(0.12,6,6);
-      const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.7,blending:THREE.AdditiveBlending});
+      const geo=new THREE.SphereGeometry(0.15,6,6); // Slightly larger
+      const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending});
       const p=new THREE.Mesh(geo,mat);
-      p.userData={curve:line.userData.curve,t:Math.random(),speed:0.12+Math.random()*0.3,rev:line.userData.to===abbr,po:Math.random()*6.283};
+      p.userData={curve:line.userData.curve,t:Math.random(),speed:0.15+Math.random()*0.4,rev:line.userData.to===abbr,po:Math.random()*6.283};
       scene.add(p);flowParts.push(p);
     }
   });
@@ -1511,7 +1493,7 @@ async function loadVerseRefs(abbr){
     const geo=new THREE.BufferGeometry();
     geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
     geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
-    const mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.1,blending:THREE.AdditiveBlending,depthWrite:false});
+    const mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.12,blending:THREE.AdditiveBlending,depthWrite:false}); // More visible
 
     verseLineGroup=new THREE.Group();
     verseLineGroup.add(new THREE.LineSegments(geo,mat));
@@ -1532,15 +1514,15 @@ function highlightSection(name){
 
   glowSprites.forEach((g,i)=>{
     const bk=data.books[i];
-    g.material.opacity=set.has(bk.abbr)?1:0.06;
-    g.scale.setScalar(g.userData.bs*(set.has(bk.abbr)?1.6:1));
+    g.material.opacity=set.has(bk.abbr)?1.2:0.05; // More dramatic
+    g.scale.setScalar(g.userData.bs*(set.has(bk.abbr)?1.8:1));
   });
   labelSprites.forEach((l,i)=>{
     l.material.opacity=set.has(data.books[i].abbr)?1:0;
   });
   connLines.forEach(l=>{
     const hf=set.has(l.userData.from),ht=set.has(l.userData.to);
-    const v=hf&&ht?l.userData.bo*3:hf||ht?l.userData.bo*0.6:0.004;
+    const v=hf&&ht?l.userData.bo*4:hf||ht?l.userData.bo*0.8:0.003; // More dramatic
     if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=v;
     else l.material.opacity=v;
   });
@@ -1548,7 +1530,7 @@ function highlightSection(name){
   setTimeout(()=>{
     if(!selected){
       glowSprites.forEach(g=>{g.material.opacity=g.userData.bo;g.scale.setScalar(g.userData.bs);});
-      labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.9:0.5);
+      labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.95:0.6);
       connLines.forEach(l=>{
         if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=l.userData.bo;
         else l.material.opacity=l.userData.bo;
@@ -1564,14 +1546,14 @@ function flyToCross(){
   if(selected)deselect(true);
   controls.autoRotate=false;
 
-  // Cross is at (0, 0, -280), fly to a position in front of it
-  const crossPos=new THREE.Vector3(0,25,-280);
-  const camPos=new THREE.Vector3(0,30,-200);
+  // Fly to show the full cross formation
+  const crossPos=new THREE.Vector3(0,35,0); // Center of the cross (intersection)
+  const camPos=new THREE.Vector3(0,35,180); // Pull back to see the full cross
   animateCamera(camPos,crossPos);
 
   // Show a panel for the cross
-  document.getElementById('bname').textContent='The Cross';
-  document.getElementById('bdetail').textContent='The center of all Scripture';
+  document.getElementById('bname').textContent='The Cross of Scripture';
+  document.getElementById('bdetail').textContent='66 books forming the eternal symbol';
   document.getElementById('bdesc').textContent='Every book, every verse, every cross-reference — they all point here. The cross is not just an event in history; it is the lens through which the entire Bible is understood. From Genesis to Revelation, the scarlet thread of redemption weaves through every page, every prophecy, every promise — all fulfilled at Calvary.';
   document.getElementById('str-fill').style.width='100%';
   document.getElementById('str-num').textContent='264,673 references';
@@ -1584,14 +1566,18 @@ function flyToCross(){
   document.getElementById('panel').classList.add('show');
   document.getElementById('hint').style.opacity='0';
 
-  // Dim everything else to make the cross prominent
-  glowSprites.forEach(g=>{g.material.opacity=0.06;});
-  bookMeshes.forEach(b=>b.userData.mat.uniforms.uInt.value=0.12);
+  // Enhance the cross formation visibility
+  glowSprites.forEach(g=>{g.material.opacity=g.userData.bo*0.8;});
+  bookMeshes.forEach(b=>b.userData.mat.uniforms.uInt.value=0.8);
   connLines.forEach(l=>{
-    if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=0.003;
-    else l.material.opacity=0.003;
+    const v=l.userData.bo*0.3; // Show some connections but subdued
+    if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=v;
+    else l.material.opacity=v;
   });
-  labelSprites.forEach(l=>l.material.opacity=0);
+  labelSprites.forEach(l=>l.material.opacity=l.userData.isMajor?0.8:0.4);
+
+  // Make cross halo more visible
+  if(crossHaloMesh)crossHaloMesh.material.uniforms.uTime.value+=10; // Trigger more glow
 
   // Play a deeper, more resonant chime
   playChime(130.8);
@@ -1603,7 +1589,7 @@ function flyToCross(){
 }
 
 function animateCamera(pos,target){
-  camAnim={sP:camera.position.clone(),eP:pos,sT:controls.target.clone(),eT:target,t0:clock.getElapsedTime(),dur:2.0};
+  camAnim={sP:camera.position.clone(),eP:pos,sT:controls.target.clone(),eT:target,t0:clock.getElapsedTime(),dur:2.5}; // Longer animation
 }
 
 function updateCamAnim(time){
@@ -1649,7 +1635,7 @@ function onHover(e){
 
   if(h.length){
     const i=h[0].object.userData.idx;
-    if(hovered!==null&&hovered!==selectedIdx&&!labelSprites[hovered]?.userData.isMajor)labelSprites[hovered].material.opacity=selectedIdx===-1?0.5:0;
+    if(hovered!==null&&hovered!==selectedIdx&&!labelSprites[hovered]?.userData.isMajor)labelSprites[hovered].material.opacity=selectedIdx===-1?0.6:0;
     if(selectedIdx===-1||i===selectedIdx)labelSprites[i].material.opacity=1;
     hovered=i;
 
@@ -1665,7 +1651,7 @@ function onHover(e){
   }else{
     if(hovered!==null&&hovered!==selectedIdx){
       const lbl=labelSprites[hovered];
-      if(lbl)lbl.material.opacity=selectedIdx===-1?(lbl.userData.isMajor?0.9:0.5):0;
+      if(lbl)lbl.material.opacity=selectedIdx===-1?(lbl.userData.isMajor?0.95:0.6):0;
     }
     hovered=null;
     tt.style.display='none';
@@ -1674,7 +1660,7 @@ function onHover(e){
 }
 
 /* ══════════════════════════════════════════════════════════
-   INTRO SEQUENCE
+   INTRO SEQUENCE — Modified to show full cross first
    ══════════════════════════════════════════════════════════ */
 function updateIntro(t){
   if(!introPhase)return;
@@ -1692,8 +1678,14 @@ function updateIntro(t){
     const p=Math.min(1,(t-introTime)/4.5);
     const e=1-Math.pow(1-p,3);
 
-    camera.position.set(0,e*75,e*170);
-    controls.target.set(0,0,0);
+    // Modified camera path - start far out showing full cross, then zoom into center
+    const startPos=new THREE.Vector3(0,35,350); // Far out showing the full cross
+    const endPos=new THREE.Vector3(0,75,170);   // Final position
+    const startTarget=new THREE.Vector3(0,35,0); // Cross center
+    const endTarget=new THREE.Vector3(0,0,0);   // Final target
+    
+    camera.position.lerpVectors(startPos,endPos,e);
+    controls.target.lerpVectors(startTarget,endTarget,e);
     renderer.toneMappingExposure=0.55*e;
 
     if(p>0.15){document.getElementById('intro').classList.add('gone');document.getElementById('skipbtn').style.display='none';}
@@ -1734,9 +1726,6 @@ function onResize(){
   composer.setSize(w,h);
 }
 
-/* ══════════════════════════════════════════════════════════
-   ANIMATION LOOP
-   ══════════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════════
    WASD + QE FLIGHT CONTROLS
    ══════════════════════════════════════════════════════════ */
@@ -1780,10 +1769,10 @@ function animate(){
   updateFlight(dt);
   controls.update();
 
-  // Glow pulsing
+  // Enhanced glow pulsing
   if(selectedIdx===-1){
     glowSprites.forEach((g,i)=>{
-      const p=Math.sin(time*1.2+i*0.85)*0.12+1;
+      const p=Math.sin(time*1.2+i*0.85)*0.15+1; // Slightly more pulsing
       g.scale.setScalar(g.userData.bs*p);
     });
   }
@@ -1804,14 +1793,14 @@ function animate(){
     const pt=p.userData.curve.getPoint(p.userData.t);
     p.position.copy(pt);
     p.position.y+=Math.sin(time*1.5+p.userData.po)*0.4;
-    p.material.opacity=(Math.sin(time*2+p.userData.po)*0.3+0.7)*0.7;
+    p.material.opacity=(Math.sin(time*2+p.userData.po)*0.3+0.7)*0.8; // Brighter
   });
 
-  // Connection pulsing when nothing selected
+  // Enhanced connection pulsing when nothing selected
   if(selectedIdx===-1){
     connLines.forEach((l,i)=>{
-      if(l.userData.str>0.08){
-        const p=Math.sin(time*0.8+i*0.35)*0.18+1;
+      if(l.userData.str>0.06){ // Lower threshold
+        const p=Math.sin(time*0.9+i*0.4)*0.25+1; // More pulsing
         if(l.material.uniforms?.uOp)l.material.uniforms.uOp.value=l.userData.bo*p;
         else l.material.opacity=l.userData.bo*p;
       }
